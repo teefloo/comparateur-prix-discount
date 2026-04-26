@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.next/
+.vercel/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build
+dist/
+build/
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Scraper outputs
+scrape-results.json
+scrape-history.log
+
+# Testing
+coverage/
+.vercel
