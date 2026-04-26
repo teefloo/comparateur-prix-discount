@@ -2,6 +2,14 @@
 
 Comparateur de prix discount pour **Action**, **Stokomani**, **B&M**, **Centrakor** et **Aldi**.
 
+## 🛠 Tech Stack
+
+- **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) & [Framer Motion](https://www.framer.com/motion/)
+- **Scraping**: [Playwright](https://playwright.dev/) & [Puppeteer Stealth](https://github.com/berstend/puppeteer-extra/tree/master/packages/puppeteer-extra-plugin-stealth)
+- **Database**: [PostgreSQL](https://www.postgresql.org/) (Vercel Postgres)
+- **Data Processing**: [Cheerio](https://cheerio.js.org/) & [Fuse.js](https://fusejs.io/) (Fuzzy Search)
+
 ## Fonctionnalités
 
 - Recherche d'offres en base ou en fallback live scraping
