@@ -36,3 +36,4 @@ scrape-history.log
 # Testing
 coverage/
 .vercel
+.env*.local

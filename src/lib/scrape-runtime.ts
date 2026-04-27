@@ -85,14 +85,15 @@ async function runRetailerScrape(
 }
 
 export async function scrapeRetailers(options: ScrapeRetailersOptions = {}): Promise<RetailerScrapeExecutionResult[]> {
-  const includeBrowserScrapers = options.includeBrowserScrapers ?? true
+  const isVercel = process.env.VERCEL === '1'
+  const includeBrowserScrapers = isVercel ? false : (options.includeBrowserScrapers ?? true)
   const maxAttempts = options.maxAttempts ?? 2
   const retailers = (options.retailers || RETAILERS).filter((retailer) => {
     const config = SCRAPER_REGISTRY[retailer]
     return includeBrowserScrapers || !config.browserRequired
   })
 
-  if (process.env.VERCEL === '1') {
+  if (isVercel) {
     const results: RetailerScrapeExecutionResult[] = []
 
     for (const retailer of retailers) {
