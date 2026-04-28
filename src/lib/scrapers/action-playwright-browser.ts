@@ -6,16 +6,17 @@ import {
   ensureUnitPriceText,
   extractQuantity,
   filterOffersByQuery,
-  resolveOfferCategory,
+  resolveScrapedOfferCategory,
   toAbsoluteUrl,
   toValidPrice,
 } from '../scraper-utils'
-import type { ScrapedOffer } from '../types'
+import type { RetailerScrapeDetails, ScrapeIssue, ScrapedOffer } from '../types'
 import { launchChromiumBrowser } from './chromium-launch'
 
 const ACTION_BASE_URL = 'https://www.action.com/fr-fr'
-const ACTION_NAVIGATION_TIMEOUT_MS = 90000
+const ACTION_NAVIGATION_TIMEOUT_MS = 60000
 const ACTION_NAVIGATION_RETRIES = 3
+const ACTION_MAX_PAGES = 60
 
 const ACTION_CATEGORIES: Array<{ name: SupportedCategory; url: string }> = [
   { name: 'alimentation', url: `${ACTION_BASE_URL}/c/boissons--alimentation/` },
@@ -114,7 +115,28 @@ async function navigateActionListingPage(page: Page, url: string) {
   throw lastError instanceof Error ? lastError : new Error(String(lastError))
 }
 
-async function extractProductsFromPage(page: Page, explicitCategory: SupportedCategory | null): Promise<ScrapedOffer[]> {
+function createActionIssue(
+  code: string,
+  message: string,
+  url?: string,
+  category?: SupportedCategory | null,
+  page?: number,
+): ScrapeIssue {
+  return {
+    retailer: 'action',
+    code,
+    message,
+    url,
+    category: category || undefined,
+    page,
+  }
+}
+
+async function extractProductsFromPage(
+  page: Page,
+  categoryUrl: string,
+  explicitCategory: SupportedCategory | null,
+): Promise<ScrapedOffer[]> {
   const rows = await page.evaluate((): ExtractedActionProduct[] => {
     // Use more generic selector that works with Action's current site
     const cards = Array.from(document.querySelectorAll('a[href*="/p/"]')) as HTMLAnchorElement[]
@@ -169,16 +191,17 @@ async function extractProductsFromPage(page: Page, explicitCategory: SupportedCa
       continue
     }
 
-    const category =
-      explicitCategory ||
-      resolveOfferCategory({
-        sourceCategoryPath: row.detailsText,
-        textValues: [finalName, row.detailsText, row.fullText],
-      })
-
-    if (!category) {
-      continue
-    }
+    const sourceCategoryPath = [categoryUrl, row.detailsText].filter(Boolean).join(' | ')
+    const categoryResolution = resolveScrapedOfferCategory({
+      retailer: 'action',
+      sourceUrl,
+      sourceCategoryPath,
+      name: finalName,
+      brand,
+      description: row.detailsText,
+      tags: [row.fullText, explicitCategory || ''],
+    })
+    const category = categoryResolution.category
 
     const originalPrice = row.originalPriceText
       ? parseActionPrice(row.originalPriceText, '', [row.originalPriceText])
@@ -194,8 +217,9 @@ async function extractProductsFromPage(page: Page, explicitCategory: SupportedCa
       retailer: 'action',
       sourceProductId,
       sourceUrl,
-      sourceCategoryPath: explicitCategory ? category : cleanDisplayText(row.detailsText) || undefined,
+      sourceCategoryPath: sourceCategoryPath || undefined,
       category,
+      categoryResolution,
       name: finalName,
       brand: brand || undefined,
       price,
@@ -221,24 +245,26 @@ async function scrapeCategory(
   categoryUrl: string,
   categoryName: SupportedCategory | null,
   maxPages: number,
-): Promise<ScrapedOffer[]> {
+): Promise<{ offers: ScrapedOffer[]; issue?: ScrapeIssue; completed: boolean }> {
   const offers: ScrapedOffer[] = []
   const seenUrls = new Set<string>()
+  let completed = false
 
   for (let pageNum = 1; pageNum <= maxPages; pageNum += 1) {
     const url = pageNum === 1 ? categoryUrl : `${categoryUrl}?page=${pageNum}#product-grid`
 
     try {
       await navigateActionListingPage(page, url)
-      await page.waitForSelector('a[href*="/p/"]', { timeout: 10000 }).catch(() => null)
+      await page.waitForSelector('a[href*="/p/"]', { timeout: 6000 }).catch(() => null)
 
-      for (let scrollAttempts = 0; scrollAttempts < 3; scrollAttempts++) {
+      for (let scrollAttempts = 0; scrollAttempts < 2; scrollAttempts++) {
         await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-        await page.waitForTimeout(2000)
+        await page.waitForTimeout(900)
       }
 
-      const pageOffers = await extractProductsFromPage(page, categoryName)
+      const pageOffers = await extractProductsFromPage(page, categoryUrl, categoryName)
       if (pageOffers.length === 0) {
+        completed = true
         break
       }
 
@@ -252,23 +278,50 @@ async function scrapeCategory(
 
       // If no new products were added, we've reached the end
       if (added === 0) {
+        completed = true
         break
       }
+
+      if (pageNum === maxPages) {
+        return {
+          offers,
+          completed: false,
+          issue: createActionIssue(
+            'max_pages_reached',
+            `Reached safety page limit while scraping ${categoryUrl}`,
+            url,
+            categoryName,
+            pageNum,
+          ),
+        }
+      }
     } catch (error) {
-      throw new Error(
-        `Action category scrape failed for ${url}: ${error instanceof Error ? error.message : String(error)}`,
-      )
+      return {
+        offers,
+        completed: false,
+        issue: createActionIssue(
+          'page_error',
+          `Action category scrape failed for ${url}: ${error instanceof Error ? error.message : String(error)}`,
+          url,
+          categoryName,
+          pageNum,
+        ),
+      }
     }
   }
 
-  return offers
+  return {
+    offers,
+    completed,
+  }
 }
 
-export async function scrapeActionProducts(searchQuery?: string): Promise<ScrapedOffer[]> {
+export async function scrapeActionProductsDetailed(searchQuery?: string): Promise<RetailerScrapeDetails> {
   const offers: ScrapedOffer[] = []
   const seenUrls = new Set<string>()
+  const issues: ScrapeIssue[] = []
   const normalizedQuery = cleanDisplayText(searchQuery)
-  const maxPagesPerCategory = normalizedQuery ? 10 : 25
+  const maxPagesPerCategory = normalizedQuery ? 20 : ACTION_MAX_PAGES
 
   const browser = await launchChromiumBrowser({
     args: [
@@ -279,6 +332,9 @@ export async function scrapeActionProducts(searchQuery?: string): Promise<Scrape
       '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
     ],
   })
+
+  let discoveredListings = 0
+  let completedListings = 0
 
   try {
     const context = await browser.newContext({
@@ -321,15 +377,27 @@ export async function scrapeActionProducts(searchQuery?: string): Promise<Scrape
       ? [{ name: null, url: `${ACTION_BASE_URL}/search/?q=${encodeURIComponent(normalizedQuery)}` }]
       : ACTION_CATEGORIES
 
+    discoveredListings = categoriesToScrape.length
+
     for (const category of categoriesToScrape) {
-      const categoryOffers = await scrapeCategory(
+      const categoryResult = await scrapeCategory(
         page,
         category.url,
         isSupportedCategory(category.name) ? category.name : null,
         maxPagesPerCategory,
       )
 
-      const filteredOffers = normalizedQuery ? filterOffersByQuery(categoryOffers, normalizedQuery) : categoryOffers
+      if (categoryResult.issue) {
+        issues.push(categoryResult.issue)
+      }
+
+      if (categoryResult.completed) {
+        completedListings += 1
+      }
+
+      const filteredOffers = normalizedQuery
+        ? filterOffersByQuery(categoryResult.offers, normalizedQuery)
+        : categoryResult.offers
 
       for (const offer of filteredOffers) {
         if (seenUrls.has(offer.sourceUrl)) continue
@@ -337,9 +405,31 @@ export async function scrapeActionProducts(searchQuery?: string): Promise<Scrape
         offers.push(offer)
       }
     }
+  } catch (error) {
+    issues.push(
+      createActionIssue(
+        'scraper_error',
+        `Action scraper failed: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    )
   } finally {
     await browser.close()
   }
 
-  return offers
+  return {
+    retailer: 'action',
+    offers,
+    issues,
+    coverage: {
+      discoveredListings,
+      completedListings,
+      collectionRate: discoveredListings === 0 ? 0 : Math.round((completedListings / discoveredListings) * 100),
+      isComplete: issues.length === 0 && discoveredListings > 0 && completedListings === discoveredListings,
+    },
+  }
+}
+
+export async function scrapeActionProducts(searchQuery?: string): Promise<ScrapedOffer[]> {
+  const result = await scrapeActionProductsDetailed(searchQuery)
+  return result.offers
 }

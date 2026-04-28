@@ -6,15 +6,16 @@ import {
   ensureUnitPriceText,
   extractQuantity,
   filterOffersByQuery,
-  resolveOfferCategory,
+  resolveScrapedOfferCategory,
   toAbsoluteUrl,
   toValidPrice,
 } from '../scraper-utils'
 import { enrichOffersFromProductPages } from './product-page-details'
-import type { ScrapedOffer } from '../types'
+import type { RetailerScrapeDetails, ScrapeIssue, ScrapedOffer } from '../types'
 import { launchChromiumBrowser } from './chromium-launch'
 
 const BM_BASE_URL = 'https://bmstores.fr'
+const BM_MAX_PAGES = 60
 
 const BM_CATEGORIES: Array<{ name: SupportedCategory; url: string }> = [
   { name: 'maison-deco', url: `${BM_BASE_URL}/produits/2211-maison-deco` },
@@ -59,7 +60,28 @@ function parseBMSourceProductId(url: string) {
   }
 }
 
-async function extractProductsFromPage(page: Page, explicitCategory: SupportedCategory | null): Promise<ScrapedOffer[]> {
+function createBmIssue(
+  code: string,
+  message: string,
+  url?: string,
+  category?: SupportedCategory | null,
+  page?: number,
+): ScrapeIssue {
+  return {
+    retailer: 'bm',
+    code,
+    message,
+    url,
+    category: category || undefined,
+    page,
+  }
+}
+
+async function extractProductsFromPage(
+  page: Page,
+  categoryUrl: string,
+  explicitCategory: SupportedCategory | null,
+): Promise<ScrapedOffer[]> {
   const rows = await page.evaluate((): BMExtractedRow[] => {
     const cards = Array.from(document.querySelectorAll('article.product-miniature')) as HTMLElement[]
 
@@ -106,16 +128,18 @@ async function extractProductsFromPage(page: Page, explicitCategory: SupportedCa
       continue
     }
 
-    const category =
-      explicitCategory ||
-      resolveOfferCategory({
-        sourceCategoryPath: row.detailsText,
-        textValues: [finalName, row.detailsText, row.availability],
-      })
-
-    if (!category) {
-      continue
-    }
+    const sourceCategoryPath = [categoryUrl, row.detailsText].filter(Boolean).join(' | ')
+    const categoryResolution = resolveScrapedOfferCategory({
+      retailer: 'bm',
+      sourceUrl,
+      sourceCategoryPath,
+      name: finalName,
+      brand,
+      description: row.detailsText,
+      availability: row.availability,
+      tags: [explicitCategory || ''],
+    })
+    const category = categoryResolution.category
 
     const originalPriceMatch = cleanDisplayText(row.originalPriceText).replace(',', '.').match(/(\d+[.,]\d{2})/)
     const originalPrice = originalPriceMatch ? toValidPrice(originalPriceMatch[1]) : null
@@ -130,8 +154,9 @@ async function extractProductsFromPage(page: Page, explicitCategory: SupportedCa
       retailer: 'bm',
       sourceProductId,
       sourceUrl,
-      sourceCategoryPath: explicitCategory || cleanDisplayText(row.detailsText) || undefined,
+      sourceCategoryPath: sourceCategoryPath || undefined,
       category,
+      categoryResolution,
       name: finalName,
       brand: brand || undefined,
       price,
@@ -157,10 +182,11 @@ async function scrapeCategory(
   categoryUrl: string,
   categoryName: SupportedCategory | null,
   maxPages: number,
-): Promise<ScrapedOffer[]> {
+): Promise<{ offers: ScrapedOffer[]; issue?: ScrapeIssue; completed: boolean }> {
   const offers: ScrapedOffer[] = []
   const seenUrls = new Set<string>()
   const seenPageSignatures = new Set<string>()
+  let completed = false
 
   for (let pageNum = 1; pageNum <= maxPages; pageNum += 1) {
     const url = pageNum === 1 ? categoryUrl : `${categoryUrl}?page=${pageNum}`
@@ -169,19 +195,22 @@ async function scrapeCategory(
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
       const productsFound = await page.waitForSelector('article.product-miniature', { timeout: 10000 }).catch(() => null)
       if (!productsFound) {
+        completed = true
         break
       }
 
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2))
       await page.waitForTimeout(600)
 
-      const pageOffers = await extractProductsFromPage(page, categoryName)
+      const pageOffers = await extractProductsFromPage(page, categoryUrl, categoryName)
       if (pageOffers.length === 0) {
+        completed = true
         break
       }
 
       const pageSignature = pageOffers.slice(0, 8).map((offer) => offer.sourceUrl).join('|')
       if (!pageSignature || seenPageSignatures.has(pageSignature)) {
+        completed = true
         break
       }
       seenPageSignatures.add(pageSignature)
@@ -195,22 +224,52 @@ async function scrapeCategory(
       }
 
       if (added === 0) {
+        completed = true
         break
       }
+
+      if (pageNum === maxPages) {
+        return {
+          offers,
+          completed: false,
+          issue: createBmIssue(
+            'max_pages_reached',
+            `Reached safety page limit while scraping ${categoryUrl}`,
+            url,
+            categoryName,
+            pageNum,
+          ),
+        }
+      }
     } catch (error) {
-      console.error(`B&M category scrape failed for ${url}:`, error)
-      break
+      return {
+        offers,
+        completed: false,
+        issue: createBmIssue(
+          'page_error',
+          `B&M category scrape failed for ${url}: ${error instanceof Error ? error.message : String(error)}`,
+          url,
+          categoryName,
+          pageNum,
+        ),
+      }
     }
   }
 
-  return offers
+  return {
+    offers,
+    completed,
+  }
 }
 
-export async function scrapeBMProducts(searchQuery?: string): Promise<ScrapedOffer[]> {
+export async function scrapeBMProductsDetailed(searchQuery?: string): Promise<RetailerScrapeDetails> {
   const offers: ScrapedOffer[] = []
   const seenUrls = new Set<string>()
+  const issues: ScrapeIssue[] = []
   const normalizedQuery = cleanDisplayText(searchQuery)
-  const maxPagesPerCategory = normalizedQuery ? 10 : 20
+  const maxPagesPerCategory = normalizedQuery ? 20 : BM_MAX_PAGES
+  let discoveredListings = 0
+  let completedListings = 0
 
   const browser = await launchChromiumBrowser({
     args: ['--disable-blink-features=AutomationControlled', '--disable-dev-shm-usage', '--no-sandbox', '--disable-setuid-sandbox'],
@@ -254,15 +313,27 @@ export async function scrapeBMProducts(searchQuery?: string): Promise<ScrapedOff
       ? [{ name: null, url: `${BM_BASE_URL}/recherche?s=${encodeURIComponent(normalizedQuery)}` }]
       : BM_CATEGORIES
 
+    discoveredListings = categoriesToScrape.length
+
     for (const category of categoriesToScrape) {
-      const categoryOffers = await scrapeCategory(
+      const categoryResult = await scrapeCategory(
         page,
         category.url,
         isSupportedCategory(category.name) ? category.name : null,
         maxPagesPerCategory,
       )
 
-      const filteredOffers = normalizedQuery ? filterOffersByQuery(categoryOffers, normalizedQuery) : categoryOffers
+      if (categoryResult.issue) {
+        issues.push(categoryResult.issue)
+      }
+
+      if (categoryResult.completed) {
+        completedListings += 1
+      }
+
+      const filteredOffers = normalizedQuery
+        ? filterOffersByQuery(categoryResult.offers, normalizedQuery)
+        : categoryResult.offers
 
       for (const offer of filteredOffers) {
         if (seenUrls.has(offer.sourceUrl)) continue
@@ -271,10 +342,30 @@ export async function scrapeBMProducts(searchQuery?: string): Promise<ScrapedOff
       }
     }
   } catch (error) {
-    console.error('Error in B&M scraper:', error)
+    issues.push(
+      createBmIssue(
+        'scraper_error',
+        `Error in B&M scraper: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    )
   } finally {
     await browser.close()
   }
 
-  return offers
+  return {
+    retailer: 'bm',
+    offers,
+    issues,
+    coverage: {
+      discoveredListings,
+      completedListings,
+      collectionRate: discoveredListings === 0 ? 0 : Math.round((completedListings / discoveredListings) * 100),
+      isComplete: issues.length === 0 && discoveredListings > 0 && completedListings === discoveredListings,
+    },
+  }
+}
+
+export async function scrapeBMProducts(searchQuery?: string): Promise<ScrapedOffer[]> {
+  const result = await scrapeBMProductsDetailed(searchQuery)
+  return result.offers
 }

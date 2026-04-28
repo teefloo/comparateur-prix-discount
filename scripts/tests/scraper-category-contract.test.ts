@@ -1,0 +1,112 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+
+import type { Retailer } from '../../src/lib/catalog'
+import { isSupportedCategory } from '../../src/lib/catalog'
+import { resolveScrapedOfferCategory, validateOffersForRetailer } from '../../src/lib/scraper-utils'
+import type { ScrapedOffer } from '../../src/lib/types'
+
+type OfferFixture = {
+  retailer: Retailer
+  sourceUrl: string
+  sourceCategoryPath?: string
+  nativeCategory?: string
+  name: string
+  description?: string
+  availability?: string
+}
+
+function buildScrapedOffer(fixture: OfferFixture): ScrapedOffer {
+  const categoryResolution = resolveScrapedOfferCategory({
+    retailer: fixture.retailer,
+    sourceUrl: fixture.sourceUrl,
+    sourceCategoryPath: fixture.sourceCategoryPath,
+    nativeCategory: fixture.nativeCategory,
+    name: fixture.name,
+    description: fixture.description,
+    availability: fixture.availability,
+  })
+
+  return {
+    retailer: fixture.retailer,
+    sourceUrl: fixture.sourceUrl,
+    sourceCategoryPath: fixture.sourceCategoryPath,
+    sourceProductId: fixture.sourceUrl.split('/').filter(Boolean).at(-1) || fixture.name,
+    category: categoryResolution.category,
+    categoryResolution,
+    name: fixture.name,
+    price: 9.99,
+    image: fixture.sourceUrl,
+    description: fixture.description,
+    availability: fixture.availability,
+  }
+}
+
+const fixtures: OfferFixture[] = [
+  {
+    retailer: 'action',
+    sourceUrl: 'https://www.action.com/fr-fr/p/3222877/casque-anc-sans-fil/',
+    sourceCategoryPath: 'https://www.action.com/fr-fr/c/multimedia/ | audio',
+    name: 'Casque ANC sans fil',
+    description: 'Casque bluetooth',
+  },
+  {
+    retailer: 'bm',
+    sourceUrl: 'https://bmstores.fr/produits/2344-jeu-jouet/voiture-telecommandee',
+    sourceCategoryPath: 'https://bmstores.fr/produits/2344-jeu-jouet',
+    name: 'Voiture telecommandee enfant',
+    description: 'Jouet radiocommande',
+  },
+  {
+    retailer: 'stokomani',
+    sourceUrl: 'https://www.stokomani.fr/products/tablette-chocolat-noir',
+    sourceCategoryPath: 'epicerie | chocolat',
+    nativeCategory: 'epicerie',
+    name: 'Tablette chocolat noir',
+    description: 'Chocolat noir dessert',
+  },
+  {
+    retailer: 'centrakor',
+    sourceUrl: 'https://www.centrakor.com/animalerie/litiere-chat.html',
+    sourceCategoryPath: '/animalerie/litiere-chat.html',
+    name: 'Litiere chat',
+    description: 'Accessoire animalerie',
+  },
+  {
+    retailer: 'aldi',
+    sourceUrl: 'https://www.aldi.fr/produits/hygiene-beaute-bebe/dentifrice-fresh.html',
+    sourceCategoryPath: 'https://www.aldi.fr/produits/hygiene-beaute-bebe/dentifrice-fresh.html',
+    nativeCategory: 'hygiene-beaute-bebe',
+    name: 'Dentifrice fresh',
+    description: 'Hygiene dentaire',
+  },
+  {
+    retailer: 'action',
+    sourceUrl: 'https://www.action.com/fr-fr/p/9999999/support-pliable-universel/',
+    name: 'Support pliable universel',
+    description: 'Article polyvalent',
+  },
+]
+
+test('validated scraper offers always keep a supported category and retain fallbacks', () => {
+  for (const retailer of new Set(fixtures.map((fixture) => fixture.retailer))) {
+    const rawOffers = fixtures.filter((fixture) => fixture.retailer === retailer).map(buildScrapedOffer)
+    const result = validateOffersForRetailer(retailer, rawOffers)
+
+    assert.equal(result.report.validatedCount, rawOffers.length)
+    assert.equal(result.report.rejectedCount, 0)
+    assert.equal(result.report.categoryResolvedCount, rawOffers.length)
+
+    for (const offer of result.offers) {
+      assert.equal(isSupportedCategory(offer.category), true)
+      assert.ok(offer.categoryResolution)
+    }
+  }
+
+  const actionOffers = fixtures.filter((fixture) => fixture.retailer === 'action').map(buildScrapedOffer)
+  const actionResult = validateOffersForRetailer('action', actionOffers)
+
+  assert.equal(actionResult.report.categoryFallbackCount, 1)
+  assert.equal(actionResult.report.categoryFallbackExamples.length, 1)
+  assert.equal(actionResult.report.categoryFallbackExamples[0]?.name, 'Support pliable universel')
+})

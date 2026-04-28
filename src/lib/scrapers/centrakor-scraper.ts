@@ -6,13 +6,16 @@ import {
   filterOffersByQuery,
   inferCategoryFromText,
   resolveOfferCategory,
+  resolveScrapedOfferCategory,
   toAbsoluteUrl,
   toValidPrice,
 } from '../scraper-utils'
 import type { ScrapedOffer } from '../types'
 import { launchChromiumBrowser } from './chromium-launch'
+import type { RetailerScrapeDetails, ScrapeIssue } from '../types'
 
 const CENTRAKOR_BASE_URL = 'https://www.centrakor.com'
+const CENTRAKOR_MAX_PAGES = 30
 
 const ROOT_FALLBACKS: Partial<Record<SupportedCategory, string>> = {
   hygiene: `${CENTRAKOR_BASE_URL}/bain-et-beaute.html`,
@@ -63,6 +66,23 @@ function rootPathFromUrl(url: string) {
     return new URL(url).pathname.replace(/^\//, '').replace(/\.html$/, '').replace(/\/+$/, '')
   } catch (_error) {
     return ''
+  }
+}
+
+function createCentrakorIssue(
+  code: string,
+  message: string,
+  url?: string,
+  category?: SupportedCategory | null,
+  page?: number,
+): ScrapeIssue {
+  return {
+    retailer: 'centrakor',
+    code,
+    message,
+    url,
+    category: category || undefined,
+    page,
   }
 }
 
@@ -219,16 +239,17 @@ async function extractProductsFromApollo(page: Page, categoryName: SupportedCate
       continue
     }
 
-    const category =
-      categoryName ||
-      resolveOfferCategory({
-        sourceCategoryPath: row.sourceCategoryPath,
-        textValues: [finalName, row.description],
-      })
-
-    if (!category) {
-      continue
-    }
+    const categoryResolution = resolveScrapedOfferCategory({
+      retailer: 'centrakor',
+      sourceUrl,
+      sourceCategoryPath: row.sourceCategoryPath,
+      nativeCategory: categoryName,
+      name: finalName,
+      brand,
+      description: row.description,
+      availability: row.availability,
+    })
+    const category = categoryResolution.category
 
     offers.push({
       retailer: 'centrakor',
@@ -236,6 +257,7 @@ async function extractProductsFromApollo(page: Page, categoryName: SupportedCate
       sourceUrl,
       sourceCategoryPath: row.sourceCategoryPath,
       category,
+      categoryResolution,
       name: finalName,
       brand: brand || undefined,
       price: row.price,
@@ -253,10 +275,11 @@ async function scrapeSubcategoryPage(
   url: string,
   categoryName: SupportedCategory,
   maxPages: number,
-): Promise<ScrapedOffer[]> {
+): Promise<{ offers: ScrapedOffer[]; issue?: ScrapeIssue; completed: boolean }> {
   const offers: ScrapedOffer[] = []
   const seenUrls = new Set<string>()
   const seenPageSignatures = new Set<string>()
+  let completed = false
 
   for (let pageNum = 1; pageNum <= maxPages; pageNum += 1) {
     const pageUrl = pageNum === 1 ? url : `${url}?page=${pageNum}`
@@ -267,11 +290,13 @@ async function scrapeSubcategoryPage(
 
       const pageOffers = await extractProductsFromApollo(page, categoryName)
       if (pageOffers.length === 0) {
+        completed = true
         break
       }
 
       const pageSignature = pageOffers.slice(0, 8).map((offer) => offer.sourceUrl).join('|')
       if (!pageSignature || seenPageSignatures.has(pageSignature)) {
+        completed = true
         break
       }
       seenPageSignatures.add(pageSignature)
@@ -285,22 +310,49 @@ async function scrapeSubcategoryPage(
       }
 
       if (added === 0) {
+        completed = true
         break
       }
+
+      if (pageNum === maxPages) {
+        return {
+          offers,
+          completed: false,
+          issue: createCentrakorIssue(
+            'max_pages_reached',
+            `Reached safety page limit while scraping ${url}`,
+            pageUrl,
+            categoryName,
+            pageNum,
+          ),
+        }
+      }
     } catch (error) {
-      console.error(`Centrakor subcategory scrape failed for ${pageUrl}:`, error)
-      break
+      return {
+        offers,
+        completed: false,
+        issue: createCentrakorIssue(
+          'page_error',
+          `Centrakor subcategory scrape failed for ${pageUrl}: ${error instanceof Error ? error.message : String(error)}`,
+          pageUrl,
+          categoryName,
+          pageNum,
+        ),
+      }
     }
   }
 
-  return offers
+  return {
+    offers,
+    completed,
+  }
 }
 
-async function scrapeRootCategory(
+async function scrapeRootCategoryDetailed(
   browser: Browser,
   categoryName: SupportedCategory,
   rootUrl: string,
-): Promise<ScrapedOffer[]> {
+): Promise<RetailerScrapeDetails> {
   const context = await browser.newContext({
     userAgent:
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -313,25 +365,47 @@ async function scrapeRootCategory(
     const subcategories = await getSubcategoryUrls(page, rootUrl)
     const offers: ScrapedOffer[] = []
     const seenUrls = new Set<string>()
+    const issues: ScrapeIssue[] = []
+    let discoveredListings = subcategories.length
+    let completedListings = 0
 
     for (const subcategory of subcategories) {
-      const pageOffers = await scrapeSubcategoryPage(page, subcategory.url, categoryName, 8)
+      const pageResult = await scrapeSubcategoryPage(page, subcategory.url, categoryName, CENTRAKOR_MAX_PAGES)
 
-      for (const offer of pageOffers) {
+      if (pageResult.issue) {
+        issues.push(pageResult.issue)
+      }
+
+      if (pageResult.completed) {
+        completedListings += 1
+      }
+
+      for (const offer of pageResult.offers) {
         if (seenUrls.has(offer.sourceUrl)) continue
         seenUrls.add(offer.sourceUrl)
         offers.push(offer)
       }
     }
 
-    return offers
+    return {
+      retailer: 'centrakor',
+      offers,
+      issues,
+      coverage: {
+        discoveredListings,
+        completedListings,
+        collectionRate: discoveredListings === 0 ? 0 : Math.round((completedListings / discoveredListings) * 100),
+        isComplete: issues.length === 0 && discoveredListings > 0 && completedListings === discoveredListings,
+      },
+    }
   } finally {
     await context.close()
   }
 }
 
-export async function scrapeCentrakorProducts(searchQuery?: string): Promise<ScrapedOffer[]> {
+export async function scrapeCentrakorProductsDetailed(searchQuery?: string): Promise<RetailerScrapeDetails> {
   const normalizedQuery = cleanDisplayText(searchQuery)
+  const issues: ScrapeIssue[] = []
   const browser = await launchChromiumBrowser({
     args: [
       '--disable-blink-features=AutomationControlled',
@@ -363,33 +437,77 @@ export async function scrapeCentrakorProducts(searchQuery?: string): Promise<Scr
         ? new Map([[hintedCategory, discoveredRoots.get(hintedCategory)!]])
         : discoveredRoots
 
+    const offers: ScrapedOffer[] = []
+    const seenUrls = new Set<string>()
+    let discoveredListings = 0
+    let completedListings = 0
+
     const settled = await Promise.allSettled(
       Array.from(rootsToScrape.entries()).map(([categoryName, rootUrl]) =>
-        scrapeRootCategory(browser, categoryName, rootUrl),
+        scrapeRootCategoryDetailed(browser, categoryName, rootUrl),
       ),
     )
 
-    const offers: ScrapedOffer[] = []
-    const seenUrls = new Set<string>()
-
     for (const result of settled) {
       if (result.status !== 'fulfilled') {
-        console.error('Centrakor root scrape failed:', result.reason)
+        issues.push(
+          createCentrakorIssue(
+            'scraper_error',
+            `Centrakor root scrape failed: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`,
+          ),
+        )
         continue
       }
 
-      for (const offer of result.value) {
+      discoveredListings += result.value.coverage.discoveredListings
+      completedListings += result.value.coverage.completedListings
+      issues.push(...result.value.issues)
+
+      for (const offer of result.value.offers) {
         if (seenUrls.has(offer.sourceUrl)) continue
         seenUrls.add(offer.sourceUrl)
         offers.push(offer)
       }
     }
 
-    return normalizedQuery ? filterOffersByQuery(offers, normalizedQuery) : offers
+    const filteredOffers = normalizedQuery ? filterOffersByQuery(offers, normalizedQuery) : offers
+
+    return {
+      retailer: 'centrakor',
+      offers: filteredOffers,
+      issues,
+      coverage: {
+        discoveredListings,
+        completedListings,
+        collectionRate: discoveredListings === 0 ? 0 : Math.round((completedListings / discoveredListings) * 100),
+        isComplete: issues.length === 0 && discoveredListings > 0 && completedListings === discoveredListings,
+      },
+    }
   } catch (error) {
-    console.error('Error in Centrakor scraper:', error)
-    return []
+    issues.push(
+      createCentrakorIssue(
+        'scraper_error',
+        `Error in Centrakor scraper: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    )
+
+    return {
+      retailer: 'centrakor',
+      offers: [],
+      issues,
+      coverage: {
+        discoveredListings: 0,
+        completedListings: 0,
+        collectionRate: 0,
+        isComplete: false,
+      },
+    }
   } finally {
     await browser.close()
   }
+}
+
+export async function scrapeCentrakorProducts(searchQuery?: string): Promise<ScrapedOffer[]> {
+  const result = await scrapeCentrakorProductsDetailed(searchQuery)
+  return result.offers
 }

@@ -1,16 +1,13 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, Outfit } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import { Agentation } from 'agentation'
+import { ThemeProvider } from '@/components/ThemeProvider'
 import './globals.css'
 
-const plusJakarta = Plus_Jakarta_Sans({ 
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-body'
-})
-
-const outfit = Outfit({ 
-  subsets: ['latin'],
-  variable: '--font-heading'
+  variable: '--font-inter',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -24,46 +21,46 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${plusJakarta.variable} ${outfit.variable}`}>
-       <head>
+    <html lang="fr" className={inter.variable} suppressHydrationWarning>
+      <head>
         <link rel="icon" href="/logo.png" type="image/png" />
       </head>
-      <body className="font-body bg-slate-50 text-slate-900 antialiased selection:bg-brand-orange selection:text-white">
-        <main className="min-h-screen relative">{children}</main>
-        {process.env.NODE_ENV === 'development' ? <Agentation /> : null}
-        <footer className="bg-slate-950 text-white py-12 mt-20">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-              <div>
-                <h3 className="font-heading text-2xl font-bold mb-4 italic">
-                  <span className="text-brand-orange">Compar</span>Prix
-                </h3>
-                <p className="text-slate-400 text-sm max-w-sm">
-                  Le comparateur intelligent pour vos enseignes de discount préférées. Mise à jour hebdomadaire pour des économies maximales.
-                </p>
-              </div>
-              <div className="text-left md:text-right">
-                <p className="text-slate-500 text-xs">
-                  Les prix sont indicatifs et peuvent varier selon les magasins.
-                </p>
-                <div className="mt-4 flex gap-4 md:justify-end text-xs text-slate-400">
-                  <a href="/" className="hover:text-brand-orange transition-colors">Accueil</a>
-                  <a href="#about" className="hover:text-brand-orange transition-colors">Mentions Légales</a>
-                  <a href="mailto:contact@comparprix.fr" className="hover:text-brand-orange transition-colors">Contact</a>
+      <body>
+        <ThemeProvider>
+          <div className="min-h-screen flex flex-col">
+            <div className="flex-1">{children}</div>
+            <footer className="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50">
+              <div className="max-w-7xl mx-auto px-6 py-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground mb-3 dark:text-slate-100">
+                      <span className="text-accent">Compar</span>Prix
+                    </h3>
+                    <p className="text-muted text-sm max-w-sm leading-relaxed dark:text-slate-400">
+                      Le comparateur intelligent pour vos enseignes de discount préférées. Mise à jour hebdomadaire pour des économies maximales.
+                    </p>
+                  </div>
+                  <div className="text-left md:text-right">
+                    <div className="flex gap-6 md:justify-end text-sm text-muted dark:text-slate-400">
+                      <a href="/" className="hover:text-accent transition-colors">Accueil</a>
+                      <a href="/a-propos" className="hover:text-accent transition-colors">À propos</a>
+                      <a href="mailto:contact@comparprix.fr" className="hover:text-accent transition-colors">Contact</a>
+                    </div>
+                    <p className="text-subtle text-xs mt-4 dark:text-slate-500">
+                      Les prix sont indicatifs et peuvent varier selon les magasins.
+                    </p>
+                  </div>
+                </div>
+                <div className="border-t border-slate-200 mt-10 pt-6 text-center text-subtle text-xs dark:border-slate-800 dark:text-slate-500">
+                  &copy; {new Date().getFullYear()} ComparPrix. Fait avec passion pour votre pouvoir d&apos;achat.
                 </div>
               </div>
-            </div>
-            <div className="border-t border-slate-900 mt-12 pt-8 text-center text-slate-500 text-xs">
-              © {new Date().getFullYear()} ComparPrix. Fait avec passion pour votre pouvoir d&apos;achat.
-            </div>
+            </footer>
           </div>
-        </footer>
+        </ThemeProvider>
+        {process.env.NODE_ENV === 'development' ? <Agentation /> : null}
       </body>
     </html>
   )
