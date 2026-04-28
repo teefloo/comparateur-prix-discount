@@ -13,6 +13,7 @@ import {
   scrapeAldiProductsDetailed,
   scrapeBMProductsDetailed,
   scrapeCentrakorProductsDetailed,
+  scrapeGifiProductsDetailed,
   scrapeStokomaniProductsDetailed,
 } from './scrapers'
 
@@ -42,6 +43,7 @@ const SCRAPER_REGISTRY: Record<Retailer, { scraper: ScraperFn; browserRequired: 
   bm: { scraper: scrapeBMProductsDetailed, browserRequired: true },
   centrakor: { scraper: scrapeCentrakorProductsDetailed, browserRequired: true },
   aldi: { scraper: scrapeAldiProductsDetailed, browserRequired: true },
+  gifi: { scraper: scrapeGifiProductsDetailed, browserRequired: false },
 }
 
 function hasBlockingIssues(issues: ScrapeIssue[]) {

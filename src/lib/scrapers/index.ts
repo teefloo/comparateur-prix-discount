@@ -2,4 +2,5 @@ export { scrapeActionProducts, scrapeActionProductsDetailed } from './action-pla
 export { scrapeStokomaniProducts, scrapeStokomaniProductsDetailed, scrapeStokomaniCategory } from './stokomani-scraper'
 export { scrapeBMProducts, scrapeBMProductsDetailed } from './bm-playwright-browser'
 export { scrapeCentrakorProducts, scrapeCentrakorProductsDetailed } from './centrakor-scraper'
+export { scrapeGifiProducts, scrapeGifiProductsDetailed } from './gifi-scraper'
 export { scrapeAldiProducts, scrapeAldiProductsDetailed } from './aldi-scraper'

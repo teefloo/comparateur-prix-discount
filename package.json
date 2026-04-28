@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json",
     "scrape": "npx tsx scripts/weekly-scrape.ts",
-    "test:categories": "node --test --import tsx scripts/tests/category-resolution.test.ts scripts/tests/scraper-category-contract.test.ts"
+    "scrape:gifi": "npx tsx scripts/scrape-gifi.ts",
+    "test:categories": "node --test --import tsx scripts/tests/category-resolution.test.ts scripts/tests/scraper-category-contract.test.ts scripts/tests/gifi-scraper.test.ts"
   },
   "dependencies": {
     "@vercel/postgres": "^0.5.1",

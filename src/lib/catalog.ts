@@ -16,7 +16,7 @@ export const SUPPORTED_CATEGORIES = [
 
 export type SupportedCategory = (typeof SUPPORTED_CATEGORIES)[number]
 
-export const RETAILERS = ['action', 'stokomani', 'bm', 'centrakor', 'aldi'] as const
+export const RETAILERS = ['action', 'stokomani', 'bm', 'centrakor', 'aldi', 'gifi'] as const
 
 export type Retailer = (typeof RETAILERS)[number]
 
@@ -72,6 +72,12 @@ export const RETAILER_INFO: Record<
     color: '#004b90',
     logo: 'AL',
     domains: ['aldi.fr'],
+  },
+  gifi: {
+    name: 'GiFi',
+    color: '#d71920',
+    logo: 'GI',
+    domains: ['gifi.fr'],
   },
 }
 

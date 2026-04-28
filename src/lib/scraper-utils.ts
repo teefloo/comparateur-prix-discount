@@ -542,6 +542,54 @@ const RETAILER_NATIVE_CATEGORY_HINTS: Record<Retailer, Array<{ category: Support
     { category: 'menage', patterns: ['entretien'] },
     { category: 'animaux', patterns: ['animalerie'] },
   ],
+  gifi: [
+    { category: 'hygiene', patterns: ['salle de bain beaute et bien etre', 'beaute', 'bien etre', 'dentaire', 'maquillage'] },
+    {
+      category: 'alimentation',
+      patterns: ['bonbon boisson et alimentaire', 'alimentaire', 'epicerie', 'boisson', 'gourmandise'],
+    },
+    {
+      category: 'menage',
+      patterns: ['rangement et entretien', 'nettoyage et entretien', 'entretien du linge', 'droguerie'],
+    },
+    {
+      category: 'maison-deco',
+      patterns: ['meuble et deco', 'decoration', 'objet deco', 'luminaire', 'linge de maison', 'rideau', 'voilage'],
+    },
+    {
+      category: 'jardin',
+      patterns: ['exterieur et animalerie', 'mobilier exterieur', 'jardin', 'piscine', 'plage'],
+    },
+    {
+      category: 'bricolage',
+      patterns: ['bricolage', 'outils bricolage', 'quincaillerie', 'peinture', 'colle et adhesif'],
+    },
+    {
+      category: 'loisirs',
+      patterns: ['loisirs', 'jeux et jouets', 'jeux de societe', 'papeterie', 'fete et cadeaux'],
+    },
+    {
+      category: 'animaux',
+      patterns: ['animalerie', 'chien', 'chat', 'oiseau', 'rongeur', 'poisson'],
+    },
+    {
+      category: 'textile',
+      patterns: ['linge de lit', 'linge de toilette', 'linge de maison', 'textile'],
+    },
+    {
+      category: 'mode',
+      patterns: ['bagagerie et vetements', 'vetements chaussures et accessoires', 'bijoux fantaisie'],
+    },
+    {
+      category: 'high-tech',
+      patterns: ['multimedia et divertissement', 'image et son', 'informatique', 'gadget', 'objet connecte'],
+    },
+    {
+      category: 'bazar',
+      patterns: ['table et cuisine', 'vaisselle', 'conservation alimentaire', 'cuisson', 'preparation culinaire'],
+    },
+    { category: 'jouets', patterns: ['jouets', 'jeux et jouets', 'puericulture', 'eveil'] },
+  ],
 }
 
 type CategorySignal = {

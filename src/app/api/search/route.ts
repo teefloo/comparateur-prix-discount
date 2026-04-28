@@ -206,6 +206,32 @@ const DEMO_OFFERS: RetailerOfferCard[] = [
     url: 'https://bmstores.fr/',
     image: '',
   },
+  {
+    id: 'demo-gifi-spray-nettoyant',
+    productId: 'demo-gifi-spray-nettoyant',
+    retailer: 'gifi',
+    name: 'Spray nettoyant multi-usage cerise',
+    category: 'menage',
+    price: 1.55,
+    url: 'https://www.gifi.fr/',
+    image: '',
+    quantity: '750ml',
+    unitPrice: 2.07,
+    unitPriceLabel: '/l',
+  },
+  {
+    id: 'demo-gifi-bobine-essuie-tout',
+    productId: 'demo-gifi-bobine-essuie-tout',
+    retailer: 'gifi',
+    name: 'Bobine essuie tout Tenerella XL x2',
+    category: 'menage',
+    price: 4.99,
+    url: 'https://www.gifi.fr/',
+    image: '',
+    quantity: '2pcs',
+    unitPrice: 2.5,
+    unitPriceLabel: '/pcs',
+  },
 ]
 
 type SearchSource = 'database' | 'real-time' | 'demo-fallback' | null

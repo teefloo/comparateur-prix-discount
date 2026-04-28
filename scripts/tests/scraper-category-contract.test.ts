@@ -86,6 +86,13 @@ const fixtures: OfferFixture[] = [
     name: 'Support pliable universel',
     description: 'Article polyvalent',
   },
+  {
+    retailer: 'gifi',
+    sourceUrl: 'https://www.gifi.fr/maison/rangement-et-entretien/nettoyage-et-entretien/produits-d-entretien/spray-nettoyant-multi-usage-cerise-750-ml/000000000000625527.html',
+    sourceCategoryPath: 'https://www.gifi.fr/maison/rangement-et-entretien/nettoyage-et-entretien/produits-d-entretien/',
+    name: 'Spray nettoyant multi-usage cerise 750 ml',
+    description: "Produits d'entretien",
+  },
 ]
 
 test('validated scraper offers always keep a supported category and retain fallbacks', () => {
@@ -109,4 +116,11 @@ test('validated scraper offers always keep a supported category and retain fallb
   assert.equal(actionResult.report.categoryFallbackCount, 1)
   assert.equal(actionResult.report.categoryFallbackExamples.length, 1)
   assert.equal(actionResult.report.categoryFallbackExamples[0]?.name, 'Support pliable universel')
+
+  const gifiOffers = fixtures.filter((fixture) => fixture.retailer === 'gifi').map(buildScrapedOffer)
+  const gifiResult = validateOffersForRetailer('gifi', gifiOffers)
+
+  assert.equal(gifiResult.report.validatedCount, 1)
+  assert.equal(gifiResult.report.rejectedCount, 0)
+  assert.equal(gifiResult.offers[0]?.category, 'menage')
 })

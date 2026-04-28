@@ -23,7 +23,7 @@ async function initDb() {
     await sql.query(`
       CREATE TABLE products (
         id TEXT PRIMARY KEY,
-        store_id TEXT NOT NULL CHECK (store_id IN (${retailerCheck})),
+        store_id TEXT NOT NULL CONSTRAINT products_store_check CHECK (store_id IN (${retailerCheck})),
         source_product_id TEXT NOT NULL,
         source_url TEXT NOT NULL,
         source_category_path TEXT,

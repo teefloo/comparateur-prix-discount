@@ -1,7 +1,7 @@
 import { sql } from '@vercel/postgres'
 import pg from 'pg'
 
-import { SUPPORTED_CATEGORIES, type Retailer, type SupportedCategory } from './catalog'
+import { RETAILERS, SUPPORTED_CATEGORIES, type Retailer, type SupportedCategory } from './catalog'
 import { ensureDatabaseUrlEnv } from './ensure-db-env'
 import { toRetailerOfferCard } from './scraper-utils'
 import type { RetailerOfferCard, ValidatedOffer } from './types'
@@ -60,8 +60,11 @@ const PRICE_COLUMNS = [
 
 const PRODUCT_CATEGORY_CONSTRAINT_NAME = 'products_category_check'
 const PRODUCT_CATEGORY_CHECK_VALUES = SUPPORTED_CATEGORIES.map((category) => `'${category}'`).join(', ')
+const PRODUCT_RETAILER_CONSTRAINT_NAME = 'products_store_check'
+const PRODUCT_RETAILER_CHECK_VALUES = RETAILERS.map((retailer) => `'${retailer}'`).join(', ')
 
 let hasEnsuredProductCategoryConstraint = false
+let hasEnsuredProductRetailerConstraint = false
 
 function chunkArray<T>(items: T[], chunkSize: number): T[][] {
   const chunks: T[][] = []
@@ -210,6 +213,44 @@ async function ensureProductCategoryConstraint(client: InstanceType<typeof Clien
   hasEnsuredProductCategoryConstraint = true
 }
 
+async function ensureProductRetailerConstraint(client: InstanceType<typeof Client>) {
+  if (hasEnsuredProductRetailerConstraint) {
+    return
+  }
+
+  const { rows } = await client.query<{ conname: string; constraintdef: string | null }>(
+    `
+      SELECT c.conname, pg_get_constraintdef(c.oid) AS constraintdef
+      FROM pg_constraint c
+      JOIN pg_class t ON t.oid = c.conrelid
+      WHERE t.relname = 'products'
+        AND c.contype = 'c'
+        AND pg_get_constraintdef(c.oid) LIKE '%store_id%'
+    `,
+  )
+
+  const currentConstraint = rows.find((row) => {
+    const definition = row.constraintdef || ''
+    return RETAILERS.every((retailer) => definition.includes(`'${retailer}'`))
+  })
+
+  if (!currentConstraint) {
+    for (const row of rows) {
+      await client.query(`ALTER TABLE products DROP CONSTRAINT IF EXISTS ${row.conname}`)
+    }
+
+    await client.query(
+      `
+        ALTER TABLE products
+        ADD CONSTRAINT ${PRODUCT_RETAILER_CONSTRAINT_NAME}
+        CHECK (store_id IN (${PRODUCT_RETAILER_CHECK_VALUES}))
+      `,
+    )
+  }
+
+  hasEnsuredProductRetailerConstraint = true
+}
+
 async function queryOffers(options: {
   query?: string
   category?: SupportedCategory | null
@@ -337,6 +378,7 @@ export async function upsertOffersBatch(offers: ValidatedOffer[]) {
   try {
     await client.connect()
     await client.query('BEGIN')
+    await ensureProductRetailerConstraint(client)
     await ensureProductCategoryConstraint(client)
 
     const normalizedOffers = await resolvePersistedOfferIds(client, offers)
@@ -403,6 +445,7 @@ export async function upsertOfferPricesBatch(offers: ValidatedOffer[]) {
   try {
     await client.connect()
     await client.query('BEGIN')
+    await ensureProductRetailerConstraint(client)
 
     const normalizedOffers = await resolvePersistedOfferIds(client, offers)
 

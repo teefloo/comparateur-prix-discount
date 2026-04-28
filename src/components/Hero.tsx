@@ -28,7 +28,7 @@ export default function Hero({ search, setSearch, onSubmit, loading }: HeroProps
         </h1>
 
         <p className="text-base sm:text-lg text-muted mb-10 max-w-2xl mx-auto leading-relaxed dark:text-slate-400">
-          Le seul outil qui compare instantanément Action, Stokomani, B&M et Centrakor pour vous garantir le prix le plus bas sur vos produits du quotidien.
+          Le seul outil qui compare instantanément Action, Stokomani, B&M, Centrakor, Aldi et GiFi pour vous garantir le prix le plus bas sur vos produits du quotidien.
         </p>
 
         <form onSubmit={onSubmit} className="max-w-2xl mx-auto mb-14">
@@ -70,7 +70,7 @@ export default function Hero({ search, setSearch, onSubmit, loading }: HeroProps
           {[
             { icon: TrendingDown, label: "Jusqu'à -40% d'économie", desc: 'Par rapport aux supermarchés' },
             { icon: ShieldCheck, label: 'Données vérifiées', desc: 'Mises à jour manuellement' },
-            { icon: ShoppingBag, label: '5 enseignes leader', desc: 'Action, B&M, Stokomani, Centrakor, Aldi' },
+            { icon: ShoppingBag, label: '6 enseignes leader', desc: 'Action, B&M, Stokomani, Centrakor, Aldi, GiFi' },
           ].map((feature, idx) => (
             <div key={idx} className="card-hover p-5 flex flex-col items-center min-w-[240px] snap-start">
               <div className="w-11 h-11 rounded-xl flex items-center justify-center text-accent bg-accent-subtle mb-3 dark:bg-accent/15">

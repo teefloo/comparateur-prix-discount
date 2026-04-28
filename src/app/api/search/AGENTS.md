@@ -23,7 +23,7 @@ GET /api/search?query=<term>&category=<cat>
 
 ### Data Flow
 1. **Database first** (`src/lib/db.ts`): If `POSTGRES_URL` set, search in stored products
-2. **Scrapers** (if DB empty): Run all 4 scrapers in parallel via `Promise.allSettled()`
+2. **Scrapers** (if DB empty): Run all 6 scrapers in parallel via `Promise.allSettled()`
 3. **Demo fallback**: If both DB and scrapers fail, return hardcoded sample products
 
 ### Product Format
@@ -40,7 +40,7 @@ GET /api/search?query=<term>&category=<cat>
 ## Demo Products
 Hardcoded list of 20 sample products used when no real data available:
 - Each has `id` prefixed with `demo-`
-- Covers all 3 categories and 4 stores
+- Covers all 3 categories and 6 stores
 
 ## Agent Guidelines
 - **Error handling**: Returns demo products on any exception - always succeeds

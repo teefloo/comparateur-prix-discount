@@ -29,8 +29,8 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: CategoryPageParams }): Promise<Metadata> {
   if (!isSupportedCategory(params.category)) {
     return {
-      title: 'Catégorie introuvable',
-      description: 'Cette catégorie n’existe pas.',
+      title: 'CatÃ©gorie introuvable',
+      description: 'Cette catÃ©gorie nâ€™existe pas.',
     }
   }
 
@@ -38,13 +38,13 @@ export async function generateMetadata({ params }: { params: CategoryPageParams 
 
   return {
     title: categoryLabel,
-    description: `Découvrez les meilleures offres dans la catégorie ${categoryLabel.toLowerCase()} chez Action, Stokomani, B&M, Centrakor et Aldi.`,
+    description: `DÃ©couvrez les meilleures offres dans la catÃ©gorie ${categoryLabel.toLowerCase()} chez Action, Stokomani, B&M, Centrakor, Aldi et GiFi.`,
     alternates: {
       canonical: `/categorie/${params.category}`,
     },
     openGraph: {
       title: `${categoryLabel} | ComparPrix`,
-      description: `Les meilleures offres ${categoryLabel.toLowerCase()} mises à jour régulièrement.`,
+      description: `Les meilleures offres ${categoryLabel.toLowerCase()} mises Ã  jour rÃ©guliÃ¨rement.`,
       url: absoluteUrl(`/categorie/${params.category}`),
       type: 'website',
       images: [
@@ -73,23 +73,21 @@ export default async function CategoryPage({ params }: { params: CategoryPagePar
 
       <main className="max-w-7xl mx-auto px-6 pt-24 pb-20">
         <div className="max-w-3xl">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-accent mb-4">Catégorie</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground dark:text-slate-100">
-            {categoryLabel}
-          </h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-accent mb-4">CatÃ©gorie</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground dark:text-slate-100">{categoryLabel}</h1>
           <p className="mt-4 text-muted leading-relaxed dark:text-slate-400">
             {offers.length
-              ? `Sélection actuelle de ${formatCount(offers.length)} offre${offers.length > 1 ? 's' : ''} dans ${categoryLabel.toLowerCase()}.`
-              : `Aucune offre n’est disponible pour ${categoryLabel.toLowerCase()} pour le moment.`}
+              ? `SÃ©lection actuelle de ${formatCount(offers.length)} offre${offers.length > 1 ? 's' : ''} dans ${categoryLabel.toLowerCase()}.`
+              : `Aucune offre nâ€™est disponible pour ${categoryLabel.toLowerCase()} pour le moment.`}
           </p>
         </div>
 
         <div className="mt-10">
           {offers.length === 0 ? (
             <div className="card p-8 text-center max-w-xl">
-              <p className="text-muted dark:text-slate-400">Aucune offre trouvée pour cette catégorie.</p>
+              <p className="text-muted dark:text-slate-400">Aucune offre trouvÃ©e pour cette catÃ©gorie.</p>
               <Link href="/" className="btn-primary inline-flex mt-6">
-                Retour à l&apos;accueil
+                Retour Ã  l&apos;accueil
               </Link>
             </div>
           ) : (

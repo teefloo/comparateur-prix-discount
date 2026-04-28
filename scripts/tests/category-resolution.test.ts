@@ -60,6 +60,17 @@ test('uses weighted signals for ambiguous keywords', () => {
   })
 
   assert.equal(toothbrush.category, 'hygiene')
+
+  const gifiCleaner = resolveScrapedOfferCategory({
+    retailer: 'gifi',
+    sourceUrl: 'https://www.gifi.fr/maison/rangement-et-entretien/nettoyage-et-entretien/produits-d-entretien/spray-nettoyant-multi-usage-cerise-750-ml/000000000000625527.html',
+    sourceCategoryPath: 'https://www.gifi.fr/maison/rangement-et-entretien/nettoyage-et-entretien/produits-d-entretien/',
+    nativeCategory: 'Rangement et entretien',
+    name: 'Spray nettoyant multi-usage cerise 750 ml',
+    description: "Produits d'entretien",
+  })
+
+  assert.equal(gifiCleaner.category, 'menage')
 })
 
 test('falls back to bazar when no reliable signal exists', () => {

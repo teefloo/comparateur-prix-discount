@@ -1,7 +1,7 @@
 # Agents.md: `src/lib/scrapers/`
 
 ## Role
-Retailer scraping module for extracting **store-specific offers** from 5 discount retailers: Action, Stokomani, B&M, Centrakor, and Aldi.
+Retailer scraping module for extracting **store-specific offers** from 6 discount retailers: Action, Stokomani, B&M, Centrakor, Aldi, and GiFi.
 
 ## Responsibilities
 - Extract retailer-native product/offer metadata
@@ -18,6 +18,7 @@ Retailer scraping module for extracting **store-specific offers** from 5 discoun
 | `stokomani-scraper.ts` | fetch + Shopify JSON | Stokomani catalog/search ingestion |
 | `centrakor-scraper.ts` | Playwright + Apollo state | Centrakor root/subcategory scraping |
 | `aldi-scraper.ts` | Playwright | Aldi category/subcategory scraping with `Voir plus` pagination |
+| `gifi-scraper.ts` | fetch + HTML/JSON-LD | GiFi sitemap/category/product scraping |
 | `index.ts` | Exports | Re-exports scraper entrypoints |
 
 ## Common Patterns
