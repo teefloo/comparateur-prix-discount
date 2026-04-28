@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -8,43 +9,46 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          orange: '#FF6B00',
-          navy: '#0f172a',
-          slate: '#475569',
-          white: '#FFFFFF',
-          cream: '#FEFCE8',
+        accent: {
+          DEFAULT: '#0057FF',
+          muted: '#3B82F6',
+          subtle: '#EFF6FF',
+          glow: 'rgba(0, 87, 255, 0.12)',
         },
+        secondary: {
+          DEFAULT: '#00E5A0',
+          muted: '#34D399',
+          subtle: '#ECFDF5',
+        },
+        coral: {
+          DEFAULT: '#FF6B35',
+          muted: '#FF8C5A',
+        },
+        foreground: '#0F172A',
+        muted: '#64748B',
+        subtle: '#CBD5E1',
         action: '#0066CC',
         stokomani: '#E63946',
         bm: '#2D3436',
         centrakor: '#00B894',
+        aldi: '#004b90',
       },
       fontFamily: {
-        heading: ['var(--font-heading)', 'system-ui', 'sans-serif'],
-        body: ['var(--font-body)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
       },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'mesh': 'radial-gradient(at 0% 0%, hsla(161,72%,48%,0.15) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(222,47%,11%,0.05) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(161,72%,48%,0.15) 0, transparent 50%)',
+      boxShadow: {
+        card: '0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
+        'card-hover': '0 10px 25px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.03)',
+        'accent-sm': '0 4px 14px rgba(0, 87, 255, 0.15)',
+        'accent-lg': '0 8px 32px rgba(0, 87, 255, 0.2)',
       },
       animation: {
-        'fade-in': 'fade-in 0.5s ease-out',
-        'slide-up': 'slide-up 0.5s ease-out',
-        'float': 'float 3s ease-in-out infinite',
+        'gentle-rise': 'gentle-rise 0.3s ease-out',
       },
       keyframes: {
-        'fade-in': {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        'slide-up': {
-          '0%': { transform: 'translateY(20px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
-        'float': {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
+        'gentle-rise': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
     },

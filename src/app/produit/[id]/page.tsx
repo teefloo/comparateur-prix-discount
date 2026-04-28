@@ -19,7 +19,6 @@ function formatPrice(value: number) {
 
 function formatDate(dateString: string | null | undefined) {
   if (!dateString) return 'Date inconnue'
-
   return new Date(dateString).toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',
@@ -52,7 +51,7 @@ export default function ProductPage() {
         }
 
         setOffer(data.offer as RetailerOfferCard)
-      } catch (_error) {
+      } catch {
         setError('Impossible de récupérer les données de cette offre')
         setOffer(null)
       } finally {
@@ -65,11 +64,11 @@ export default function ProductPage() {
 
   if (loading) {
     return (
-      <div className="grain min-h-screen">
+      <div className="min-h-screen bg-white dark:bg-slate-900">
         <Navbar />
-        <div className="max-w-4xl mx-auto px-6 py-32 text-center">
-          <div className="w-16 h-16 border-4 border-brand-orange border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="mt-8 text-slate-500 font-medium animate-pulse">Chargement de l’offre...</p>
+        <div className="max-w-4xl mx-auto px-6 pt-32 pb-20 text-center">
+          <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="mt-6 text-muted font-medium dark:text-slate-400">Chargement de l&apos;offre...</p>
         </div>
       </div>
     )
@@ -77,21 +76,21 @@ export default function ProductPage() {
 
   if (error || !offer) {
     return (
-      <div className="grain min-h-screen">
+      <div className="min-h-screen bg-white dark:bg-slate-900">
         <Navbar />
-        <div className="max-w-4xl mx-auto px-6 py-32 text-center">
-          <div className="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8">
-            <AlertTriangle size={40} />
+        <div className="max-w-4xl mx-auto px-6 pt-32 pb-20 text-center">
+          <div className="w-16 h-16 bg-red-50 border border-red-200 rounded-2xl flex items-center justify-center mx-auto mb-6 dark:bg-red-900/20 dark:border-red-800">
+            <AlertTriangle size={32} className="text-red-500" />
           </div>
-          <h1 className="text-3xl font-heading font-bold text-slate-900 mb-4">Oups ! Offre introuvable</h1>
-          <p className="text-slate-500 mb-12 max-w-sm mx-auto">
-            {error || 'Cette offre n’existe pas encore dans notre base de données.'}
+          <h1 className="text-2xl font-bold text-foreground mb-3 dark:text-slate-100">Oups ! Offre introuvable</h1>
+          <p className="text-muted mb-8 max-w-sm mx-auto text-sm dark:text-slate-400">
+            {error || 'Cette offre n&apos;existe pas encore dans notre base de données.'}
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-orange text-white font-bold rounded-2xl hover:bg-brand-navy transition-all shadow-xl shadow-brand-orange/20"
+            className="btn-primary inline-flex items-center gap-2 px-6 py-3"
           >
-            <ArrowLeft size={18} /> Retour à la recherche
+            <ArrowLeft size={16} /> Retour à la recherche
           </Link>
         </div>
       </div>
@@ -101,58 +100,56 @@ export default function ProductPage() {
   const retailer = RETAILER_INFO[offer.retailer]
 
   return (
-    <div className="grain min-h-screen">
+    <div className="min-h-screen bg-white dark:bg-slate-900">
       <Navbar />
 
-      <main className="max-w-5xl mx-auto px-6 pt-32 pb-20">
+      <main className="max-w-5xl mx-auto px-6 pt-24 pb-20">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-slate-400 hover:text-brand-orange mb-10 transition-colors group font-bold text-sm"
+          className="inline-flex items-center gap-2 text-muted hover:text-accent mb-8 transition-colors font-medium text-sm dark:text-slate-400 dark:hover:text-accent"
         >
-          <div className="p-2 rounded-lg group-hover:bg-brand-cream transition-colors">
-            <ArrowLeft size={16} />
-          </div>
+          <ArrowLeft size={16} />
           Retour à la recherche
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="lg:col-span-5"
           >
-            <div className="glass p-8 rounded-[2rem] sticky top-32">
-              <div className="aspect-square bg-slate-50 rounded-3xl flex items-center justify-center border border-slate-100/50 mb-8 p-6 group">
+            <div className="card p-6 sticky top-24">
+              <div className="aspect-square bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-200 mb-6 p-4 dark:bg-slate-700/50 dark:border-slate-700">
                 {offer.image ? (
                   <img
                     src={offer.image}
                     alt={offer.name}
-                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-contain hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
-                  <span className="text-7xl opacity-20">📦</span>
+                  <span className="text-6xl opacity-20">📦</span>
                 )}
               </div>
 
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-full border border-slate-200">
+                  <span className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-full text-muted text-[10px] font-bold uppercase tracking-widest dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400">
                     {CATEGORY_LABELS[offer.category] || offer.category}
                   </span>
-                  <span className="px-3 py-1 bg-brand-cream text-brand-orange text-[10px] font-black uppercase tracking-widest rounded-full border border-brand-orange/20">
+                  <span className="px-3 py-1 bg-accent-subtle border border-accent/20 rounded-full text-accent text-[10px] font-bold uppercase tracking-widest dark:bg-accent/15">
                     {retailer.name}
                   </span>
                   {offer.brand && (
-                    <span className="px-3 py-1 bg-white text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-full border border-slate-200">
+                    <span className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-full text-muted text-[10px] font-bold uppercase tracking-widest dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400">
                       {offer.brand}
                     </span>
                   )}
                 </div>
 
-                <h1 className="text-3xl font-heading font-black text-slate-900 leading-tight">{offer.name}</h1>
+                <h1 className="text-2xl font-bold text-foreground leading-tight dark:text-slate-100">{offer.name}</h1>
 
-                <div className="flex items-center gap-2 text-slate-400 text-xs font-bold bg-slate-50/50 p-3 rounded-xl border border-dashed border-slate-200">
-                  <Calendar size={14} className="text-brand-orange" />
+                <div className="flex items-center gap-2 text-muted text-xs font-medium bg-slate-50 border border-slate-200 p-3 rounded-xl dark:bg-slate-700/50 dark:border-slate-700 dark:text-slate-400">
+                  <Calendar size={14} className="text-accent" />
                   Dernier relevé : {formatDate(offer.lastUpdated)}
                 </div>
               </div>
@@ -165,52 +162,55 @@ export default function ProductPage() {
             className="lg:col-span-7"
           >
             <div className="space-y-6">
-              <div className="bg-brand-orange p-8 rounded-[2rem] text-white shadow-2xl shadow-brand-orange/20 relative overflow-hidden">
+              <div className="bg-accent p-8 rounded-2xl text-white shadow-accent-lg relative overflow-hidden">
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <div>
-                    <p className="text-white/80 text-xs font-black uppercase tracking-widest mb-2">Offre en cours</p>
-                    <h2 className="text-4xl font-heading font-black">{formatPrice(offer.price)}</h2>
-                    {offer.unitPrice && offer.unitPriceLabel && (
-                      <p className="text-white/80 text-sm mt-2 font-medium">
-                        {formatPrice(offer.unitPrice)}
-                        {offer.unitPriceLabel}
-                      </p>
-                    )}
-                  </div>
-                  <div
-                    className="w-16 h-16 rounded-3xl flex items-center justify-center text-2xl font-black shadow-lg"
-                    style={{ backgroundColor: `${retailer.color}33` }}
-                  >
-                    {retailer.logo}
+                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-white/70 text-[10px] font-bold uppercase tracking-widest mb-2">Offre en cours</p>
+                      <h2 className="text-3xl font-bold">{formatPrice(offer.price)}</h2>
+                      {offer.unitPrice && offer.unitPriceLabel && (
+                        <p className="text-white/70 text-sm mt-1 font-medium">
+                          {formatPrice(offer.unitPrice)}
+                          {offer.unitPriceLabel}
+                        </p>
+                      )}
+                    </div>
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black"
+                      style={{ backgroundColor: retailer.color }}
+                    >
+                      <span className="text-white">{retailer.logo}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="glass rounded-[2rem] overflow-hidden">
-                <div className="p-8 border-b border-slate-100">
-                  <h3 className="text-xl font-heading font-bold text-slate-900">Détails de l’offre</h3>
+              <div className="card overflow-hidden">
+                <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                  <h3 className="text-lg font-bold text-foreground dark:text-slate-100">Détails de l&apos;offre</h3>
                 </div>
 
-                <div className="p-8 space-y-6">
+                <div className="p-6 space-y-5">
                   {offer.quantity && (
                     <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Conditionnement</p>
-                      <p className="text-slate-900 font-bold">{offer.quantity}</p>
+                      <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-1 dark:text-slate-400">Conditionnement</p>
+                      <p className="text-foreground font-semibold dark:text-slate-200">{offer.quantity}</p>
                     </div>
                   )}
 
                   {offer.availability && (
                     <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Disponibilité</p>
-                      <p className="text-slate-900 font-bold">{offer.availability}</p>
+                      <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-1 dark:text-slate-400">Disponibilité</p>
+                      <p className="text-foreground font-semibold dark:text-slate-200">{offer.availability}</p>
                     </div>
                   )}
 
                   {offer.description && (
                     <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Description</p>
-                      <p className="text-slate-600 leading-relaxed">{offer.description}</p>
+                      <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-1 dark:text-slate-400">Description</p>
+                      <p className="text-muted leading-relaxed text-sm dark:text-slate-400">{offer.description}</p>
                     </div>
                   )}
 
@@ -218,18 +218,17 @@ export default function ProductPage() {
                     href={offer.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 text-white font-bold hover:bg-brand-orange transition-colors"
+                    className="btn-secondary inline-flex items-center gap-2"
                   >
                     Voir la fiche enseigne <ExternalLink size={16} />
                   </a>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-6 bg-slate-100/50 rounded-2xl border border-dashed border-slate-200">
-                <Tag size={16} className="text-slate-400" />
-                <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">
-                  Cette page affiche désormais une offre enseigne unique, avec son prix, sa disponibilité et son lien
-                  d’origine.
+              <div className="flex items-center gap-3 p-5 bg-slate-50 border border-slate-200 rounded-xl dark:bg-slate-700/50 dark:border-slate-700">
+                <Tag size={14} className="text-muted dark:text-slate-400" />
+                <p className="text-[10px] font-medium text-muted leading-relaxed uppercase tracking-widest dark:text-slate-400">
+                  Cette page affiche d&eacute;sormais une offre enseigne unique, avec son prix, sa disponibilit&eacute; et son lien d&apos;origine.
                 </p>
               </div>
             </div>

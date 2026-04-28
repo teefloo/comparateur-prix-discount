@@ -57,7 +57,7 @@ export default function Home() {
         setProducts((data.products || []) as RetailerOfferCard[])
         setSource((data.source || null) as SearchSource)
       }
-    } catch (_error) {
+    } catch {
       setLastUpdate(null)
       setError('Impossible de se connecter au serveur. Veuillez vérifier votre connexion.')
     } finally {
@@ -85,33 +85,33 @@ export default function Home() {
   }
 
   return (
-    <div className="grain min-h-screen">
+    <div className="min-h-screen bg-white dark:bg-slate-900 pb-20 md:pb-0">
       <Navbar />
 
       <Hero search={search} setSearch={setSearch} onSubmit={handleSubmit} loading={loading} />
 
-      <main className="max-w-7xl mx-auto px-6 pb-20">
+      <main className="max-w-7xl mx-auto px-6 pb-16">
         <CategoryBar selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
 
         {hasSearched && !loading && (
-          <div className="mb-6">
+          <div className="mb-6 card p-4">
             <RetailerFilter selectedRetailers={selectedRetailers} onChange={setSelectedRetailers} />
           </div>
         )}
 
         {error && (
-          <div className="max-w-3xl mx-auto mb-12 bg-red-50 border border-red-100 text-red-600 px-8 py-6 rounded-3xl flex items-center gap-4 shadow-sm animate-fade-in">
-            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
+          <div className="max-w-3xl mx-auto mb-10 card p-5 flex items-center gap-4 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
+            <div className="w-10 h-10 bg-red-100 border border-red-200 rounded-xl flex items-center justify-center flex-shrink-0 text-xl dark:bg-red-900/30 dark:border-red-800">
               ⚠️
             </div>
-            <p className="font-semibold">{error}</p>
+            <p className="font-semibold text-red-600 text-sm dark:text-red-400">{error}</p>
           </div>
         )}
 
         {hasSearched && source && (
-          <div className="mb-8 text-center">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-widest border border-slate-200">
-              <span className="w-1.5 h-1.5 bg-brand-orange rounded-full animate-pulse" />
+          <div className="mb-6 text-center">
+            <span className="source-badge">
+              <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
               Source: {sourceLabel[source]}
             </span>
           </div>
@@ -120,9 +120,9 @@ export default function Home() {
         <ProductGrid products={filterProducts(products)} loading={loading} hasSearched={hasSearched} search={search} />
 
         {lastUpdate && !loading && (
-          <div className="mt-20 text-center glass p-8 rounded-3xl max-w-2xl mx-auto">
-            <p className="text-slate-400 text-sm font-medium flex items-center justify-center gap-2">
-              <span className="w-2 h-2 bg-brand-orange rounded-full" />
+          <div className="mt-16 text-center card p-8 max-w-lg mx-auto">
+            <p className="text-muted text-sm font-medium flex items-center justify-center gap-2 dark:text-slate-400">
+              <span className="w-2 h-2 bg-accent rounded-full" />
               Dernier relevé des prix :{' '}
               {new Date(lastUpdate).toLocaleString('fr-FR', {
                 day: 'numeric',
@@ -132,9 +132,8 @@ export default function Home() {
                 minute: '2-digit',
               })}
             </p>
-            <p className="text-slate-400 text-[10px] mt-2 italic px-12">
-              Les prix sont relevés directement sur les plateformes digitales de chaque enseigne. Vérifiez la
-              disponibilité en magasin.
+            <p className="text-subtle text-[10px] mt-2 italic dark:text-slate-500">
+              Les prix sont relevés directement sur les plateformes digitales de chaque enseigne. Vérifiez la disponibilité en magasin.
             </p>
           </div>
         )}

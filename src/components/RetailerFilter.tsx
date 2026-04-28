@@ -1,7 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
-
 import { RETAILERS, RETAILER_INFO } from '@/lib/catalog'
 
 interface RetailerFilterProps {
@@ -23,38 +21,36 @@ export default function RetailerFilter({ selectedRetailers, onChange }: Retailer
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2">Filtrer:</span>
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-[10px] font-bold text-muted uppercase tracking-widest mr-1 dark:text-slate-400">Filtrer:</span>
 
       {RETAILERS.map((retailerId) => {
         const retailer = RETAILER_INFO[retailerId]
         const isSelected = selectedRetailers.length === 0 || selectedRetailers.includes(retailerId)
 
         return (
-          <motion.button
+          <button
             key={retailerId}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
             onClick={() => toggleRetailer(retailerId)}
-            className={`
-              flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all
-              border
-              ${isSelected ? 'bg-white border-slate-200 text-slate-700 shadow-sm' : 'bg-slate-50 border-slate-100 text-slate-400'}
-            `}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+              isSelected
+                ? 'bg-white border-slate-200 text-foreground shadow-sm dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100'
+                : 'bg-slate-50 border-transparent text-muted dark:bg-slate-800/50 dark:text-slate-500'
+            }`}
           >
             <span
-              className="w-4 h-4 rounded-md flex items-center justify-center text-[8px] font-black text-white"
-              style={{ backgroundColor: isSelected ? retailer.color : '#cbd5e1' }}
+              className="w-4 h-4 rounded-md flex items-center justify-center text-[7px] font-black text-white shadow-sm"
+              style={{ backgroundColor: isSelected ? retailer.color : '#CBD5E1' }}
             >
               {retailer.logo}
             </span>
             {retailer.name}
-          </motion.button>
+          </button>
         )
       })}
 
       {selectedRetailers.length > 0 && selectedRetailers.length < RETAILERS.length && (
-        <button onClick={clearAll} className="text-xs text-slate-400 hover:text-brand-orange underline">
+        <button onClick={clearAll} className="text-xs text-muted hover:text-accent underline ml-1 dark:text-slate-400 dark:hover:text-accent">
           Tout voir
         </button>
       )}
