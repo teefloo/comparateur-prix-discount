@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json",
-    "scrape": "npx tsx scripts/weekly-scrape.ts"
+    "scrape": "npx tsx scripts/weekly-scrape.ts",
+    "test:categories": "node --test --import tsx scripts/tests/category-resolution.test.ts scripts/tests/scraper-category-contract.test.ts"
   },
   "dependencies": {
     "@vercel/postgres": "^0.5.1",

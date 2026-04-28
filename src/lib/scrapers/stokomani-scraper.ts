@@ -5,12 +5,12 @@ import {
   ensureUnitPriceText,
   extractQuantity,
   filterOffersByQuery,
-  resolveOfferCategory,
+  resolveScrapedOfferCategory,
   toAbsoluteUrl,
   toValidPrice,
 } from '../scraper-utils'
 import { enrichOffersFromProductPages, isSpecificQuantity } from './product-page-details'
-import type { ScrapedOffer } from '../types'
+import type { RetailerScrapeDetails, ScrapeIssue, ScrapedOffer } from '../types'
 
 const STOKOMANI_BASE_URL = 'https://www.stokomani.fr'
 const STOKOMANI_PAGE_LIMIT = 250
@@ -112,15 +112,18 @@ function buildUnitPriceText(variant: ShopifyVariant | undefined, fallbackPrice: 
   return ensureUnitPriceText(undefined, fallbackPrice, quantity)
 }
 
-function resolveStokomaniCategory(product: ShopifyProduct, finalName: string, description: string) {
-  return resolveOfferCategory({
-    sourceCategoryPath: [product.product_type, getTagsText(product.tags), product.handle].filter(Boolean).join(' '),
-    textValues: [finalName, description],
-  })
-}
-
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function createIssue(code: string, message: string, url?: string, page?: number): ScrapeIssue {
+  return {
+    retailer: 'stokomani',
+    code,
+    message,
+    url,
+    page,
+  }
 }
 
 function parseRetryAfterMs(headerValue: string | null) {
@@ -154,10 +157,19 @@ function buildOfferFromProduct(product: ShopifyProduct): ScrapedOffer | null {
     return null
   }
 
-  const category = resolveStokomaniCategory(product, finalName, description)
-  if (!category) {
-    return null
-  }
+  const sourceCategoryPath = [product.product_type, getTagsText(product.tags), product.handle].filter(Boolean).join(' | ')
+  const categoryResolution = resolveScrapedOfferCategory({
+    retailer: 'stokomani',
+    sourceUrl,
+    sourceCategoryPath,
+    nativeCategory: cleanDisplayText(product.product_type),
+    name: finalName,
+    brand,
+    description,
+    availability: product.available === false ? 'Rupture de stock' : 'En stock',
+    tags: Array.isArray(product.tags) ? product.tags : [getTagsText(product.tags), product.handle],
+  })
+  const category = categoryResolution.category
 
   const originalPrice = normalizeShopifyMoney(variant?.compare_at_price ?? product.compare_at_price)
   const quantity = extractQuantity(`${finalName} ${description}`) || undefined
@@ -171,8 +183,9 @@ function buildOfferFromProduct(product: ShopifyProduct): ScrapedOffer | null {
     retailer: 'stokomani',
     sourceProductId,
     sourceUrl,
-    sourceCategoryPath: [product.product_type, getTagsText(product.tags)].filter(Boolean).join(' | '),
+    sourceCategoryPath,
     category,
+    categoryResolution,
     name: finalName,
     brand: brand || undefined,
     price,
@@ -238,12 +251,16 @@ async function fetchJson<T>(page: Page, url: string): Promise<T> {
   throw lastError || new Error(`Unable to fetch Stokomani endpoint: ${url}`)
 }
 
-export async function scrapeStokomaniProducts(searchQuery?: string): Promise<ScrapedOffer[]> {
+export async function scrapeStokomaniProductsDetailed(searchQuery?: string): Promise<RetailerScrapeDetails> {
   const offers: ScrapedOffer[] = []
+  const issues: ScrapeIssue[] = []
   const browser = await chromium.launch({
     headless: true,
     args: ['--disable-blink-features=AutomationControlled', '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
   })
+
+  let discoveredListings = 0
+  let completedListings = 0
 
   try {
     const context = await browser.newContext({
@@ -254,52 +271,159 @@ export async function scrapeStokomaniProducts(searchQuery?: string): Promise<Scr
     })
 
     const page = await context.newPage()
-    await page.goto(STOKOMANI_BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 })
+
+    try {
+      await page.goto(STOKOMANI_BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    } catch (error) {
+      issues.push(
+        createIssue(
+          'navigation_error',
+          `Failed to open Stokomani homepage: ${error instanceof Error ? error.message : String(error)}`,
+          STOKOMANI_BASE_URL,
+        ),
+      )
+    }
 
     if (searchQuery) {
+      discoveredListings = 1
       const searchUrl = `${STOKOMANI_BASE_URL}/search/suggest.json?q=${encodeURIComponent(searchQuery)}&resources[type]=product`
-      const data = await fetchJson<{ resources?: { results?: { products?: ShopifyProduct[] } } }>(page, searchUrl)
-      const searchResults = data.resources?.results?.products || []
 
-      for (const product of searchResults) {
-        const offer = buildOfferFromProduct(product)
-        if (offer) {
-          offers.push(offer)
+      try {
+        const data = await fetchJson<{ resources?: { results?: { products?: ShopifyProduct[] } } }>(page, searchUrl)
+        const searchResults = data.resources?.results?.products || []
+
+        for (const product of searchResults) {
+          const offer = buildOfferFromProduct(product)
+          if (offer) {
+            offers.push(offer)
+          }
         }
+
+        completedListings = 1
+      } catch (error) {
+        issues.push(
+          createIssue(
+            'api_error',
+            `Failed to fetch Stokomani search results: ${error instanceof Error ? error.message : String(error)}`,
+            searchUrl,
+          ),
+        )
       }
 
       const filteredOffers = filterOffersByQuery(offers, searchQuery)
-      return enrichOffersFromProductPages(filteredOffers, (offer) => !isSpecificQuantity(offer.quantity), 4)
+      const enrichedOffers = await enrichOffersFromProductPages(filteredOffers, (offer) => !isSpecificQuantity(offer.quantity), 2)
+
+      return {
+        retailer: 'stokomani',
+        offers: enrichedOffers,
+        issues,
+        coverage: {
+          discoveredListings,
+          completedListings,
+          collectionRate: discoveredListings === 0 ? 0 : Math.round((completedListings / discoveredListings) * 100),
+          isComplete: issues.length === 0 && discoveredListings > 0 && completedListings === discoveredListings,
+        },
+      }
     }
 
     let pageNumber = 1
-    let hasMore = true
+    let safetyLimitReached = false
 
-    while (hasMore && pageNumber <= STOKOMANI_MAX_PAGES) {
+    while (pageNumber <= STOKOMANI_MAX_PAGES) {
       const catalogUrl = `${STOKOMANI_BASE_URL}/products.json?limit=${STOKOMANI_PAGE_LIMIT}&page=${pageNumber}`
-      const data = await fetchJson<{ products?: ShopifyProduct[] }>(page, catalogUrl)
-      const products = data.products || []
+      discoveredListings += 1
 
-      if (products.length === 0) {
-        hasMore = false
-        break
-      }
+      try {
+        const data = await fetchJson<{ products?: ShopifyProduct[] }>(page, catalogUrl)
+        const products = data.products || []
 
-      for (const product of products) {
-        const offer = buildOfferFromProduct(product)
-        if (offer) {
-          offers.push(offer)
+        completedListings += 1
+
+        if (products.length === 0) {
+          break
         }
+
+        for (const product of products) {
+          const offer = buildOfferFromProduct(product)
+          if (offer) {
+            offers.push(offer)
+          }
+        }
+
+        if (pageNumber === STOKOMANI_MAX_PAGES) {
+          safetyLimitReached = true
+        }
+      } catch (error) {
+        issues.push(
+          createIssue(
+            'api_error',
+            `Failed to fetch Stokomani catalog page ${pageNumber}: ${error instanceof Error ? error.message : String(error)}`,
+            catalogUrl,
+            pageNumber,
+          ),
+        )
+        break
       }
 
       pageNumber += 1
       await sleep(800)
     }
 
-    return enrichOffersFromProductPages(offers, (offer) => !isSpecificQuantity(offer.quantity), 4)
+    if (safetyLimitReached) {
+      issues.push(
+        createIssue(
+          'max_pages_reached',
+          `Reached safety page limit while scraping Stokomani catalog`,
+          `${STOKOMANI_BASE_URL}/products.json`,
+          pageNumber,
+        ),
+      )
+    }
+
+    const enrichedOffers = await enrichOffersFromProductPages(
+      offers,
+      (offer) => !isSpecificQuantity(offer.quantity),
+      2,
+    )
+
+    return {
+      retailer: 'stokomani',
+      offers: enrichedOffers,
+      issues,
+      coverage: {
+        discoveredListings,
+        completedListings,
+        collectionRate: discoveredListings === 0 ? 0 : Math.round((completedListings / discoveredListings) * 100),
+        isComplete: issues.length === 0 && discoveredListings > 0 && completedListings === discoveredListings,
+      },
+    }
+  } catch (error) {
+    issues.push(
+      createIssue(
+        'scraper_error',
+        `Stokomani scraper failed: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    )
+
+    return {
+      retailer: 'stokomani',
+      offers,
+      issues,
+      coverage: {
+        discoveredListings,
+        completedListings,
+        collectionRate: discoveredListings === 0 ? 0 : Math.round((completedListings / discoveredListings) * 100),
+        isComplete: false,
+      },
+    }
   } finally {
     await browser.close()
   }
+}
+
+export async function scrapeStokomaniProducts(searchQuery?: string): Promise<ScrapedOffer[]> {
+  const result = await scrapeStokomaniProductsDetailed(searchQuery)
+  return result.offers
 }
 
 export async function scrapeStokomaniCategory(category: string) {

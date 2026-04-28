@@ -8,6 +8,7 @@ export interface ProductPageDetails {
 }
 
 const PAGE_TEXT_CACHE = new Map<string, Promise<string>>()
+const PAGE_TEXT_CACHE_LIMIT = 50
 
 function normalizePageText(value: string) {
   return value
@@ -38,14 +39,19 @@ async function fetchPageText(url: string): Promise<string> {
 
       const html = await response.text()
       const document = load(html)
-      const searchableHtml = html.replace(/\\"/g, '"')
-      return normalizePageText(`${searchableHtml} ${document('body').text()} ${document('script').text()}`)
+      return normalizePageText(`${document('body').text()} ${document('script').text()}`)
     } catch (_error) {
       return ''
     }
   })()
 
   PAGE_TEXT_CACHE.set(url, promise)
+  if (PAGE_TEXT_CACHE.size > PAGE_TEXT_CACHE_LIMIT) {
+    const oldestKey = PAGE_TEXT_CACHE.keys().next().value
+    if (oldestKey) {
+      PAGE_TEXT_CACHE.delete(oldestKey)
+    }
+  }
   return promise
 }
 

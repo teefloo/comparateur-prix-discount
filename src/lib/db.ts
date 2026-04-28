@@ -1,7 +1,7 @@
 import { sql } from '@vercel/postgres'
 import pg from 'pg'
 
-import { type Retailer, type SupportedCategory } from './catalog'
+import { SUPPORTED_CATEGORIES, type Retailer, type SupportedCategory } from './catalog'
 import { ensureDatabaseUrlEnv } from './ensure-db-env'
 import { toRetailerOfferCard } from './scraper-utils'
 import type { RetailerOfferCard, ValidatedOffer } from './types'
@@ -57,6 +57,11 @@ const PRICE_COLUMNS = [
   'is_on_promotion',
   'updated_at',
 ] as const
+
+const PRODUCT_CATEGORY_CONSTRAINT_NAME = 'products_category_check'
+const PRODUCT_CATEGORY_CHECK_VALUES = SUPPORTED_CATEGORIES.map((category) => `'${category}'`).join(', ')
+
+let hasEnsuredProductCategoryConstraint = false
 
 function chunkArray<T>(items: T[], chunkSize: number): T[][] {
   const chunks: T[][] = []
@@ -169,6 +174,42 @@ function createDbClient() {
   return new Client({ connectionString })
 }
 
+async function ensureProductCategoryConstraint(client: InstanceType<typeof Client>) {
+  if (hasEnsuredProductCategoryConstraint) {
+    return
+  }
+
+  const { rows } = await client.query<{ constraintdef: string | null }>(
+    `
+      SELECT pg_get_constraintdef(c.oid) AS constraintdef
+      FROM pg_constraint c
+      JOIN pg_class t ON t.oid = c.conrelid
+      WHERE t.relname = 'products'
+        AND c.conname = $1
+      LIMIT 1
+    `,
+    [PRODUCT_CATEGORY_CONSTRAINT_NAME],
+  )
+
+  const currentDefinition = rows[0]?.constraintdef || ''
+  const isCurrentConstraint =
+    currentDefinition.length > 0 &&
+    SUPPORTED_CATEGORIES.every((category) => currentDefinition.includes(`'${category}'`))
+
+  if (!isCurrentConstraint) {
+    await client.query(`ALTER TABLE products DROP CONSTRAINT IF EXISTS ${PRODUCT_CATEGORY_CONSTRAINT_NAME}`)
+    await client.query(
+      `
+        ALTER TABLE products
+        ADD CONSTRAINT ${PRODUCT_CATEGORY_CONSTRAINT_NAME}
+        CHECK (category IN (${PRODUCT_CATEGORY_CHECK_VALUES}))
+      `,
+    )
+  }
+
+  hasEnsuredProductCategoryConstraint = true
+}
+
 async function queryOffers(options: {
   query?: string
   category?: SupportedCategory | null
@@ -269,6 +310,7 @@ export async function upsertOffersBatch(offers: ValidatedOffer[]) {
   try {
     await client.connect()
     await client.query('BEGIN')
+    await ensureProductCategoryConstraint(client)
 
     const normalizedOffers = await resolvePersistedOfferIds(client, offers)
 

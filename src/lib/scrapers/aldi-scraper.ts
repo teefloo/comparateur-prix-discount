@@ -6,32 +6,36 @@ import {
   ensureUnitPriceText,
   extractQuantity,
   filterOffersByQuery,
-  resolveOfferCategory,
+  resolveScrapedOfferCategory,
   toAbsoluteUrl,
   toValidPrice,
 } from '../scraper-utils'
 import { enrichOffersFromProductPages } from './product-page-details'
-import type { ScrapedOffer } from '../types'
+import type { RetailerScrapeDetails, ScrapeIssue, ScrapedOffer } from '../types'
 import { launchChromiumBrowser } from './chromium-launch'
 
 const ALDI_BASE_URL = 'https://www.aldi.fr'
 const ALDI_SEARCH_URL = 'https://www.aldi.fr/recherche/?q='
 const LOAD_MORE_BUTTON_SELECTOR = 'button[data-testid="product-tile-grid-load-more-button"]'
-
-const ALDI_ROOT_CATEGORIES: Array<{ category: SupportedCategory; path: string }> = [
-  { category: 'alimentation', path: 'viande-poisson' },
-  { category: 'alimentation', path: 'produits-laitiers' },
-  { category: 'alimentation', path: 'charcuterie' },
-  { category: 'alimentation', path: 'epicerie-salee' },
-  { category: 'alimentation', path: 'epicerie-sucree' },
-  { category: 'alimentation', path: 'pain-viennoiserie' },
-  { category: 'alimentation', path: 'surgeles' },
-  { category: 'alimentation', path: 'boissons' },
-  { category: 'hygiene', path: 'hygiene-beaute-bebe' },
-  { category: 'menage', path: 'entretien' },
-  { category: 'alimentation', path: 'biere-vin-alcool' },
-  { category: 'animaux', path: 'animalerie' },
-]
+const ALDI_MAX_LOAD_MORE_CLICKS = 120
+const ALDI_FALLBACK_ROOT_PATHS = [
+  'viande-poisson',
+  'produits-laitiers',
+  'charcuterie',
+  'epicerie-salee',
+  'epicerie-sucree',
+  'pain-viennoiserie',
+  'surgeles',
+  'boissons',
+  'hygiene-beaute-bebe',
+  'entretien',
+  'biere-vin-alcool',
+  'animalerie',
+  'recompenses',
+  'marque-aldi-vs-grandes-marques',
+  'nouveau-look',
+  'maison-loisirs-dupes-pepites',
+] as const
 
 interface AldiTile {
   sourceUrl: string
@@ -50,6 +54,23 @@ function parseAldiSourceProductId(url: string) {
     return new URL(url).pathname.replace(/\/+$/, '').split('/').filter(Boolean).join(':')
   } catch (_error) {
     return ''
+  }
+}
+
+function createAldiIssue(
+  code: string,
+  message: string,
+  url?: string,
+  category?: SupportedCategory | null,
+  page?: number,
+): ScrapeIssue {
+  return {
+    retailer: 'aldi',
+    code,
+    message,
+    url,
+    category: category || undefined,
+    page,
   }
 }
 
@@ -98,21 +119,60 @@ async function clickLoadMoreUntilEnd(page: Page, maxClicks: number) {
     }
 
     if (stagnantLoops >= 2) {
-      break
+      return true
     }
 
     try {
-      const loadMoreButton = await page.waitForSelector(LOAD_MORE_BUTTON_SELECTOR, { timeout: 3000 })
-      if (!loadMoreButton || !(await loadMoreButton.isVisible())) {
-        break
+      const loadMoreButtonLocator = page.locator(LOAD_MORE_BUTTON_SELECTOR).first()
+      const loadMoreButtonCount = await page.locator(LOAD_MORE_BUTTON_SELECTOR).count()
+      if (loadMoreButtonCount === 0) {
+        return true
       }
 
-      await loadMoreButton.click()
+      await loadMoreButtonLocator.scrollIntoViewIfNeeded({ timeout: 2000 }).catch(() => {})
+      await loadMoreButtonLocator.click({ timeout: 5000 })
       await page.waitForTimeout(1200)
     } catch (_error) {
-      break
+      const remainingButtonCount = await page.locator(LOAD_MORE_BUTTON_SELECTOR).count().catch(() => 0)
+      if (remainingButtonCount === 0) {
+        return true
+      }
+
+      await page.waitForTimeout(1200)
     }
   }
+
+  return false
+}
+
+async function discoverRootPaths(page: Page) {
+  const rootUrl = `${ALDI_BASE_URL}/produits.html`
+
+  try {
+    await page.goto(rootUrl, { waitUntil: 'networkidle', timeout: 60000 })
+    await page.waitForTimeout(1000)
+    await acceptCookies(page)
+
+    const roots = await page.evaluate(() => {
+      const found = new Set<string>()
+      for (const anchor of Array.from(document.querySelectorAll('a[href]'))) {
+        const href = (anchor as HTMLAnchorElement).href || anchor.getAttribute('href') || ''
+        const match = href.match(/\/produits\/([^\/?#]+)\.html/i)
+        if (!match) continue
+        found.add(match[1])
+      }
+
+      return Array.from(found)
+    })
+
+    if (roots.length > 0) {
+      return roots
+    }
+  } catch (error) {
+    console.error('Failed to discover Aldi root paths:', error)
+  }
+
+  return [...ALDI_FALLBACK_ROOT_PATHS]
 }
 
 async function getSubcategoryUrls(page: Page, rootPath: string) {
@@ -196,7 +256,11 @@ async function extractTilesFromPage(page: Page): Promise<AldiTile[]> {
   })
 }
 
-function buildOfferFromTile(tile: AldiTile, explicitCategory: SupportedCategory | null): ScrapedOffer | null {
+function buildOfferFromTile(
+  tile: AldiTile,
+  sourceCategoryPath?: string,
+  nativeCategory?: string,
+): ScrapedOffer | null {
   const sourceUrl = toAbsoluteUrl(tile.sourceUrl, ALDI_BASE_URL)
   const sourceProductId = parseAldiSourceProductId(sourceUrl)
   const name = buildFullProductName(tile)
@@ -206,16 +270,17 @@ function buildOfferFromTile(tile: AldiTile, explicitCategory: SupportedCategory 
     return null
   }
 
-  const category =
-    explicitCategory ||
-    resolveOfferCategory({
-      sourceCategoryPath: tile.promotionText,
-      textValues: [name, tile.promotionText, tile.quantityLabel],
-    })
-
-  if (!category) {
-    return null
-  }
+  const categoryResolution = resolveScrapedOfferCategory({
+    retailer: 'aldi',
+    sourceUrl,
+    sourceCategoryPath,
+    nativeCategory,
+    name,
+    brand: tile.brandName,
+    description: tile.promotionText,
+    tags: [tile.quantityLabel],
+  })
+  const category = categoryResolution.category
 
   const originalPrice = parseAldiPrice(tile.originalPriceText)
   const quantity = cleanDisplayText(tile.quantityLabel) || extractQuantity(name) || undefined
@@ -229,8 +294,9 @@ function buildOfferFromTile(tile: AldiTile, explicitCategory: SupportedCategory 
     retailer: 'aldi',
     sourceProductId,
     sourceUrl,
-    sourceCategoryPath: explicitCategory || undefined,
+    sourceCategoryPath: sourceCategoryPath || undefined,
     category,
+    categoryResolution,
     name,
     brand: cleanDisplayText(tile.brandName) || undefined,
     price,
@@ -244,7 +310,12 @@ function buildOfferFromTile(tile: AldiTile, explicitCategory: SupportedCategory 
   }
 }
 
-async function scrapeListingPage(page: Page, url: string, explicitCategory: SupportedCategory | null) {
+async function scrapeListingPage(
+  page: Page,
+  url: string,
+  explicitCategory: SupportedCategory | null,
+  nativeCategory?: string,
+): Promise<{ offers: ScrapedOffer[]; issue?: ScrapeIssue; completed: boolean }> {
   const offers: ScrapedOffer[] = []
   const seenUrls = new Set<string>()
 
@@ -252,50 +323,82 @@ async function scrapeListingPage(page: Page, url: string, explicitCategory: Supp
     await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 })
     await page.waitForTimeout(1000)
     await acceptCookies(page)
-    await clickLoadMoreUntilEnd(page, 60)
+    const loadedAll = await clickLoadMoreUntilEnd(page, ALDI_MAX_LOAD_MORE_CLICKS)
 
     const tiles = await extractTilesFromPage(page)
     for (const tile of tiles) {
-      const offer = buildOfferFromTile(tile, explicitCategory)
+      const offer = buildOfferFromTile(tile, url, nativeCategory)
       if (!offer || seenUrls.has(offer.sourceUrl)) continue
       seenUrls.add(offer.sourceUrl)
       offers.push(offer)
     }
-  } catch (error) {
-    console.error(`Failed to scrape Aldi listing ${url}:`, error)
-  }
 
-  return offers
+    return {
+      offers,
+      completed: loadedAll,
+      issue: loadedAll
+        ? undefined
+        : createAldiIssue('load_more_limit', `Reached load-more safety limit while scraping ${url}`, url, explicitCategory),
+    }
+  } catch (error) {
+    return {
+      offers,
+      completed: false,
+      issue: createAldiIssue(
+        'page_error',
+        `Failed to scrape Aldi listing ${url}: ${error instanceof Error ? error.message : String(error)}`,
+        url,
+        explicitCategory,
+      ),
+    }
+  }
 }
 
-async function scrapeAldiSearch(page: Page, searchQuery: string) {
+async function scrapeAldiSearch(
+  page: Page,
+  searchQuery: string,
+): Promise<{ offers: ScrapedOffer[]; issue?: ScrapeIssue; completed: boolean }> {
   const offers: ScrapedOffer[] = []
   const seenUrls = new Set<string>()
 
   try {
-    await page.goto(`${ALDI_SEARCH_URL}${encodeURIComponent(searchQuery)}`, {
+    const searchUrl = `${ALDI_SEARCH_URL}${encodeURIComponent(searchQuery)}`
+    await page.goto(searchUrl, {
       waitUntil: 'networkidle',
       timeout: 45000,
     })
     await page.waitForTimeout(1000)
     await acceptCookies(page)
-    await clickLoadMoreUntilEnd(page, 20)
+    const loadedAll = await clickLoadMoreUntilEnd(page, 40)
 
     const tiles = await extractTilesFromPage(page)
     for (const tile of tiles) {
-      const offer = buildOfferFromTile(tile, null)
+      const offer = buildOfferFromTile(tile, searchUrl)
       if (!offer || seenUrls.has(offer.sourceUrl)) continue
       seenUrls.add(offer.sourceUrl)
       offers.push(offer)
     }
-  } catch (error) {
-    console.error(`Failed to scrape Aldi search for "${searchQuery}":`, error)
-  }
 
-  return offers
+    return {
+      offers,
+      completed: loadedAll,
+      issue: loadedAll
+        ? undefined
+        : createAldiIssue('load_more_limit', `Reached load-more safety limit while searching for "${searchQuery}"`, searchUrl),
+    }
+  } catch (error) {
+    return {
+      offers,
+      completed: false,
+      issue: createAldiIssue(
+        'page_error',
+        `Failed to scrape Aldi search for "${searchQuery}": ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    }
+  }
 }
 
-export async function scrapeAldiProducts(searchQuery?: string): Promise<ScrapedOffer[]> {
+export async function scrapeAldiProductsDetailed(searchQuery?: string): Promise<RetailerScrapeDetails> {
   const browser = await launchChromiumBrowser({
     args: [
       '--disable-blink-features=AutomationControlled',
@@ -326,37 +429,102 @@ export async function scrapeAldiProducts(searchQuery?: string): Promise<ScrapedO
       }
     })
 
-    if (searchQuery) {
-      const searchOffers = await scrapeAldiSearch(page, searchQuery)
-      const filteredOffers = filterOffersByQuery(searchOffers, searchQuery)
-      return enrichOffersFromProductPages(filteredOffers, () => true, 4)
-    }
-
     const offers: ScrapedOffer[] = []
     const seenUrls = new Set<string>()
+    const issues: ScrapeIssue[] = []
+    let discoveredListings = 0
+    let completedListings = 0
 
-    for (const root of ALDI_ROOT_CATEGORIES) {
-      const subcategories = await getSubcategoryUrls(page, root.path)
+    if (searchQuery) {
+      discoveredListings = 1
+      const searchResult = await scrapeAldiSearch(page, searchQuery)
+
+      if (searchResult.issue) {
+        issues.push(searchResult.issue)
+      }
+
+      if (searchResult.completed) {
+        completedListings = 1
+      }
+
+      const filteredOffers = filterOffersByQuery(searchResult.offers, searchQuery)
+      const enrichedOffers = await enrichOffersFromProductPages(filteredOffers, () => true, 2)
+
+      return {
+        retailer: 'aldi',
+        offers: enrichedOffers,
+        issues,
+        coverage: {
+          discoveredListings,
+          completedListings,
+          collectionRate: discoveredListings === 0 ? 0 : Math.round((completedListings / discoveredListings) * 100),
+          isComplete: issues.length === 0 && discoveredListings > 0 && completedListings === discoveredListings,
+        },
+      }
+    }
+
+    const rootPaths = await discoverRootPaths(page)
+    discoveredListings = 0
+
+    for (const rootPath of rootPaths) {
+      const subcategories = await getSubcategoryUrls(page, rootPath)
+      discoveredListings += subcategories.length
 
       for (const subcategory of subcategories) {
-        const pageOffers = await scrapeListingPage(page, subcategory.url, root.category)
+        const pageResult = await scrapeListingPage(page, subcategory.url, null, subcategory.title)
 
-        for (const offer of pageOffers) {
+        if (pageResult.issue) {
+          issues.push(pageResult.issue)
+        }
+
+        if (pageResult.completed) {
+          completedListings += 1
+        }
+
+        for (const offer of pageResult.offers) {
           if (seenUrls.has(offer.sourceUrl)) continue
           seenUrls.add(offer.sourceUrl)
-          offers.push({
-            ...offer,
-            sourceCategoryPath: subcategory.url,
-          })
+          offers.push(offer)
         }
       }
     }
 
-    return enrichOffersFromProductPages(offers, () => true, 4)
+    const enrichedOffers = await enrichOffersFromProductPages(offers, () => true, 2)
+
+    return {
+      retailer: 'aldi',
+      offers: enrichedOffers,
+      issues,
+      coverage: {
+        discoveredListings,
+        completedListings,
+        collectionRate: discoveredListings === 0 ? 0 : Math.round((completedListings / discoveredListings) * 100),
+        isComplete: issues.length === 0 && discoveredListings > 0 && completedListings === discoveredListings,
+      },
+    }
   } catch (error) {
-    console.error('Error in Aldi scraper:', error)
-    return []
+    return {
+      retailer: 'aldi',
+      offers: [],
+      issues: [
+        createAldiIssue(
+          'scraper_error',
+          `Error in Aldi scraper: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      ],
+      coverage: {
+        discoveredListings: 0,
+        completedListings: 0,
+        collectionRate: 0,
+        isComplete: false,
+      },
+    }
   } finally {
     await browser.close()
   }
+}
+
+export async function scrapeAldiProducts(searchQuery?: string): Promise<ScrapedOffer[]> {
+  const result = await scrapeAldiProductsDetailed(searchQuery)
+  return result.offers
 }

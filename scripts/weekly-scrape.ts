@@ -5,6 +5,7 @@ import { appendFileSync, writeFileSync } from 'fs'
 import { RETAILERS, SUPPORTED_CATEGORIES, type Retailer, type SupportedCategory } from '../src/lib/catalog'
 import { pruneStaleOffersByRetailer, upsertOfferPricesBatch, upsertOffersBatch } from '../src/lib/db'
 import { scrapeRetailers } from '../src/lib/scrape-runtime'
+import type { CategoryResolutionConfidence, CategoryResolutionSource, ScrapeIssueSeverity } from '../src/lib/types'
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
 
@@ -16,6 +17,14 @@ type StoreSummary = {
   rejectedCount: number
   rejectionReasons: Record<string, number>
   categories: Record<SupportedCategory, number>
+  categoryResolvedCount: number
+  categoryFallbackCount: number
+  categoryConfidenceCounts: Record<CategoryResolutionConfidence, number>
+  categorySourceCounts: Record<CategoryResolutionSource, number>
+  categoryFallbackExamples: Array<{ name: string; sourceUrl: string; sourceCategoryPath?: string; matchedSignals: string[] }>
+  collectionRate: number
+  isComplete: boolean
+  issues: Array<{ code: string; message: string; severity?: ScrapeIssueSeverity }>
   errors: string[]
 }
 
@@ -27,6 +36,29 @@ function createEmptyCategoryCounts() {
     },
     {} as Record<SupportedCategory, number>,
   )
+}
+
+function createEmptyCategoryConfidenceCounts() {
+  return {
+    high: 0,
+    medium: 0,
+    low: 0,
+    fallback: 0,
+  } as Record<CategoryResolutionConfidence, number>
+}
+
+function createEmptyCategorySourceCounts() {
+  return {
+    native_mapping: 0,
+    source_path: 0,
+    tags: 0,
+    text: 0,
+    fallback: 0,
+  } as Record<CategoryResolutionSource, number>
+}
+
+function hasBlockingIssues(issues: Array<{ severity?: ScrapeIssueSeverity }>) {
+  return issues.some((issue) => issue.severity !== 'warning')
 }
 
 async function runWeeklyScrape() {
@@ -51,6 +83,14 @@ async function runWeeklyScrape() {
             rejectedCount: result.report.rejectedCount,
             rejectionReasons: result.report.rejectedReasons,
             categories: result.report.categoryCounts,
+            categoryResolvedCount: result.report.categoryResolvedCount,
+            categoryFallbackCount: result.report.categoryFallbackCount,
+            categoryConfidenceCounts: result.report.categoryConfidenceCounts,
+            categorySourceCounts: result.report.categorySourceCounts,
+            categoryFallbackExamples: result.report.categoryFallbackExamples,
+            collectionRate: result.coverage.collectionRate,
+            isComplete: result.coverage.isComplete && !hasBlockingIssues(result.issues),
+            issues: result.issues.map((issue) => ({ code: issue.code, message: issue.message, severity: issue.severity })),
             errors: result.errors,
           }
         : {
@@ -61,6 +101,14 @@ async function runWeeklyScrape() {
             rejectedCount: 0,
             rejectionReasons: { scraper_error: 1 },
             categories: createEmptyCategoryCounts(),
+            categoryResolvedCount: 0,
+            categoryFallbackCount: 0,
+            categoryConfidenceCounts: createEmptyCategoryConfidenceCounts(),
+            categorySourceCounts: createEmptyCategorySourceCounts(),
+            categoryFallbackExamples: [],
+            collectionRate: 0,
+            isComplete: false,
+            issues: [{ code: 'scraper_error', message: 'Retailer scrape missing from execution results', severity: 'error' }],
             errors: ['Retailer scrape missing from execution results'],
           }
       return acc
@@ -74,6 +122,10 @@ async function runWeeklyScrape() {
     validatedCount: scrapeResults.reduce((sum, result) => sum + result.report.validatedCount, 0),
     rejectedCount: scrapeResults.reduce((sum, result) => sum + result.report.rejectedCount, 0),
     categories: createEmptyCategoryCounts(),
+    categoryResolvedCount: scrapeResults.reduce((sum, result) => sum + result.report.categoryResolvedCount, 0),
+    categoryFallbackCount: scrapeResults.reduce((sum, result) => sum + result.report.categoryFallbackCount, 0),
+    categoryConfidenceCounts: createEmptyCategoryConfidenceCounts(),
+    categorySourceCounts: createEmptyCategorySourceCounts(),
   }
 
   for (const category of SUPPORTED_CATEGORIES) {
@@ -83,8 +135,22 @@ async function runWeeklyScrape() {
     )
   }
 
+  for (const confidence of Object.keys(totals.categoryConfidenceCounts) as CategoryResolutionConfidence[]) {
+    totals.categoryConfidenceCounts[confidence] = scrapeResults.reduce(
+      (sum, result) => sum + (result.report.categoryConfidenceCounts[confidence] || 0),
+      0,
+    )
+  }
+
+  for (const source of Object.keys(totals.categorySourceCounts) as CategoryResolutionSource[]) {
+    totals.categorySourceCounts[source] = scrapeResults.reduce(
+      (sum, result) => sum + (result.report.categorySourceCounts[source] || 0),
+      0,
+    )
+  }
+
   const failedRetailers = scrapeResults
-    .filter((result) => result.offers.length === 0)
+    .filter((result) => !result.coverage.isComplete || hasBlockingIssues(result.issues) || result.offers.length === 0)
     .map((result) => result.retailer)
 
   const summary = {
@@ -104,10 +170,19 @@ async function runWeeklyScrape() {
   for (const retailer of RETAILERS) {
     const summaryEntry = stores[retailer]
     console.log(
-      `  ${retailer}: raw=${summaryEntry.rawCount} validated=${summaryEntry.validatedCount} rejected=${summaryEntry.rejectedCount} attempts=${summaryEntry.attempts}`,
+      `  ${retailer}: raw=${summaryEntry.rawCount} validated=${summaryEntry.validatedCount} rejected=${summaryEntry.rejectedCount} coverage=${summaryEntry.collectionRate}% attempts=${summaryEntry.attempts}`,
+    )
+    console.log(`    complete: ${summaryEntry.isComplete ? 'yes' : 'no'}`)
+    console.log(
+      `    categorization: resolved=${summaryEntry.categoryResolvedCount} fallback=${summaryEntry.categoryFallbackCount}`,
     )
     if (summaryEntry.errors.length > 0) {
       console.log(`    errors: ${summaryEntry.errors.join(' | ')}`)
+    }
+    if (summaryEntry.issues.length > 0) {
+      console.log(
+        `    issues: ${summaryEntry.issues.map((issue) => `${issue.severity || 'error'}:${issue.code}`).join(', ')}`,
+      )
     }
     const rejectedReasons = Object.entries(summaryEntry.rejectionReasons)
       .filter(([, count]) => count > 0)
@@ -117,13 +192,16 @@ async function runWeeklyScrape() {
     }
   }
 
-  if (failedRetailers.length > 0) {
-    throw new Error(`Scrape failed validation for retailers: ${failedRetailers.join(', ')}`)
-  }
-
   if (!process.env.POSTGRES_URL && !process.env.DATABASE_URL) {
     console.log('POSTGRES_URL / DATABASE_URL not set, skipping DB save')
+    if (failedRetailers.length > 0) {
+      throw new Error(`Scrape failed validation for retailers: ${failedRetailers.join(', ')}`)
+    }
     return
+  }
+
+  if (failedRetailers.length > 0) {
+    throw new Error(`Scrape failed validation for retailers: ${failedRetailers.join(', ')}`)
   }
 
   await upsertOffersBatch(allOffers)
