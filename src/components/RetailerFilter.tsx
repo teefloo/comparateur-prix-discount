@@ -22,7 +22,7 @@ export default function RetailerFilter({ selectedRetailers, onChange }: Retailer
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-[10px] font-bold text-muted uppercase tracking-widest mr-1 dark:text-slate-400">Filtrer:</span>
+      <span className="text-[10px] font-bold text-muted uppercase tracking-widest mr-1 dark:text-slate-300">Filtrer:</span>
 
       {RETAILERS.map((retailerId) => {
         const retailer = RETAILER_INFO[retailerId]
@@ -35,7 +35,7 @@ export default function RetailerFilter({ selectedRetailers, onChange }: Retailer
             className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
               isSelected
                 ? 'bg-white border-slate-200 text-foreground shadow-sm dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100'
-                : 'bg-slate-50 border-transparent text-muted dark:bg-slate-800/50 dark:text-slate-500'
+                : 'bg-slate-50 border-transparent text-muted dark:bg-slate-800/50 dark:text-slate-300'
             }`}
           >
             <span
@@ -50,7 +50,7 @@ export default function RetailerFilter({ selectedRetailers, onChange }: Retailer
       })}
 
       {selectedRetailers.length > 0 && selectedRetailers.length < RETAILERS.length && (
-        <button onClick={clearAll} className="text-xs text-muted hover:text-accent underline ml-1 dark:text-slate-400 dark:hover:text-accent">
+        <button onClick={clearAll} className="text-xs text-muted hover:text-accent underline ml-1 dark:text-slate-300 dark:hover:text-accent">
           Tout voir
         </button>
       )}

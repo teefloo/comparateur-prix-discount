@@ -69,10 +69,10 @@ export default function ProductGrid({ products, loading, hasSearched, search }: 
   return (
     <section className="py-10">
       <div className="flex items-center justify-between mb-8">
-        <h3 className="text-xl font-bold text-foreground dark:text-slate-100">
+        <h2 className="text-xl font-bold text-foreground dark:text-slate-100">
           Résultats
           {search && <span className="text-muted font-normal dark:text-slate-400"> pour &quot;{search}&quot;</span>}
-        </h3>
+        </h2>
         <div className="bg-accent-subtle border border-accent/20 text-accent px-3.5 py-1 rounded-full text-sm font-semibold dark:bg-accent/15">
           {products.length} offre{products.length > 1 ? 's' : ''}
         </div>

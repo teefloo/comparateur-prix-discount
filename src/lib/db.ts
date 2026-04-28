@@ -301,6 +301,33 @@ export async function getOfferById(id: string) {
   }
 }
 
+export async function getProductSitemapEntries(limit = 5000) {
+  try {
+    const { rows } = await sql.query<{ id: string; updated_at: Date | string | null }>(
+      `
+        SELECT id, created_at AS updated_at
+        FROM products
+        ORDER BY created_at DESC NULLS LAST, id ASC
+        LIMIT $1
+      `,
+      [limit],
+    )
+
+    return rows.map((row) => ({
+      id: row.id,
+      lastModified:
+        row.updated_at instanceof Date
+          ? row.updated_at
+          : row.updated_at
+            ? new Date(row.updated_at)
+            : null,
+    }))
+  } catch (error) {
+    console.error('DB Error in getProductSitemapEntries:', error)
+    return []
+  }
+}
+
 export async function upsertOffersBatch(offers: ValidatedOffer[]) {
   if (offers.length === 0) return
 

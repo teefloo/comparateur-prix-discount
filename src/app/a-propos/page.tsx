@@ -1,8 +1,32 @@
-'use client'
-
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft, TrendingDown, ShieldCheck, ShoppingBag, RefreshCw, ExternalLink } from 'lucide-react'
 import Navbar from '@/components/Navbar'
+import { absoluteUrl } from '@/lib/site'
+
+export const metadata: Metadata = {
+  title: 'À propos',
+  description:
+    'En savoir plus sur ComparPrix, le comparateur de prix discount dédié à Action, Stokomani, B&M, Centrakor et Aldi.',
+  alternates: {
+    canonical: '/a-propos',
+  },
+  openGraph: {
+    title: 'À propos | ComparPrix',
+    description:
+      'En savoir plus sur ComparPrix, le comparateur de prix discount dédié à Action, Stokomani, B&M, Centrakor et Aldi.',
+    url: absoluteUrl('/a-propos'),
+    type: 'website',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'ComparPrix',
+      },
+    ],
+  },
+}
 
 const stats = [
   { label: 'Enseignes comparées', value: '5' },

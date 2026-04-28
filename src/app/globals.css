@@ -49,7 +49,7 @@
   }
 
   .pill {
-    @apply bg-white border border-slate-200 text-muted hover:border-slate-300 hover:text-foreground px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 dark:bg-slate-800 dark:border-slate-700 dark:hover:border-slate-500;
+    @apply bg-white border border-slate-200 text-muted hover:border-slate-300 hover:text-foreground px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-500;
   }
   .pill-active {
     @apply bg-accent-subtle border-accent/30 text-accent font-semibold dark:bg-accent/15;
@@ -60,7 +60,7 @@
   }
 
   .source-badge {
-    @apply inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-muted text-[10px] font-bold uppercase tracking-widest dark:bg-slate-800 dark:border-slate-700;
+    @apply inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-muted text-[10px] font-bold uppercase tracking-widest dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200;
   }
 
   .snapshot-scroll {

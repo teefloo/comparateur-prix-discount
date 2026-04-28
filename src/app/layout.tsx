@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Agentation } from 'agentation'
+
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { absoluteUrl, getSiteUrl } from '@/lib/site'
+
 import './globals.css'
 
 const inter = Inter({
@@ -11,13 +14,39 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'ComparPrix | Votre assistant shopping intelligent',
-  description: 'Trouvez les meilleurs prix en hygiène, alimentation et ménage chez Action, Stokomani, B&M, Centrakor et Aldi. Ne payez plus jamais trop cher.',
+  metadataBase: new URL(getSiteUrl()),
+  title: {
+    default: 'ComparPrix',
+    template: '%s | ComparPrix',
+  },
+  description:
+    'Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor et Aldi. Comparez des offres mises à jour régulièrement et trouvez le meilleur prix plus vite.',
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
-    title: 'ComparPrix | Assistant Shopping Intelligent',
-    description: 'Le comparateur de prix n°1 pour Action, Stokomani, B&M, Centrakor et Aldi.',
+    title: 'ComparPrix',
+    description:
+      'Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor et Aldi.',
     type: 'website',
     locale: 'fr_FR',
+    url: absoluteUrl('/'),
+    siteName: 'ComparPrix',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'ComparPrix',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ComparPrix',
+    description:
+      'Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor et Aldi.',
+    images: ['/logo.png'],
   },
 }
 
@@ -43,17 +72,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     </p>
                   </div>
                   <div className="text-left md:text-right">
-                    <div className="flex gap-6 md:justify-end text-sm text-muted dark:text-slate-400">
+                    <div className="flex gap-6 md:justify-end text-sm text-muted dark:text-slate-300">
                       <a href="/" className="hover:text-accent transition-colors">Accueil</a>
                       <a href="/a-propos" className="hover:text-accent transition-colors">À propos</a>
                       <a href="mailto:contact@comparprix.fr" className="hover:text-accent transition-colors">Contact</a>
                     </div>
-                    <p className="text-subtle text-xs mt-4 dark:text-slate-500">
+                    <p className="text-subtle text-xs mt-4 dark:text-slate-400">
                       Les prix sont indicatifs et peuvent varier selon les magasins.
                     </p>
                   </div>
                 </div>
-                <div className="border-t border-slate-200 mt-10 pt-6 text-center text-subtle text-xs dark:border-slate-800 dark:text-slate-500">
+                <div className="border-t border-slate-200 mt-10 pt-6 text-center text-subtle text-xs dark:border-slate-800 dark:text-slate-400">
                   &copy; {new Date().getFullYear()} ComparPrix. Fait avec passion pour votre pouvoir d&apos;achat.
                 </div>
               </div>

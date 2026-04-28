@@ -75,6 +75,9 @@ export default function Navbar() {
               <button
                 className="p-2 text-muted hover:text-foreground dark:text-slate-400 dark:hover:text-slate-100"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label={isMobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+                aria-controls="mobile-menu"
+                aria-expanded={isMobileMenuOpen}
               >
                 {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
@@ -90,6 +93,7 @@ export default function Navbar() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.15 }}
               className="md:hidden border-t border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900"
+              id="mobile-menu"
             >
               <div className="px-6 py-4 space-y-1">
                 {navLinks.map((link) => (

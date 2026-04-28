@@ -27,9 +27,9 @@ interface CategoryBarProps {
 
 export default function CategoryBar({ selectedCategory, setSelectedCategory }: CategoryBarProps) {
   return (
-    <div id="categories" className="py-10">
+    <section id="categories" className="py-10">
       <div className="text-center mb-8">
-        <h3 className="text-xl font-bold text-foreground dark:text-slate-100">Parcourir par univers</h3>
+        <h2 className="text-xl font-bold text-foreground dark:text-slate-100">Parcourir par univers</h2>
         <p className="text-muted mt-1 text-sm dark:text-slate-400">Cliquez sur une catégorie pour filtrer les résultats</p>
       </div>
 
@@ -41,6 +41,7 @@ export default function CategoryBar({ selectedCategory, setSelectedCategory }: C
           return (
             <button
               key={category}
+              type="button"
               onClick={() => setSelectedCategory(isActive ? null : category)}
               className={isActive ? 'pill pill-active' : 'pill'}
             >
@@ -52,6 +53,6 @@ export default function CategoryBar({ selectedCategory, setSelectedCategory }: C
           )
         })}
       </div>
-    </div>
+    </section>
   )
 }
