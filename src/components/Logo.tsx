@@ -10,7 +10,7 @@ interface LogoProps {
 export default function Logo({ className = '', withText = true, size = 36 }: LogoProps) {
   return (
     <Link href="/" className={`group flex items-center gap-3 ${className}`}>
-      <div className="relative overflow-hidden rounded-xl bg-accent shadow-accent-sm group-hover:shadow-accent-lg transition-shadow duration-300">
+      <div className="relative overflow-hidden rounded-xl bg-accent shadow-accent-sm group-hover:shadow-accent-lg transition-shadow duration-300 dark:bg-accent/80">
         <Image
           src="/logo.png"
           alt="Comparateur Prix Logo"
@@ -21,10 +21,10 @@ export default function Logo({ className = '', withText = true, size = 36 }: Log
       </div>
       {withText && (
         <div className="flex flex-col">
-          <span className="text-lg font-bold tracking-tight text-foreground leading-none">
+          <span className="text-lg font-bold tracking-tight text-foreground dark:text-slate-100 leading-none">
             Compar<span className="text-accent">Prix</span>
           </span>
-          <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-muted leading-tight mt-0.5">
+          <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-muted dark:text-slate-400 leading-tight mt-0.5">
             Discount
           </span>
         </div>

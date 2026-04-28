@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, TrendingDown, ShieldCheck, ShoppingBag, RefreshCw, ExternalLink, Mail } from 'lucide-react'
+import { ArrowLeft, TrendingDown, ShieldCheck, ShoppingBag, RefreshCw, ExternalLink } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 
 const stats = [
@@ -111,10 +111,12 @@ export default function AboutPage() {
             </p>
             <div className="flex flex-wrap gap-3">
               <a
-                href="mailto:contact@comparprix.fr"
+                href="https://github.com/teefloo"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="btn-primary inline-flex items-center gap-2 px-5 py-2.5 text-sm"
               >
-                <Mail size={16} />
+                <ExternalLink size={16} />
                 Nous écrire
               </a>
               <a
