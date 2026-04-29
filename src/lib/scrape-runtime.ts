@@ -14,6 +14,8 @@ import {
   scrapeBMProductsDetailed,
   scrapeCentrakorProductsDetailed,
   scrapeGifiProductsDetailed,
+  scrapeLidlProductsDetailed,
+  scrapeLafoirfouilleProductsDetailed,
   scrapeStokomaniProductsDetailed,
 } from './scrapers'
 
@@ -44,6 +46,8 @@ const SCRAPER_REGISTRY: Record<Retailer, { scraper: ScraperFn; browserRequired: 
   centrakor: { scraper: scrapeCentrakorProductsDetailed, browserRequired: true },
   aldi: { scraper: scrapeAldiProductsDetailed, browserRequired: true },
   gifi: { scraper: scrapeGifiProductsDetailed, browserRequired: false },
+  lafoirfouille: { scraper: scrapeLafoirfouilleProductsDetailed, browserRequired: false },
+  lidl: { scraper: scrapeLidlProductsDetailed, browserRequired: false },
 }
 
 function hasBlockingIssues(issues: ScrapeIssue[]) {

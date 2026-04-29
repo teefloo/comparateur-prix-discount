@@ -256,6 +256,7 @@ async function queryOffers(options: {
   category?: SupportedCategory | null
   limit?: number
   id?: string
+  retailer?: string | null
 }) {
   const whereClauses: string[] = []
   const values: Array<string | number> = []
@@ -276,6 +277,11 @@ async function queryOffers(options: {
   if (options.category) {
     values.push(options.category)
     whereClauses.push(`p.category = $${values.length}`)
+  }
+
+  if (options.retailer) {
+    values.push(options.retailer)
+    whereClauses.push(`p.store_id = $${values.length}`)
   }
 
   values.push(options.limit || 100)
@@ -314,18 +320,18 @@ async function queryOffers(options: {
   return (rows as OfferDbRow[]).map(mapOfferRow)
 }
 
-export async function searchOffersInDb(query: string, category?: SupportedCategory | null) {
+export async function searchOffersInDb(query: string, category?: SupportedCategory | null, retailer?: string | null) {
   try {
-    return await queryOffers({ query, category, limit: 120 })
+    return await queryOffers({ query, category, limit: 120, retailer })
   } catch (error) {
     console.error('DB Error in searchOffersInDb:', error)
     return []
   }
 }
 
-export async function getOffersByCategory(category: SupportedCategory) {
+export async function getOffersByCategory(category: SupportedCategory, limit = 5000, retailer?: string | null) {
   try {
-    return await queryOffers({ category, limit: 120 })
+    return await queryOffers({ category, limit, retailer })
   } catch (error) {
     console.error('DB Error in getOffersByCategory:', error)
     return []

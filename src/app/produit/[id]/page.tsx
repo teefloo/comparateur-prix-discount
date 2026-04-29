@@ -196,10 +196,17 @@ export default async function ProductPage({ params }: { params: { id: string } }
                     )}
                   </div>
                   <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black"
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden"
                     style={{ backgroundColor: retailer.color }}
                   >
-                    <span className="text-white">{retailer.logo}</span>
+                    <Image
+                      src={retailer.logo}
+                      alt={retailer.name}
+                      width={56}
+                      height={56}
+                      className="object-contain p-2"
+                      unoptimized
+                    />
                   </div>
                 </div>
               </div>

@@ -4,3 +4,5 @@ export { scrapeBMProducts, scrapeBMProductsDetailed } from './bm-playwright-brow
 export { scrapeCentrakorProducts, scrapeCentrakorProductsDetailed } from './centrakor-scraper'
 export { scrapeGifiProducts, scrapeGifiProductsDetailed } from './gifi-scraper'
 export { scrapeAldiProducts, scrapeAldiProductsDetailed } from './aldi-scraper'
+export { scrapeLafoirfouilleProducts, scrapeLafoirfouilleProductsDetailed } from './lafoirfouille-scraper'
+export { scrapeLidlProducts, scrapeLidlProductsDetailed } from './lidl-scraper'

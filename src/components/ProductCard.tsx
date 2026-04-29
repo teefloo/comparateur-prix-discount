@@ -47,10 +47,17 @@ export default function ProductCard({
       <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-1.5">
           <span
-            className="w-6 h-6 rounded-lg flex items-center justify-center text-[9px] font-black text-white shadow-sm"
+            className="w-6 h-6 rounded-lg flex items-center justify-center overflow-hidden shadow-sm"
             style={{ backgroundColor: retailer.color }}
           >
-            {retailer.logo}
+            <Image
+              src={retailer.logo}
+              alt={retailer.name}
+              width={24}
+              height={24}
+              className="object-contain"
+              unoptimized
+            />
           </span>
           <span className="text-[11px] font-semibold text-muted dark:text-slate-300">{retailer.name}</span>
         </div>

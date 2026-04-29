@@ -20,6 +20,7 @@ const GIFI_MAX_RETRIES = 4
 const GIFI_CATEGORY_CONCURRENCY = 6
 const GIFI_SEARCH_CONCURRENCY = 8
 const GIFI_MAX_CATEGORY_PAGES = 12
+const GIFI_IMAGE_TARGET_SIZE = 634
 
 type GifiGtmData = {
   product_id?: string
@@ -84,6 +85,129 @@ function sleep(ms: number) {
 
 function parseLocs(xml: string) {
   return Array.from(xml.matchAll(/<loc>([^<]+)<\/loc>/g)).map((match) => match[1] || '').filter(Boolean)
+}
+
+function isGifiImageUrl(value: string | null | undefined) {
+  const absolute = toAbsoluteUrl(value, GIFI_BASE_URL)
+  if (!absolute) return false
+
+  try {
+    const url = new URL(absolute)
+    return url.hostname === 'gifi.fr' || url.hostname.endsWith('.gifi.fr')
+  } catch (_error) {
+    return false
+  }
+}
+
+export function normalizeGifiImageUrl(value: string | null | undefined) {
+  const absolute = toAbsoluteUrl(value, GIFI_BASE_URL)
+  if (!absolute) return ''
+
+  if (!isGifiImageUrl(absolute)) {
+    return absolute
+  }
+
+  try {
+    const url = new URL(absolute)
+    url.searchParams.set('sw', String(GIFI_IMAGE_TARGET_SIZE))
+    url.searchParams.set('sh', String(GIFI_IMAGE_TARGET_SIZE))
+    url.searchParams.set('sm', 'fit')
+    return url.toString()
+  } catch (_error) {
+    return absolute
+  }
+}
+
+type ImageCandidate = {
+  url: string
+  score: number
+  order: number
+}
+
+function scoreSrcsetDescriptor(descriptor: string) {
+  const normalized = cleanDisplayText(descriptor).toLowerCase()
+  if (!normalized) return 0
+
+  const widthMatch = normalized.match(/^(\d+(?:\.\d+)?)w$/)
+  if (widthMatch) {
+    return Number.parseFloat(widthMatch[1]) || 0
+  }
+
+  const densityMatch = normalized.match(/^(\d+(?:\.\d+)?)x$/)
+  if (densityMatch) {
+    return (Number.parseFloat(densityMatch[1]) || 0) * 10000
+  }
+
+  return 0
+}
+
+function parseSrcsetCandidates(srcset: string | undefined | null) {
+  const cleaned = cleanDisplayText(srcset)
+  if (!cleaned) return []
+
+  return cleaned
+    .split(',')
+    .map((entry, order) => {
+      const trimmed = cleanDisplayText(entry)
+      if (!trimmed) return null
+
+      const parts = trimmed.split(/\s+/)
+      const url = parts.shift() || ''
+      if (!url) return null
+
+      return {
+        url,
+        score: scoreSrcsetDescriptor(parts.join(' ')),
+        order,
+      } as ImageCandidate
+    })
+    .filter((candidate): candidate is ImageCandidate => candidate !== null)
+}
+
+function chooseBestImageUrl(candidates: ImageCandidate[]) {
+  const ranked = candidates
+    .filter((candidate) => cleanDisplayText(candidate.url))
+    .sort((left, right) => right.score - left.score || left.order - right.order)
+
+  return ranked[0]?.url || ''
+}
+
+function collectImageCandidates($: CheerioAPI, selectors: string[]) {
+  const candidates: ImageCandidate[] = []
+  let order = 0
+
+  const pushCandidate = (value: string | null | undefined, score = 0) => {
+    const cleaned = cleanDisplayText(value)
+    if (!cleaned) return
+
+    candidates.push({
+      url: cleaned,
+      score,
+      order: order += 1,
+    })
+  }
+
+  for (const selector of selectors) {
+    const element = $(selector).first()
+    pushCandidate(element.attr('src'))
+    pushCandidate(element.attr('data-src'))
+    pushCandidate(element.attr('data-original'))
+    pushCandidate(element.attr('current-src'))
+    for (const candidate of parseSrcsetCandidates(element.attr('srcset'))) {
+      candidates.push({
+        ...candidate,
+        order: order += 1,
+      })
+    }
+  }
+
+  return candidates
+}
+
+function selectBestGifiImageUrl($: CheerioAPI, selectors: string[]) {
+  const candidates = collectImageCandidates($, selectors)
+  const best = chooseBestImageUrl(candidates)
+  return normalizeGifiImageUrl(best)
 }
 
 function normalizeAvailability(value: string | null | undefined) {
@@ -157,13 +281,7 @@ function extractFirstText($: CheerioAPI, selectors: string[]) {
 }
 
 function extractSrcsetUrl(srcset: string | undefined | null) {
-  const cleaned = cleanDisplayText(srcset)
-  if (!cleaned) return ''
-
-  const firstEntry = cleaned.split(',')[0]?.trim()
-  if (!firstEntry) return ''
-
-  return firstEntry.split(/\s+/)[0] || ''
+  return chooseBestImageUrl(parseSrcsetCandidates(srcset))
 }
 
 function parseGifiPriceText(value: string | null | undefined): number | null {
@@ -233,23 +351,13 @@ function buildNativeCategoryLabel($: CheerioAPI) {
 }
 
 function buildProductImage($: CheerioAPI, selectors: string[]) {
-  for (const selector of selectors) {
-    const element = $(selector).first()
-    const src = cleanDisplayText(element.attr('src'))
-    const dataSrc = cleanDisplayText(element.attr('data-src'))
-    const srcset = extractSrcsetUrl(element.attr('srcset'))
-    const candidate = src || dataSrc || srcset
-    if (candidate) {
-      return toAbsoluteUrl(candidate, GIFI_BASE_URL)
-    }
-  }
-
-  return ''
+  return selectBestGifiImageUrl($, selectors)
 }
 
 function normalizeJsonLdImage(image: string | string[] | undefined) {
   if (!image) return ''
-  return Array.isArray(image) ? cleanDisplayText(image[0]) : cleanDisplayText(image)
+  const candidate = Array.isArray(image) ? cleanDisplayText(image[0]) : cleanDisplayText(image)
+  return normalizeGifiImageUrl(candidate)
 }
 
 function buildOfferFromTile($: CheerioAPI, tileSelector: string, pageUrl: string): ScrapedOffer | null {

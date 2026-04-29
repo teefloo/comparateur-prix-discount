@@ -16,7 +16,7 @@ export const SUPPORTED_CATEGORIES = [
 
 export type SupportedCategory = (typeof SUPPORTED_CATEGORIES)[number]
 
-export const RETAILERS = ['action', 'stokomani', 'bm', 'centrakor', 'aldi', 'gifi'] as const
+export const RETAILERS = ['action', 'stokomani', 'bm', 'centrakor', 'aldi', 'gifi', 'lafoirfouille', 'lidl'] as const
 
 export type Retailer = (typeof RETAILERS)[number]
 
@@ -46,38 +46,50 @@ export const RETAILER_INFO: Record<
   action: {
     name: 'Action',
     color: '#0066CC',
-    logo: 'A',
+    logo: '/logos/action.svg',
     domains: ['action.com'],
   },
   stokomani: {
     name: 'Stokomani',
     color: '#E63946',
-    logo: 'S',
+    logo: '/logos/stokomani.svg',
     domains: ['stokomani.fr'],
   },
   bm: {
     name: 'B&M',
     color: '#2D3436',
-    logo: 'B',
+    logo: '/logos/bm.svg',
     domains: ['bmstores.fr'],
   },
   centrakor: {
     name: 'Centrakor',
     color: '#00B894',
-    logo: 'C',
+    logo: '/logos/centrakor.svg',
     domains: ['centrakor.com'],
   },
   aldi: {
     name: 'Aldi',
     color: '#004b90',
-    logo: 'AL',
+    logo: '/logos/aldi.svg',
     domains: ['aldi.fr'],
   },
   gifi: {
     name: 'GiFi',
     color: '#d71920',
-    logo: 'GI',
+    logo: '/logos/gifi.svg',
     domains: ['gifi.fr'],
+  },
+  lafoirfouille: {
+    name: "La Foir'Fouille",
+    color: '#E30613',
+    logo: '/logos/lafoirfouille.svg',
+    domains: ['lafoirfouille.fr'],
+  },
+  lidl: {
+    name: 'Lidl',
+    color: '#0050AA',
+    logo: '/logos/lidl.svg',
+    domains: ['lidl.fr'],
   },
 }
 

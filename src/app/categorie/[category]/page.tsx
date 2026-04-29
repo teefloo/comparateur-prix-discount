@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: { params: CategoryPageParams 
 
   return {
     title: categoryLabel,
-    description: `DÃ©couvrez les meilleures offres dans la catÃ©gorie ${categoryLabel.toLowerCase()} chez Action, Stokomani, B&M, Centrakor, Aldi et GiFi.`,
+    description: `DÃ©couvrez les meilleures offres dans la catÃ©gorie ${categoryLabel.toLowerCase()} chez Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille et Lidl.`,
     alternates: {
       canonical: `/categorie/${params.category}`,
     },

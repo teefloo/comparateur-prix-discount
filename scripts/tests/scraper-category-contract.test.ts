@@ -93,6 +93,30 @@ const fixtures: OfferFixture[] = [
     name: 'Spray nettoyant multi-usage cerise 750 ml',
     description: "Produits d'entretien",
   },
+  {
+    retailer: 'lidl',
+    sourceUrl: 'https://www.lidl.fr/p/silvercrest-appareil-a-croque-monsieur/p10035199',
+    sourceCategoryPath: 'Lidl | Cuisine & Ménage | Cuisine & pâtisserie',
+    nativeCategory: 'Cuisine & pâtisserie',
+    name: 'SILVERCREST Appareil à croque-monsieur',
+    description: 'Appareil de cuisine',
+  },
+  {
+    retailer: 'lidl',
+    sourceUrl: 'https://www.lidl.fr/p/esmara-polo-cotele-femme/p100401234',
+    sourceCategoryPath: 'Lidl | Mode & Accessoires | Mode pour femme',
+    nativeCategory: 'Mode pour femme',
+    name: 'esmara Polo côtelé femme',
+    description: 'Vêtement pour femme',
+  },
+  {
+    retailer: 'lafoirfouille',
+    sourceUrl: 'https://www.lafoirfouille.fr/animalerie/chiens/p/Niche-pour-chien-84-5-x-79-x-80-5-cm-marron-03100601009.html',
+    sourceCategoryPath: 'Tous nos produits | Animalerie | Accessoire pour chiens pas cher',
+    nativeCategory: 'Animalerie',
+    name: 'Niche pour chien 84,5 x 79 x 80,5 cm marron',
+    description: 'Accessoire pour chien',
+  },
 ]
 
 test('validated scraper offers always keep a supported category and retain fallbacks', () => {
@@ -123,4 +147,11 @@ test('validated scraper offers always keep a supported category and retain fallb
   assert.equal(gifiResult.report.validatedCount, 1)
   assert.equal(gifiResult.report.rejectedCount, 0)
   assert.equal(gifiResult.offers[0]?.category, 'menage')
+
+  const lafoirfouilleOffers = fixtures.filter((fixture) => fixture.retailer === 'lafoirfouille').map(buildScrapedOffer)
+  const lafoirfouilleResult = validateOffersForRetailer('lafoirfouille', lafoirfouilleOffers)
+
+  assert.equal(lafoirfouilleResult.report.validatedCount, 1)
+  assert.equal(lafoirfouilleResult.report.rejectedCount, 0)
+  assert.equal(lafoirfouilleResult.offers[0]?.category, 'animaux')
 })

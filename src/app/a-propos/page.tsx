@@ -6,16 +6,16 @@ import Navbar from '@/components/Navbar'
 import { absoluteUrl } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Ã€ propos',
+  title: 'À propos',
   description:
-    'En savoir plus sur ComparPrix, le comparateur de prix discount dÃ©diÃ© Ã  Action, Stokomani, B&M, Centrakor, Aldi et GiFi.',
+    "En savoir plus sur ComparPrix, le comparateur de prix discount dédié à Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille et Lidl.",
   alternates: {
     canonical: '/a-propos',
   },
   openGraph: {
-    title: 'Ã€ propos | ComparPrix',
+    title: 'À propos | ComparPrix',
     description:
-      'En savoir plus sur ComparPrix, le comparateur de prix discount dÃ©diÃ© Ã  Action, Stokomani, B&M, Centrakor, Aldi et GiFi.',
+      "En savoir plus sur ComparPrix, le comparateur de prix discount dédié à Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille et Lidl.",
     url: absoluteUrl('/a-propos'),
     type: 'website',
     images: [
@@ -30,9 +30,9 @@ export const metadata: Metadata = {
 }
 
 const stats = [
-  { label: 'Enseignes comparÃ©es', value: '6' },
-  { label: 'CatÃ©gories de produits', value: '9' },
-  { label: 'Mise Ã  jour', value: 'Hebdomadaire' },
+  { label: 'Enseignes comparées', value: '8' },
+  { label: 'Catégories de produits', value: '13' },
+  { label: 'Mise à jour', value: 'Hebdomadaire' },
 ]
 
 const retailers = [
@@ -42,28 +42,30 @@ const retailers = [
   { name: 'Centrakor', color: 'bg-purple-600' },
   { name: 'Aldi', color: 'bg-yellow-500' },
   { name: 'GiFi', color: 'bg-red-700' },
+  { name: "La Foir'Fouille", color: 'bg-rose-600' },
+  { name: 'Lidl', color: 'bg-blue-700' },
 ]
 
 const values = [
   {
     icon: TrendingDown,
-    title: 'Ã‰conomies maximales',
-    desc: 'Nous comparons les prix pour vous garantir le meilleur rapport qualitÃ©-prix sur chaque produit.',
+    title: 'Économies maximales',
+    desc: 'Nous comparons les prix pour vous garantir le meilleur rapport qualité-prix sur chaque produit.',
   },
   {
     icon: ShieldCheck,
     title: 'Transparence totale',
-    desc: 'Les prix sont affichÃ©s tels que relevÃ©s, sans filtre ni commission cachÃ©e.',
+    desc: 'Les prix sont affichés tels que relevés, sans filtre ni commission cachée.',
   },
   {
     icon: RefreshCw,
-    title: 'DonnÃ©es Ã  jour',
-    desc: 'Notre base est actualisÃ©e chaque semaine pour reflÃ©ter les offres en magasin.',
+    title: 'Données à jour',
+    desc: 'Notre base est actualisée chaque semaine pour refléter les offres en magasin.',
   },
   {
     icon: ShoppingBag,
     title: 'Toutes les enseignes',
-    desc: 'Action, B&M, Stokomani, Centrakor, Aldi et GiFi rÃ©unies sur une seule plateforme.',
+    desc: "Action, B&M, Stokomani, Centrakor, Aldi, GiFi, La Foir'Fouille et Lidl réunies sur une seule plateforme.",
   },
 ]
 
@@ -79,16 +81,16 @@ export default function AboutPage() {
             className="inline-flex items-center gap-2 text-sm text-muted hover:text-accent transition-colors mb-8 dark:text-slate-400"
           >
             <ArrowLeft size={16} />
-            Retour Ã  l&apos;accueil
+            Retour à l&apos;accueil
           </Link>
 
           <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6 dark:text-slate-100">
-            Ã€ propos de <span className="text-accent">Compar</span>Prix
+            À propos de <span className="text-accent">Compar</span>Prix
           </h1>
 
           <p className="text-lg text-muted leading-relaxed mb-12 dark:text-slate-400">
-            ComparPrix est un comparateur de prix gratuit dÃ©diÃ© aux enseignes de discount.
-            Notre mission&nbsp;: vous aider Ã  faire les meilleurs choix sans passer des heures Ã  comparer.
+            ComparPrix est un comparateur de prix gratuit dédié aux enseignes de discount.
+            Notre mission&nbsp;: vous aider à faire les meilleurs choix sans passer des heures à comparer.
           </p>
 
           <div className="grid grid-cols-3 gap-4 mb-16">
@@ -133,7 +135,7 @@ export default function AboutPage() {
           <section className="card p-8 border-accent/30 bg-accent-subtle/20 dark:bg-accent/5">
             <h2 className="text-2xl font-bold text-foreground mb-4 dark:text-slate-100">Une question&nbsp;?</h2>
             <p className="text-muted mb-6 dark:text-slate-400">
-              Vous avez une suggestion ou vous avez repÃ©rÃ© une erreur&nbsp;? N&apos;hÃ©sitez pas Ã  nous contacter ou Ã  contribuer sur GitHub.
+              Vous avez une suggestion ou vous avez repéré une erreur&nbsp;? N&apos;hésitez pas à nous contacter ou à contribuer sur GitHub.
             </p>
             <div className="flex flex-wrap gap-3">
               <a
@@ -143,7 +145,7 @@ export default function AboutPage() {
                 className="btn-primary inline-flex items-center gap-2 px-5 py-2.5 text-sm"
               >
                 <ExternalLink size={16} />
-                Nous Ã©crire
+                Nous écrire
               </a>
               <a
                 href="https://github.com/teefloo/comparateur-prix-discount"

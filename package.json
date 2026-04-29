@@ -12,7 +12,19 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json",
     "scrape": "npx tsx scripts/weekly-scrape.ts",
     "scrape:gifi": "npx tsx scripts/scrape-gifi.ts",
-    "test:categories": "node --test --import tsx scripts/tests/category-resolution.test.ts scripts/tests/scraper-category-contract.test.ts scripts/tests/gifi-scraper.test.ts"
+    "scrape:lafoirfouille": "npx tsx scripts/scrape-lafoirfouille.ts",
+    "scrape:lidl": "npx tsx scripts/scrape-lidl.ts",
+    "fix:gifi-images": "npx tsx scripts/fix-gifi-images.ts",
+    "supervise": "npx tsx scripts/supervise-scrapers.ts",
+    "supervise:action": "npx tsx scripts/supervise-scrapers.ts action",
+    "supervise:stokomani": "npx tsx scripts/supervise-scrapers.ts stokomani",
+    "supervise:bm": "npx tsx scripts/supervise-scrapers.ts bm",
+    "supervise:centrakor": "npx tsx scripts/supervise-scrapers.ts centrakor",
+    "supervise:aldi": "npx tsx scripts/supervise-scrapers.ts aldi",
+    "supervise:gifi": "npx tsx scripts/supervise-scrapers.ts gifi",
+    "supervise:lafoirfouille": "npx tsx scripts/supervise-scrapers.ts lafoirfouille",
+    "supervise:lidl": "npx tsx scripts/supervise-scrapers.ts lidl",
+    "test:categories": "node --test --import tsx scripts/tests/category-resolution.test.ts scripts/tests/scraper-category-contract.test.ts scripts/tests/gifi-scraper.test.ts scripts/tests/lafoirfouille-scraper.test.ts scripts/tests/lidl-scraper.test.ts"
   },
   "dependencies": {
     "@vercel/postgres": "^0.5.1",

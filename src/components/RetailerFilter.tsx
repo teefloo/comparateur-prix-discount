@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { RETAILERS, RETAILER_INFO } from '@/lib/catalog'
 
 interface RetailerFilterProps {
@@ -39,10 +40,17 @@ export default function RetailerFilter({ selectedRetailers, onChange }: Retailer
             }`}
           >
             <span
-              className="w-4 h-4 rounded-md flex items-center justify-center text-[7px] font-black text-white shadow-sm"
+              className="w-4 h-4 rounded-md flex items-center justify-center overflow-hidden shadow-sm"
               style={{ backgroundColor: isSelected ? retailer.color : '#CBD5E1' }}
             >
-              {retailer.logo}
+              <Image
+                src={retailer.logo}
+                alt={retailer.name}
+                width={16}
+                height={16}
+                className="object-contain"
+                unoptimized
+              />
             </span>
             {retailer.name}
           </button>

@@ -20,14 +20,14 @@ export const metadata: Metadata = {
     template: '%s | ComparPrix',
   },
   description:
-    'Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi et GiFi. Comparez des offres mises à jour régulièrement et trouvez le meilleur prix plus vite.',
+    "Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi et La Foir'Fouille. Comparez des offres mises à jour régulièrement et trouvez le meilleur prix plus vite.",
   alternates: {
     canonical: '/',
   },
   openGraph: {
     title: 'ComparPrix',
     description:
-      'Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi et GiFi.',
+      "Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi et La Foir'Fouille.",
     type: 'website',
     locale: 'fr_FR',
     url: absoluteUrl('/'),
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'ComparPrix',
     description:
-      'Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi et GiFi.',
+      "Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi et La Foir'Fouille.",
     images: ['/logo.png'],
   },
 }

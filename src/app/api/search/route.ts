@@ -4,8 +4,11 @@ import * as path from 'path'
 
 import {
   CATEGORY_LABELS,
+  RETAILERS,
   SUPPORTED_CATEGORIES,
+  isRetailer,
   isSupportedCategory,
+  type Retailer,
   type SupportedCategory,
 } from '@/lib/catalog'
 import { getOffersByCategory, searchOffersInDb } from '@/lib/db'
@@ -16,6 +19,10 @@ import type { RetailerOfferCard } from '@/lib/types'
 export const dynamic = 'force-dynamic'
 
 const LIVE_SCRAPE_TIMEOUT_MS = 30000
+const CATEGORY_DB_LIMIT = 5000
+const CATEGORY_ONLY_LIVE_SCRAPE_RETAILERS = RETAILERS.filter(
+  (retailer): retailer is Retailer => retailer !== 'lafoirfouille',
+)
 
 const DEMO_OFFERS: RetailerOfferCard[] = [
   {
@@ -232,6 +239,29 @@ const DEMO_OFFERS: RetailerOfferCard[] = [
     unitPrice: 2.5,
     unitPriceLabel: '/pcs',
   },
+  {
+    id: 'demo-lafoirfouille-boite-rangement',
+    productId: 'demo-lafoirfouille-boite-rangement',
+    retailer: 'lafoirfouille',
+    name: 'Boite de rangement avec couvercle',
+    category: 'menage',
+    price: 4.99,
+    url: 'https://www.lafoirfouille.fr/',
+    image: '',
+  },
+  {
+    id: 'demo-lidl-caffeinethe',
+    productId: 'demo-lidl-caffeinethe',
+    retailer: 'lidl',
+    name: 'Café moulu intense',
+    category: 'alimentation',
+    price: 3.49,
+    url: 'https://www.lidl.fr/',
+    image: '',
+    quantity: '500g',
+    unitPrice: 6.98,
+    unitPriceLabel: '/kg',
+  },
 ]
 
 type SearchSource = 'database' | 'real-time' | 'demo-fallback' | null
@@ -304,6 +334,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const query = (searchParams.get('query') || '').trim()
   const category = parseCategory(searchParams.get('category'))
+  const retailer = searchParams.get('retailer') || null
   const lastUpdate = readLastUpdateTimestamp()
 
   if (!query && !category) {
@@ -319,20 +350,28 @@ export async function GET(request: NextRequest) {
 
   let databaseOffers: RetailerOfferCard[] = []
 
+  const validatedRetailer = retailer && isRetailer(retailer) ? retailer : null
+  const dbLimit = validatedRetailer ? 5000 : CATEGORY_DB_LIMIT
+
   try {
-    databaseOffers = query ? await searchOffersInDb(query, category) : category ? await getOffersByCategory(category) : []
+    databaseOffers = query
+      ? await searchOffersInDb(query, category, validatedRetailer)
+      : category
+        ? await getOffersByCategory(category, dbLimit, validatedRetailer)
+        : []
   } catch (error) {
     console.error('Search API database lookup failed:', error)
   }
 
   let liveOffers: RetailerOfferCard[] = []
-  const shouldLiveScrape = databaseOffers.length < 5
+  const shouldLiveScrape = query ? databaseOffers.length < 5 : Boolean(category) && databaseOffers.length < CATEGORY_DB_LIMIT
 
   if (shouldLiveScrape) {
     const scrapeResults = await withTimeout(
       'Retailer scrape',
       scrapeRetailers({
         searchQuery: query || undefined,
+        retailers: query ? undefined : CATEGORY_ONLY_LIVE_SCRAPE_RETAILERS,
         includeBrowserScrapers: process.env.VERCEL !== '1',
         maxAttempts: 2,
       }),
