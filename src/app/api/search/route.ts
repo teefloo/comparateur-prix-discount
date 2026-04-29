@@ -18,7 +18,7 @@ import type { RetailerOfferCard } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
-const LIVE_SCRAPE_TIMEOUT_MS = 30000
+const LIVE_SCRAPE_TIMEOUT_MS = process.env.VERCEL === '1' ? 8000 : 30000
 const CATEGORY_DB_LIMIT = 5000
 const CATEGORY_ONLY_LIVE_SCRAPE_RETAILERS = RETAILERS.filter(
   (retailer): retailer is Retailer => retailer !== 'lafoirfouille',
@@ -364,7 +364,9 @@ export async function GET(request: NextRequest) {
   }
 
   let liveOffers: RetailerOfferCard[] = []
-  const shouldLiveScrape = query ? databaseOffers.length < 5 : Boolean(category) && databaseOffers.length < CATEGORY_DB_LIMIT
+  const shouldLiveScrape = query
+    ? databaseOffers.length < 5
+    : Boolean(category) && databaseOffers.length < CATEGORY_DB_LIMIT && process.env.VERCEL !== '1'
 
   if (shouldLiveScrape) {
     const scrapeResults = await withTimeout(

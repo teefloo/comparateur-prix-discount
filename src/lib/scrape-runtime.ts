@@ -142,10 +142,16 @@ export async function scrapeRetailers(options: ScrapeRetailersOptions = {}): Pro
 
   const results: RetailerScrapeExecutionResult[] = []
 
-  for (const retailer of retailers) {
-    try {
-      results.push(await runRetailerScrape(retailer, options.searchQuery, maxAttempts))
-    } catch (error) {
+  const settled = await Promise.allSettled(
+    retailers.map((retailer) => runRetailerScrape(retailer, options.searchQuery, maxAttempts)),
+  )
+
+  for (const [index, result] of settled.entries()) {
+    const retailer = retailers[index]
+    if (result.status === 'fulfilled') {
+      results.push(result.value)
+    } else {
+      const error = result.reason
       results.push({
         retailer,
         offers: [],
