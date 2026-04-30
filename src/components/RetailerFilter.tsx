@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+
 import { RETAILERS, RETAILER_INFO } from '@/lib/catalog'
 
 interface RetailerFilterProps {
@@ -9,59 +10,69 @@ interface RetailerFilterProps {
 }
 
 export default function RetailerFilter({ selectedRetailers, onChange }: RetailerFilterProps) {
+  const hasFilter = selectedRetailers.length > 0
+
   const toggleRetailer = (retailerId: string) => {
     if (selectedRetailers.includes(retailerId)) {
       onChange(selectedRetailers.filter((retailer) => retailer !== retailerId))
-    } else {
-      onChange([...selectedRetailers, retailerId])
+      return
     }
-  }
 
-  const clearAll = () => {
-    onChange([])
+    onChange([...selectedRetailers, retailerId])
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-[10px] font-bold text-muted uppercase tracking-widest mr-1 dark:text-slate-300">Filtrer:</span>
+    <div className="surface px-4 py-4 sm:px-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="section-label">Affiner par enseigne</p>
+          <p className="mt-1 text-sm text-muted dark:text-slate-400">
+            Gardez toutes les enseignes ou ciblez seulement celles qui vous intéressent.
+          </p>
+        </div>
 
-      {RETAILERS.map((retailerId) => {
-        const retailer = RETAILER_INFO[retailerId]
-        const isSelected = selectedRetailers.length === 0 || selectedRetailers.includes(retailerId)
-
-        return (
+        {hasFilter && (
           <button
-            key={retailerId}
-            onClick={() => toggleRetailer(retailerId)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
-              isSelected
-                ? 'bg-white border-slate-200 text-foreground shadow-sm dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100'
-                : 'bg-slate-50 border-transparent text-muted dark:bg-slate-800/50 dark:text-slate-300'
-            }`}
+            type="button"
+            onClick={() => onChange([])}
+            className="self-start text-sm font-semibold text-accent transition-colors hover:text-accent-muted"
           >
-            <span
-              className="w-4 h-4 rounded-md flex items-center justify-center overflow-hidden shadow-sm"
-              style={{ backgroundColor: isSelected ? retailer.color : '#CBD5E1' }}
-            >
-              <Image
-                src={retailer.logo}
-                alt={retailer.name}
-                width={16}
-                height={16}
-                className="object-contain"
-                unoptimized
-              />
-            </span>
-            {retailer.name}
+            Tout réinitialiser
           </button>
-        )
-      })}
+        )}
+      </div>
 
-      {selectedRetailers.length > 0 && selectedRetailers.length < RETAILERS.length && (
-        <button onClick={clearAll} className="text-xs text-muted hover:text-accent underline ml-1 dark:text-slate-300 dark:hover:text-accent">
-          Tout voir
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => onChange([])}
+          className={`control-chip ${!hasFilter ? 'control-chip-active' : ''}`}
+        >
+          Toutes les enseignes
         </button>
-      )}
+
+        {RETAILERS.map((retailerId) => {
+          const retailer = RETAILER_INFO[retailerId]
+          const isSelected = !hasFilter || selectedRetailers.includes(retailerId)
+
+          return (
+            <button
+              key={retailerId}
+              type="button"
+              onClick={() => toggleRetailer(retailerId)}
+              className={`control-chip ${isSelected ? 'control-chip-active' : ''}`}
+            >
+              <span
+                className="inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-line bg-white"
+                style={{ borderColor: retailer.color }}
+              >
+                <Image src={retailer.logo} alt={retailer.name} width={16} height={16} className="h-4 w-4 object-contain" unoptimized />
+              </span>
+              {retailer.name}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }

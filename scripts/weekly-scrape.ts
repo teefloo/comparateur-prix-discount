@@ -9,7 +9,7 @@ import type { CategoryResolutionConfidence, CategoryResolutionSource, ScrapeIssu
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
 
-const OPTIONAL_WEEKLY_RETAILERS: Retailer[] = ['lafoirfouille', 'lidl']
+const OPTIONAL_WEEKLY_RETAILERS: Retailer[] = ['lafoirfouille', 'lidl', 'maxibazar', 'noz']
 const REQUIRED_WEEKLY_RETAILERS = RETAILERS.filter(
   (retailer): retailer is Retailer => !OPTIONAL_WEEKLY_RETAILERS.includes(retailer),
 )
@@ -82,26 +82,24 @@ async function runWeeklyScrape() {
   const hasDatabaseUrl = Boolean(process.env.POSTGRES_URL || process.env.DATABASE_URL)
 
   if (hasDatabaseUrl) {
-    if (blockingFailedRetailers.length > 0) {
-      throw new Error(`Scrape failed validation for retailers: ${blockingFailedRetailers.join(', ')}`)
+    const successfulRequiredResults = requiredScrapeResults.filter(
+      (result) => result.coverage.isComplete && !hasBlockingIssues(result.issues) && result.offers.length > 0,
+    )
+    const successfulRequiredOffers = successfulRequiredResults.flatMap((result) => result.offers)
+
+    if (successfulRequiredOffers.length > 0) {
+      await upsertOffersBatch(successfulRequiredOffers)
+      await upsertOfferPricesBatch(successfulRequiredOffers)
     }
 
-    const requiredOffers = requiredScrapeResults.flatMap((result) => result.offers)
-    await upsertOffersBatch(requiredOffers)
-    await upsertOfferPricesBatch(requiredOffers)
-
-    for (const retailer of REQUIRED_WEEKLY_RETAILERS) {
-      const retailerOfferIds = requiredScrapeResults
-        .find((result) => result.retailer === retailer)
-        ?.offers.map((offer) => offer.id)
-      if (!retailerOfferIds || retailerOfferIds.length === 0) {
-        throw new Error(`Cannot prune stale offers for retailer ${retailer}: no validated offers returned`)
-      }
-
-      await pruneStaleOffersByRetailer(retailer, retailerOfferIds)
+    for (const result of successfulRequiredResults) {
+      await pruneStaleOffersByRetailer(
+        result.retailer,
+        result.offers.map((offer) => offer.id),
+      )
     }
 
-    console.log(`Saved ${requiredOffers.length} validated required store offers to the database`)
+    console.log(`Saved ${successfulRequiredOffers.length} validated required store offers to the database`)
   }
 
   let optionalScrapeResults = await scrapeRetailers({
@@ -258,13 +256,7 @@ async function runWeeklyScrape() {
 
   if (!hasDatabaseUrl) {
     console.log('POSTGRES_URL / DATABASE_URL not set, skipping DB save')
-    if (blockingFailedRetailers.length > 0) {
-      throw new Error(`Scrape failed validation for retailers: ${blockingFailedRetailers.join(', ')}`)
-    }
-    return
-  }
-
-  if (optionalOffers.length > 0) {
+  } else if (optionalOffers.length > 0) {
     await upsertOffersBatch(optionalOffers)
     await upsertOfferPricesBatch(optionalOffers)
 
@@ -280,6 +272,10 @@ async function runWeeklyScrape() {
 
   if (optionalFailedRetailers.length > 0) {
     console.log(`Optional retailers skipped: ${optionalFailedRetailers.join(', ')}`)
+  }
+
+  if (blockingFailedRetailers.length > 0) {
+    throw new Error(`Scrape failed validation for retailers: ${blockingFailedRetailers.join(', ')}`)
   }
 }
 

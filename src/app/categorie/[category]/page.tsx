@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 
 import Navbar from '@/components/Navbar'
 import ProductCard from '@/components/ProductCard'
@@ -29,8 +30,8 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: CategoryPageParams }): Promise<Metadata> {
   if (!isSupportedCategory(params.category)) {
     return {
-      title: 'CatÃ©gorie introuvable',
-      description: 'Cette catÃ©gorie nâ€™existe pas.',
+      title: 'Catégorie introuvable',
+      description: 'Cette catégorie n’existe pas.',
     }
   }
 
@@ -38,13 +39,13 @@ export async function generateMetadata({ params }: { params: CategoryPageParams 
 
   return {
     title: categoryLabel,
-    description: `DÃ©couvrez les meilleures offres dans la catÃ©gorie ${categoryLabel.toLowerCase()} chez Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille et Lidl.`,
+    description: `Découvrez les meilleures offres dans la catégorie ${categoryLabel.toLowerCase()} chez Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl et Noz.`,
     alternates: {
       canonical: `/categorie/${params.category}`,
     },
     openGraph: {
       title: `${categoryLabel} | ComparPrix`,
-      description: `Les meilleures offres ${categoryLabel.toLowerCase()} mises Ã  jour rÃ©guliÃ¨rement.`,
+      description: `Les meilleures offres ${categoryLabel.toLowerCase()} mises à jour régulièrement.`,
       url: absoluteUrl(`/categorie/${params.category}`),
       type: 'website',
       images: [
@@ -68,30 +69,57 @@ export default async function CategoryPage({ params }: { params: CategoryPagePar
   const offers = await getOffersByCategory(params.category)
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900">
+    <>
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-6 pt-24 pb-20">
-        <div className="max-w-3xl">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-accent mb-4">CatÃ©gorie</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground dark:text-slate-100">{categoryLabel}</h1>
-          <p className="mt-4 text-muted leading-relaxed dark:text-slate-400">
-            {offers.length
-              ? `SÃ©lection actuelle de ${formatCount(offers.length)} offre${offers.length > 1 ? 's' : ''} dans ${categoryLabel.toLowerCase()}.`
-              : `Aucune offre nâ€™est disponible pour ${categoryLabel.toLowerCase()} pour le moment.`}
-          </p>
+      <main className="mx-auto max-w-7xl px-4 pt-24 pb-20 sm:px-6 lg:pt-28">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted transition-colors hover:text-accent dark:text-slate-400"
+        >
+          <ArrowLeft size={16} />
+          Retour à la recherche
+        </Link>
+
+        <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <p className="section-label">Catégorie</p>
+            <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight text-foreground dark:text-slate-50">
+              {categoryLabel}
+            </h1>
+              <p className="support-copy mt-4 text-base sm:text-lg">
+                {offers.length
+                  ? `Sélection actuelle de ${formatCount(offers.length)} offre${offers.length > 1 ? 's' : ''} dans ${categoryLabel.toLowerCase()}.`
+                  : `Aucune offre n&apos;est disponible pour ${categoryLabel.toLowerCase()} pour le moment.`}
+              </p>
+          </div>
+          <div className="result-badge result-badge-accent self-start">
+            <ArrowRight size={12} />
+            {formatCount(offers.length)} résultat{offers.length > 1 ? 's' : ''}
+          </div>
         </div>
 
         <div className="mt-10">
           {offers.length === 0 ? (
-            <div className="card p-8 text-center max-w-xl">
-              <p className="text-muted dark:text-slate-400">Aucune offre trouvÃ©e pour cette catÃ©gorie.</p>
-              <Link href="/" className="btn-primary inline-flex mt-6">
-                Retour Ã  l&apos;accueil
+            <div className="surface mx-auto max-w-2xl px-6 py-10 text-center">
+              <h2 className="font-display text-2xl font-semibold tracking-tight text-foreground dark:text-slate-100">
+                Aucune offre trouvée
+              </h2>
+              <p className="support-copy mx-auto mt-3 max-w-lg">
+                Cette catégorie est vide pour le moment. Revenez à la recherche pour explorer d&apos;autres univers.
+              </p>
+              <Link
+                href="/"
+                className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-foreground px-4 py-3 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
+              >
+                Retour à l&apos;accueil
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+            <div
+              className="grid gap-4"
+              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 38rem), 1fr))' }}
+            >
               {offers.map((offer, index) => (
                 <ProductCard key={offer.id} product={offer} isBest={index === 0} />
               ))}
@@ -99,6 +127,6 @@ export default async function CategoryPage({ params }: { params: CategoryPagePar
           )}
         </div>
       </main>
-    </div>
+    </>
   )
 }

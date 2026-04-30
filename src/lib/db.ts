@@ -3,7 +3,7 @@ import pg from 'pg'
 
 import { RETAILERS, SUPPORTED_CATEGORIES, type Retailer, type SupportedCategory } from './catalog'
 import { ensureDatabaseUrlEnv } from './ensure-db-env'
-import { toRetailerOfferCard } from './scraper-utils'
+import { normalizeSearchQuery, toRetailerOfferCard } from './scraper-utils'
 import type { RetailerOfferCard, ValidatedOffer } from './types'
 
 ensureDatabaseUrlEnv()
@@ -65,6 +65,9 @@ const PRODUCT_RETAILER_CHECK_VALUES = RETAILERS.map((retailer) => `'${retailer}'
 
 let hasEnsuredProductCategoryConstraint = false
 let hasEnsuredProductRetailerConstraint = false
+
+const SQL_ACCENT_SOURCE = 'àáâãäåāăąçćčèéêëēĕėęěìíîïīĭįñńňòóôõöøōŏőùúûüūŭůűųýÿ'
+const SQL_ACCENT_TARGET = 'aaaaaaaaaccceeeeeeeeiiiiiiinnnoooooooouuuuuuuuuuuyy'
 
 function chunkArray<T>(items: T[], chunkSize: number): T[][] {
   const chunks: T[][] = []
@@ -213,6 +216,10 @@ async function ensureProductCategoryConstraint(client: InstanceType<typeof Clien
   hasEnsuredProductCategoryConstraint = true
 }
 
+function buildNormalizedSqlTextExpression(columnSql: string) {
+  return `regexp_replace(translate(lower(coalesce(${columnSql}, '')), '${SQL_ACCENT_SOURCE}', '${SQL_ACCENT_TARGET}'), '[^a-z0-9]+', ' ', 'g')`
+}
+
 async function ensureProductRetailerConstraint(client: InstanceType<typeof Client>) {
   if (hasEnsuredProductRetailerConstraint) {
     return
@@ -267,10 +274,14 @@ async function queryOffers(options: {
   }
 
   if (options.query) {
-    values.push(`%${options.query}%`)
+    const normalizedQuery = normalizeSearchQuery(options.query)
+    values.push(`%${normalizedQuery}%`)
     const placeholder = `$${values.length}`
+    const normalizedName = buildNormalizedSqlTextExpression('p.name')
+    const normalizedBrand = buildNormalizedSqlTextExpression('COALESCE(p.brand, \'\')')
+    const normalizedDescription = buildNormalizedSqlTextExpression('COALESCE(p.description, \'\')')
     whereClauses.push(
-      `(p.name ILIKE ${placeholder} OR COALESCE(p.brand, '') ILIKE ${placeholder} OR COALESCE(p.description, '') ILIKE ${placeholder})`,
+      `(${normalizedName} LIKE ${placeholder} OR ${normalizedBrand} LIKE ${placeholder} OR ${normalizedDescription} LIKE ${placeholder})`,
     )
   }
 

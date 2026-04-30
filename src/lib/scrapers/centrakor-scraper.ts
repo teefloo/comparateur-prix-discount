@@ -19,11 +19,18 @@ const CENTRAKOR_MAX_PAGES = 30
 
 const ROOT_FALLBACKS: Partial<Record<SupportedCategory, string>> = {
   hygiene: `${CENTRAKOR_BASE_URL}/bain-et-beaute.html`,
+  alimentation: `${CENTRAKOR_BASE_URL}/alimentation.html`,
   menage: `${CENTRAKOR_BASE_URL}/rangement.html`,
   'maison-deco': `${CENTRAKOR_BASE_URL}/deco.html`,
   jardin: `${CENTRAKOR_BASE_URL}/saison-ete-plein-air.html`,
+  bricolage: `${CENTRAKOR_BASE_URL}/bricolage.html`,
+  loisirs: `${CENTRAKOR_BASE_URL}/loisirs.html`,
   animaux: `${CENTRAKOR_BASE_URL}/animalerie.html`,
   textile: `${CENTRAKOR_BASE_URL}/linge-de-maison.html`,
+  mode: `${CENTRAKOR_BASE_URL}/mode.html`,
+  'high-tech': `${CENTRAKOR_BASE_URL}/multimedia.html`,
+  bazar: `${CENTRAKOR_BASE_URL}/cuisine.html`,
+  jouets: `${CENTRAKOR_BASE_URL}/jouets.html`,
 }
 
 const ROOT_DISCOVERY_PATTERNS: Record<SupportedCategory, string[]> = {

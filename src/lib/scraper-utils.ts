@@ -101,6 +101,8 @@ const CATEGORY_KEYWORDS: Record<SupportedCategory, KeywordDefinition[]> = {
     'legume',
     'fruit',
     'conserve',
+    'surgele',
+    'surgelee',
     'aperitif',
     'cola',
     'coca',
@@ -137,8 +139,14 @@ const CATEGORY_KEYWORDS: Record<SupportedCategory, KeywordDefinition[]> = {
     'essuie tout',
     'sac poubelle',
     'javel',
+    'detachant',
+    'detachante',
+    'detacheur',
     'anti calcaire',
     'deboucheur',
+    'bloc wc',
+    'blocs wc',
+    'wc',
     'entretien',
     'rangement',
     'menage',
@@ -232,6 +240,7 @@ const CATEGORY_KEYWORDS: Record<SupportedCategory, KeywordDefinition[]> = {
     'collier',
     'laisse',
     'harnais',
+    'griffoir',
     'aquarium',
     'animalerie',
   ],
@@ -330,6 +339,8 @@ const CATEGORY_KEYWORDS: Record<SupportedCategory, KeywordDefinition[]> = {
     'wok',
     'plat',
     'bol',
+    'bocal',
+    'assiette',
     'tasse',
     'verre',
     'tasse',
@@ -536,11 +547,14 @@ const RETAILER_NATIVE_CATEGORY_HINTS: Record<Retailer, Array<{ category: Support
         'surgeles',
         'boissons',
         'biere vin alcool',
+        'recompenses',
+        'marque aldi vs grandes marques',
       ],
     },
     { category: 'hygiene', patterns: ['hygiene beaute bebe'] },
     { category: 'menage', patterns: ['entretien'] },
     { category: 'animaux', patterns: ['animalerie'] },
+    { category: 'bazar', patterns: ['maison loisirs dupes pepites', 'nouveau look'] },
   ],
   gifi: [
     { category: 'hygiene', patterns: ['salle de bain beaute et bien etre', 'beaute', 'bien etre', 'dentaire', 'maquillage'] },
@@ -605,6 +619,20 @@ const RETAILER_NATIVE_CATEGORY_HINTS: Record<Retailer, Array<{ category: Support
     { category: 'bazar', patterns: ['cuisine', 'vaisselle', 'art de la table', 'conservation cuisine', 'petit electromenager'] },
     { category: 'jouets', patterns: ['jouets', 'jeux enfant', 'jeux exterieurs', 'jeux de societe', 'peluche'] },
   ],
+  maxibazar: [
+    { category: 'hygiene', patterns: ['bien etre et beaute', 'beaute', 'bien etre', 'dentaire', 'salle de bain'] },
+    { category: 'menage', patterns: ['utilitaire de la maison', 'utilitaire', 'rangement', 'dressings', 'salle de bain'] },
+    { category: 'maison-deco', patterns: ['mobilier interieur', 'amenagement interieur', 'decoration', 'meubles', 'salon', 'chambre', 'tapis', 'noel'] },
+    { category: 'jardin', patterns: ['amenagement exterieur', 'mobilier de jardin', 'outdoor', 'assises pour exterieur', 'terrasse', 'jardin'] },
+    { category: 'bricolage', patterns: ['fixation', 'accessoires electriques', 'bricolage', 'outillage', 'outils'] },
+    { category: 'loisirs', patterns: ['produits loisirs', 'activites en plein air', 'loisirs'] },
+    { category: 'animaux', patterns: ['animaux', 'chien', 'chat', 'oiseau'] },
+    { category: 'textile', patterns: ['linge de maison', 'tapis', 'rideaux', 'drap', 'couette'] },
+    { category: 'mode', patterns: ['voyage et mode', 'mode', 'bagagerie', 'voyage'] },
+    { category: 'high-tech', patterns: ['bluetooth', 'audio', 'radio', 'reveil', 'telephone', 'multimedia', 'electronique'] },
+    { category: 'bazar', patterns: ['tout pour la cuisine', 'art de la table', 'utilitaire de la maison', 'cuisine', 'bazar', 'rangements'] },
+    { category: 'jouets', patterns: ['univers enfant', 'enfants', 'puericulture', 'activites en plein air', 'enfant'] },
+  ],
   lidl: [
     { category: 'alimentation', patterns: ['alimentation boissons', 'fruits et legumes', 'pains viennoiseries', 'oeufs et produits secs', 'fromages produits laitiers', 'viandes et charcuteries', 'poissons et crustaces', 'cafe the cacao', 'confitures pates a tartiner', 'huiles conserves', 'sauces epices', 'plats prepares', 'produits surgeles', 'epicerie et sucreries', 'vins et spiritueux', 'boissons'] },
     { category: 'hygiene', patterns: ['hygiene et beaute', 'beaute soins du corps', 'sante et bien etre'] },
@@ -619,6 +647,10 @@ const RETAILER_NATIVE_CATEGORY_HINTS: Record<Retailer, Array<{ category: Support
     { category: 'high-tech', patterns: ['multimedia'] },
     { category: 'bazar', patterns: ['cuisine patisserie', 'l art de la table la vaisselle', 'barbecue accessoires', 'cuisine salle a manger', 'cuisine menage'] },
     { category: 'jouets', patterns: ['jouets', 'education loisirs creatifs', 'equipement pour bebes et enfants', 'jeux de construction', 'jeux de societe', 'poupees', 'peluches'] },
+  ],
+  noz: [
+    { category: 'alimentation', patterns: ['alimentaire', 'alimentaire boissons'] },
+    { category: 'mode', patterns: ['mode'] },
   ],
 }
 
@@ -915,6 +947,41 @@ export function normalizeSearchQuery(query: string): string {
     .replace(/\s+/g, ' ')
 }
 
+const STOKOMANI_NAME_PREFIX_RE = /^(?:stockomani|stokomani)\s*[-:]?\s+/i
+
+export function normalizeRetailerProductName(retailer: Retailer, value: string | null | undefined): string {
+  const cleaned = cleanDisplayText(value)
+  if (!cleaned) {
+    return ''
+  }
+
+  if (retailer === 'stokomani') {
+    const stripped = cleaned.replace(STOKOMANI_NAME_PREFIX_RE, '').trim()
+    return stripped || cleaned
+  }
+
+  return cleaned
+}
+
+export function normalizeRetailerBrand(
+  retailer: Retailer,
+  value: string | null | undefined,
+): string | undefined {
+  const cleaned = cleanNullableText(value)
+  if (!cleaned) {
+    return undefined
+  }
+
+  if (retailer === 'stokomani') {
+    const normalized = normalizeSearchQuery(cleaned)
+    if (normalized === 'stokomani' || normalized === 'stockomani') {
+      return undefined
+    }
+  }
+
+  return cleaned
+}
+
 export function toValidPrice(value: unknown): number | null {
   if (typeof value === 'number') {
     if (!Number.isFinite(value) || value <= 0) return null
@@ -960,15 +1027,48 @@ export function resolveOfferCategory(options: {
   return ranked[0]?.score ? ranked[0].category : null
 }
 
+function buildNozPreciseNativeContext(...values: Array<string | null | undefined>) {
+  const normalized = normalizeSearchQuery(values.filter(Boolean).join(' '))
+  const contexts: string[] = []
+
+  if (normalized.includes('alimentaire')) {
+    contexts.push('alimentaire')
+  }
+
+  if (normalized.includes('mode')) {
+    contexts.push('mode')
+  }
+
+  return contexts.join(' ')
+}
+
+function resolveNozFallbackCategory(...values: Array<string | null | undefined>): SupportedCategory | null {
+  const normalized = normalizeSearchQuery(values.filter(Boolean).join(' '))
+
+  if (!normalized) return null
+  if (normalized.includes('alimentaire') || normalized.includes('surgele')) return 'alimentation'
+  if (normalized.includes('mode')) return 'mode'
+  if (normalized.includes('hygiene') || normalized.includes('beaute')) return 'hygiene'
+  if (normalized.includes('bazar')) return 'bazar'
+
+  return null
+}
+
 export function resolveScrapedOfferCategory(input: ResolveScrapedOfferCategoryInput): CategoryResolutionResult {
   const buckets = createCategorySignalBuckets()
   const normalizedSourceUrl = normalizeSearchQuery(input.sourceUrl || '')
-  const normalizedSourcePath = normalizeSearchQuery(input.sourceCategoryPath || '')
-  const normalizedNativeCategory = normalizeSearchQuery(input.nativeCategory || '')
+  let normalizedSourcePath = normalizeSearchQuery(input.sourceCategoryPath || '')
+  let normalizedNativeCategory = normalizeSearchQuery(input.nativeCategory || '')
   const normalizedTags = normalizeSearchQuery((input.tags || []).filter(Boolean).join(' '))
   const normalizedText = normalizeSearchQuery(
     [input.name, input.brand, input.description, input.availability].filter(Boolean).join(' '),
   )
+
+  if (input.retailer === 'noz') {
+    const nozNativeContext = buildNozPreciseNativeContext(normalizedSourcePath, normalizedNativeCategory)
+    normalizedSourcePath = nozNativeContext
+    normalizedNativeCategory = nozNativeContext
+  }
 
   const nativeHaystack = [normalizedSourceUrl, normalizedSourcePath, normalizedNativeCategory].filter(Boolean).join(' ')
   const sourceContext = [normalizedSourcePath, normalizedNativeCategory, normalizedSourceUrl].filter(Boolean).join(' ')
@@ -992,11 +1092,14 @@ export function resolveScrapedOfferCategory(input: ResolveScrapedOfferCategoryIn
   const runnerUp = ranked[1]
 
   if (!top || top.score <= 0) {
+    const nozFallbackCategory =
+      input.retailer === 'noz' ? resolveNozFallbackCategory(input.sourceCategoryPath, input.nativeCategory) : null
+
     return {
-      category: 'bazar',
+      category: nozFallbackCategory || 'bazar',
       confidence: 'fallback',
       source: 'fallback',
-      matchedSignals: [],
+      matchedSignals: nozFallbackCategory ? ['fallback:noz_source_category'] : [],
       fallbackUsed: true,
     }
   }
@@ -1217,9 +1320,9 @@ export function toRetailerOfferCard(input: {
     id: input.id,
     productId: input.id,
     retailer: input.retailer,
-    name: cleanDisplayText(input.name),
+    name: normalizeRetailerProductName(input.retailer, input.name),
     category: input.category,
-    brand: cleanNullableText(input.brand),
+    brand: normalizeRetailerBrand(input.retailer, input.brand),
     price: toValidPrice(input.price) || 0,
     url: toAbsoluteUrl(input.url || input.sourceUrl) || '',
     image: toAbsoluteUrl(input.image, input.url || input.sourceUrl || undefined),
@@ -1261,11 +1364,13 @@ export function validateOffersForRetailer(retailer: Retailer, rawOffers: Scraped
   let categoryFallbackCount = 0
 
   for (const rawOffer of rawOffers) {
-    const name = cleanDisplayText(rawOffer.name)
+    const name = normalizeRetailerProductName(retailer, rawOffer.name)
     if (!name) {
       incrementReason(rejectionReasons, 'missing_name')
       continue
     }
+
+    const brand = normalizeRetailerBrand(retailer, rawOffer.brand)
 
     const sourceUrl = toAbsoluteUrl(rawOffer.sourceUrl)
     if (!sourceUrl) {
@@ -1291,7 +1396,7 @@ export function validateOffersForRetailer(retailer: Retailer, rawOffers: Scraped
         sourceUrl,
         sourceCategoryPath: rawOffer.sourceCategoryPath,
         name,
-        brand: rawOffer.brand,
+        brand,
         description: rawOffer.description,
         availability: rawOffer.availability,
       })
@@ -1337,7 +1442,7 @@ export function validateOffersForRetailer(retailer: Retailer, rawOffers: Scraped
       category,
       categoryResolution,
       name,
-      brand: cleanNullableText(rawOffer.brand),
+      brand,
       price,
       image: toAbsoluteUrl(rawOffer.image, sourceUrl),
       description: cleanNullableText(rawOffer.description),

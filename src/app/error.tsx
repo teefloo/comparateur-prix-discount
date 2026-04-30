@@ -8,18 +8,25 @@ export default function Error({
   reset: () => void
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-900 px-6">
-      <div className="text-center max-w-md">
-        <div className="w-16 h-16 bg-red-50 border border-red-200 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl dark:bg-red-900/20 dark:border-red-800">
-          ⚠️
+    <div className="min-h-screen bg-paper px-4 py-24 dark:bg-slate-950">
+      <div className="mx-auto max-w-lg">
+        <div className="surface px-6 py-8 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl border border-danger/20 bg-danger/10 text-danger dark:border-danger/30 dark:bg-danger/10">
+            ⚠️
+          </div>
+          <h2 className="font-display mt-6 text-3xl font-semibold tracking-tight text-foreground dark:text-slate-100">
+            Une erreur est survenue
+          </h2>
+          <p className="support-copy mt-3">
+            {error.message || "La page n'a pas pu être chargée. Veuillez réessayer."}
+          </p>
+          <button
+            onClick={reset}
+            className="mt-8 inline-flex items-center justify-center rounded-2xl bg-foreground px-5 py-3 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
+          >
+            Réessayer
+          </button>
         </div>
-        <h2 className="text-2xl font-bold text-foreground mb-2 dark:text-slate-100">Une erreur est survenue</h2>
-        <p className="text-muted text-sm mb-8 dark:text-slate-400">
-          {error.message || "La page n&apos;a pas pu être chargée. Veuillez réessayer."}
-        </p>
-        <button onClick={reset} className="btn-primary">
-          Réessayer
-        </button>
       </div>
     </div>
   )

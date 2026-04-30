@@ -14,6 +14,8 @@ import {
   scrapeBMProductsDetailed,
   scrapeCentrakorProductsDetailed,
   scrapeGifiProductsDetailed,
+  scrapeMaxibazarProductsDetailed,
+  scrapeNozProductsDetailed,
   scrapeLidlProductsDetailed,
   scrapeLafoirfouilleProductsDetailed,
   scrapeStokomaniProductsDetailed,
@@ -48,10 +50,37 @@ const SCRAPER_REGISTRY: Record<Retailer, { scraper: ScraperFn; browserRequired: 
   gifi: { scraper: scrapeGifiProductsDetailed, browserRequired: false },
   lafoirfouille: { scraper: scrapeLafoirfouilleProductsDetailed, browserRequired: false },
   lidl: { scraper: scrapeLidlProductsDetailed, browserRequired: false },
+  maxibazar: { scraper: scrapeMaxibazarProductsDetailed, browserRequired: false },
+  noz: { scraper: scrapeNozProductsDetailed, browserRequired: false },
 }
 
 function hasBlockingIssues(issues: ScrapeIssue[]) {
   return issues.some((issue) => issue.severity !== 'warning')
+}
+
+function getRetailerTimeoutMs(retailer: Retailer): number {
+  // Browser scrapers need more time (navigation + rendering); fetch scrapers are faster
+  return SCRAPER_REGISTRY[retailer].browserRequired ? 45 * 60 * 1000 : 20 * 60 * 1000
+}
+
+async function runRetailerScrapeWithTimeout(
+  retailer: Retailer,
+  searchQuery: string | undefined,
+  maxAttempts: number,
+): Promise<RetailerScrapeExecutionResult> {
+  const timeoutMs = getRetailerTimeoutMs(retailer)
+
+  return Promise.race([
+    runRetailerScrape(retailer, searchQuery, maxAttempts),
+    new Promise<never>((_, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error(`Scraper ${retailer} timed out after ${timeoutMs}ms`))
+      }, timeoutMs)
+      if ('unref' in timer && typeof timer.unref === 'function') {
+        timer.unref()
+      }
+    }),
+  ])
 }
 
 function buildEmptyReport(retailer: Retailer, reason?: string): OfferValidationReport {
@@ -143,7 +172,7 @@ export async function scrapeRetailers(options: ScrapeRetailersOptions = {}): Pro
   const results: RetailerScrapeExecutionResult[] = []
 
   const settled = await Promise.allSettled(
-    retailers.map((retailer) => runRetailerScrape(retailer, options.searchQuery, maxAttempts)),
+    retailers.map((retailer) => runRetailerScrapeWithTimeout(retailer, options.searchQuery, maxAttempts)),
   )
 
   for (const [index, result] of settled.entries()) {

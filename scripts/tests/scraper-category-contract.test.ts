@@ -117,6 +117,30 @@ const fixtures: OfferFixture[] = [
     name: 'Niche pour chien 84,5 x 79 x 80,5 cm marron',
     description: 'Accessoire pour chien',
   },
+  {
+    retailer: 'maxibazar',
+    sourceUrl: 'https://maxibazar.fr/chaise-jardin-acacia-40x52x85-5cm',
+    sourceCategoryPath: 'Accueil | Amenagement exterieur | Mobilier de jardin | Assises pour exterieur',
+    nativeCategory: 'Mobilier de jardin',
+    name: 'Chaise jardin acacia 40x52x85.5cm',
+    description: 'Chaise de jardin en acacia',
+  },
+  {
+    retailer: 'maxibazar',
+    sourceUrl: 'https://maxibazar.fr/plateau-de-service',
+    sourceCategoryPath: 'Accueil | Utilitaire de la maison et bazar | Tout pour la cuisine',
+    nativeCategory: 'Tout pour la cuisine',
+    name: 'Plateau de service',
+    description: 'Plateau polyvalent pour la cuisine',
+  },
+  {
+    retailer: 'noz',
+    sourceUrl: 'https://www.noz.fr/product/blocs-wc-avec-applicateur-parfume/',
+    sourceCategoryPath: 'Hygiene / Beaute / Entretien',
+    nativeCategory: 'Hygiene / Beaute / Entretien',
+    name: 'BLOCS WC AVEC APPLICATEUR PARFUME',
+    description: 'Arrivage Noz: surstocks',
+  },
 ]
 
 test('validated scraper offers always keep a supported category and retain fallbacks', () => {
@@ -154,4 +178,11 @@ test('validated scraper offers always keep a supported category and retain fallb
   assert.equal(lafoirfouilleResult.report.validatedCount, 1)
   assert.equal(lafoirfouilleResult.report.rejectedCount, 0)
   assert.equal(lafoirfouilleResult.offers[0]?.category, 'animaux')
+
+  const nozOffers = fixtures.filter((fixture) => fixture.retailer === 'noz').map(buildScrapedOffer)
+  const nozResult = validateOffersForRetailer('noz', nozOffers)
+
+  assert.equal(nozResult.report.validatedCount, 1)
+  assert.equal(nozResult.report.rejectedCount, 0)
+  assert.equal(nozResult.offers[0]?.category, 'menage')
 })

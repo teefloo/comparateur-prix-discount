@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 60">
-  <rect width="160" height="60" rx="10" fill="#004b90"/>
-  <text x="50" y="38" text-anchor="middle" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="28" letter-spacing="4">ALDI</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="157" height="164" viewBox="0 0 157 164">
+  <rect width="157" height="164" fill="none"/>
+  <path d="M154 162V8H8v154zm-6-6h-139V14h139v142z" fill="#c51718"/>
+  <path d="M31 218h124v32H31v-32z" fill="#202b78" transform="translate(-15 -102)"/>
+  <path d="M154 249v-24h-11v24zm-13-12a12 12 0 0 0-12-12h-17v24h16a12 12 0 0 0 12-12zm-10 0a5 5 0 0 1-5 5h-2v-10h2a5 5 0 0 1 5 5zM90 249h20v-7h-9v-17H90zM78 249h11L76 225H65L52 249h11l1-3h11zm-4-9h4l3-5z" fill="#fff" transform="translate(-25 -106)"/>
+  <path d="M141 128a19 19 0 0 0 3-10c0-4-2-7-4-10L106 57l5-8 38 56c3 5 5 8 5 13a23 23 0 0 1-2 10zM99 31L50 105c-3 5-5 8-5 13a23 23 0 0 0 2 10h10a19 19 0 0 1-2-10c0-4 2-7 4-10l51-77zm-31 78h60l-4-6h-51l-3 4c0 1-1 2-1 2z" fill="#00b6ed" transform="translate(-21 -15)"/>
+  <path d="M145 128c0-1 0-1 1-2a22 22 0 0 0 2-8c0-5-2-9-5-14l-38-56 4-7 42 62c4 5 5 9 5 14 0 5-2 8-3 11zm-23 0h9a19 19 0 0 0 3-10c0-4-2-6-4-10l-28-42-4 6 28 42c2 4 5 7 5 10a14 14 0 0 1-4 10zM80 31L32 103c-4 5-5 9-5 14a16 16 0 0 0 3 11h7c0-1 0-1-1-2a22 22 0 0 1-2-8c0-5 2-9 5-14l49-73zm23 0L52 108c-2 3-4 6-4 10a19 19 0 0 0 3 10h9a14 14 0 0 1-4-10c0-1 0-2 1-3h65c-1-2-2-3-2-4H59c1-1 2-3 3-4l3-5h49l-3-4H68l44-67z" fill="#202b78" transform="translate(-13 -15)"/>
 </svg>

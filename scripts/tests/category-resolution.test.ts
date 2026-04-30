@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
+import { extractNozApiProductOffer, type NozStoreProduct } from '../../src/lib/scrapers/noz-scraper'
 import { resolveScrapedOfferCategory } from '../../src/lib/scraper-utils'
 
 test('maps native retailer paths before text heuristics', () => {
@@ -71,6 +72,26 @@ test('uses weighted signals for ambiguous keywords', () => {
   })
 
   assert.equal(gifiCleaner.category, 'menage')
+
+  const maxibazarGarden = resolveScrapedOfferCategory({
+    retailer: 'maxibazar',
+    sourceUrl: 'https://maxibazar.fr/chaise-jardin-acacia-40x52x85-5cm',
+    sourceCategoryPath: 'Accueil | Amenagement exterieur | Mobilier de jardin | Assises pour exterieur',
+    name: 'Chaise jardin acacia',
+    description: 'Chaise de jardin en acacia',
+  })
+
+  assert.equal(maxibazarGarden.category, 'jardin')
+
+  const maxibazarBazar = resolveScrapedOfferCategory({
+    retailer: 'maxibazar',
+    sourceUrl: 'https://maxibazar.fr/plateau-de-service',
+    sourceCategoryPath: 'Accueil | Utilitaire de la maison et bazar | Tout pour la cuisine',
+    name: 'Plateau de service',
+    description: 'Plateau polyvalent pour la cuisine',
+  })
+
+  assert.equal(maxibazarBazar.category, 'bazar')
 })
 
 test("maps La Foir'Fouille native paths across key categories", () => {
@@ -170,6 +191,83 @@ test('maps Lidl native paths across key categories', () => {
     })
 
     assert.equal(resolution.category, fixture.expected)
+  }
+})
+
+test('maps Noz broad source categories without overpowering product signals', () => {
+  const cases = [
+    {
+      name: 'BILLES DE CHOCOLAT NOIR',
+      categoryName: 'Alimentaire',
+      categorySlug: 'alimentaire-boissons',
+      expected: 'alimentation',
+    },
+    {
+      name: 'B\u00dbCHE VANILLE FRAISE SURGEL\u00c9E',
+      categoryName: 'Surgel\u00e9',
+      categorySlug: 'surgele',
+      expected: 'alimentation',
+    },
+    {
+      name: 'GRIFFOIR POUR CHAT',
+      categoryName: 'Bazar',
+      categorySlug: 'bazar',
+      expected: 'animaux',
+    },
+    {
+      name: 'BLOCS WC AVEC APPLICATEUR PARFUM\u00c9',
+      categoryName: 'Hygi\u00e8ne / Beaut\u00e9 / Entretien',
+      categorySlug: 'hygiene-beaute-entretien',
+      expected: 'menage',
+    },
+    {
+      name: 'POUDRE D\u00c9TACHANTE',
+      categoryName: 'Hygi\u00e8ne / Beaut\u00e9 / Entretien',
+      categorySlug: 'hygiene-beaute-entretien',
+      expected: 'menage',
+    },
+    {
+      name: 'CHAUSSETTES',
+      categoryName: 'Mode',
+      categorySlug: 'mode',
+      expected: 'mode',
+    },
+    {
+      name: 'CASQUETTE HOMME',
+      categoryName: 'Mode',
+      categorySlug: 'mode',
+      expected: 'mode',
+    },
+    {
+      name: 'ASSIETTE JETABLE',
+      categoryName: 'Bazar',
+      categorySlug: 'bazar',
+      expected: 'bazar',
+    },
+    {
+      name: 'BOCAL EN PLASTIQUE',
+      categoryName: 'Surgel\u00e9',
+      categorySlug: 'surgele',
+      expected: 'bazar',
+    },
+  ] as const
+
+  for (const [index, fixture] of cases.entries()) {
+    const product: NozStoreProduct = {
+      id: 200000 + index,
+      name: fixture.name,
+      sku: fixture.name.toLowerCase().replace(/\s+/g, '-'),
+      permalink: `https://www.noz.fr/product/${fixture.name.toLowerCase().replace(/\s+/g, '-')}/`,
+      prices: {
+        price: '199',
+        currency_minor_unit: 2,
+      },
+      categories: [{ name: fixture.categoryName, slug: fixture.categorySlug }],
+      is_in_stock: true,
+    }
+    const offer = extractNozApiProductOffer(product)
+
+    assert.equal(offer?.category, fixture.expected)
   }
 })
 

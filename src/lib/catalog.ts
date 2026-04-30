@@ -16,7 +16,7 @@ export const SUPPORTED_CATEGORIES = [
 
 export type SupportedCategory = (typeof SUPPORTED_CATEGORIES)[number]
 
-export const RETAILERS = ['action', 'stokomani', 'bm', 'centrakor', 'aldi', 'gifi', 'lafoirfouille', 'lidl'] as const
+export const RETAILERS = ['action', 'stokomani', 'bm', 'centrakor', 'aldi', 'gifi', 'lafoirfouille', 'lidl', 'maxibazar', 'noz'] as const
 
 export type Retailer = (typeof RETAILERS)[number]
 
@@ -57,13 +57,13 @@ export const RETAILER_INFO: Record<
   },
   bm: {
     name: 'B&M',
-    color: '#2D3436',
+    color: '#F47920',
     logo: '/logos/bm.svg',
     domains: ['bmstores.fr'],
   },
   centrakor: {
     name: 'Centrakor',
-    color: '#00B894',
+    color: '#005F73',
     logo: '/logos/centrakor.svg',
     domains: ['centrakor.com'],
   },
@@ -90,6 +90,18 @@ export const RETAILER_INFO: Record<
     color: '#0050AA',
     logo: '/logos/lidl.svg',
     domains: ['lidl.fr'],
+  },
+  maxibazar: {
+    name: 'Maxi Bazar',
+    color: '#F15A24',
+    logo: '/logos/maxibazar.svg',
+    domains: ['maxibazar.fr'],
+  },
+  noz: {
+    name: 'Noz',
+    color: '#2B3089',
+    logo: '/logos/noz.svg',
+    domains: ['noz.fr'],
   },
 }
 

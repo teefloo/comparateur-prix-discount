@@ -120,145 +120,131 @@ export default async function ProductPage({ params }: { params: { id: string } }
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900">
+    <>
       <Navbar />
 
-      <main className="max-w-5xl mx-auto px-6 pt-24 pb-20">
+      <main className="mx-auto max-w-7xl px-4 pt-24 pb-20 sm:px-6 lg:pt-28">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-muted hover:text-accent mb-8 transition-colors font-medium text-sm dark:text-slate-400 dark:hover:text-accent"
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted transition-colors hover:text-accent dark:text-slate-400"
         >
           <ArrowLeft size={16} />
           Retour à la recherche
         </Link>
 
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-5">
-            <div className="card p-6 sticky top-24">
-              <div className="aspect-square bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-200 mb-6 p-4 overflow-hidden dark:bg-slate-700/50 dark:border-slate-700">
-                {offer.image ? (
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={offer.image}
-                      alt={offer.name}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 40vw"
-                      className="object-contain hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                ) : (
-                  <span className="text-6xl opacity-20">📦</span>
-                )}
+        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+          <div className="surface overflow-hidden">
+            <div className="relative aspect-square bg-surfaceSoft dark:bg-slate-950">
+              {offer.image ? (
+                <Image
+                  src={offer.image}
+                  alt={offer.name}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 45vw"
+                  priority
+                  className="object-contain p-6"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-7xl text-subtle dark:text-slate-600">
+                  📦
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-line p-5 dark:border-slate-800">
+              <div className="flex flex-wrap gap-2">
+                <span className="result-badge">{offer.category}</span>
+                <span className="result-badge result-badge-accent">{retailer.name}</span>
+                {offer.brand && <span className="result-badge">{offer.brand}</span>}
               </div>
 
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-full text-muted text-[10px] font-bold uppercase tracking-widest dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400">
-                    {offer.category}
-                  </span>
-                  <span className="px-3 py-1 bg-accent-subtle border border-accent/20 rounded-full text-accent text-[10px] font-bold uppercase tracking-widest dark:bg-accent/15">
-                    {retailer.name}
-                  </span>
-                  {offer.brand && (
-                    <span className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-full text-muted text-[10px] font-bold uppercase tracking-widest dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400">
-                      {offer.brand}
-                    </span>
-                  )}
-                </div>
+              <h1 className="font-display mt-4 text-3xl font-semibold tracking-tight text-foreground text-balance dark:text-slate-50">
+                {offer.name}
+              </h1>
 
-                <h1 className="text-2xl font-bold text-foreground leading-tight dark:text-slate-100">{offer.name}</h1>
-
-                <div className="flex items-center gap-2 text-muted text-xs font-medium bg-slate-50 border border-slate-200 p-3 rounded-xl dark:bg-slate-700/50 dark:border-slate-700 dark:text-slate-300">
-                  <Calendar size={14} className="text-accent" />
-                  Dernier relevé : {formatDate(offer.lastUpdated)}
-                </div>
+              <div className="mt-4 flex items-center gap-2 rounded-2xl border border-line bg-white px-4 py-3 text-sm text-muted dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
+                <Calendar size={16} className="text-accent" />
+                Dernier relevé : {formatDate(offer.lastUpdated)}
               </div>
             </div>
           </div>
 
-          <div className="lg:col-span-7">
-            <div className="space-y-6">
-              <div className="bg-accent p-8 rounded-2xl text-white shadow-accent-lg">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-white/70 text-[10px] font-bold uppercase tracking-widest mb-2">Offre en cours</p>
-                    <h2 className="text-3xl font-bold">{formatPrice(offer.price)}</h2>
-                    {offer.unitPrice && offer.unitPriceLabel && (
-                      <p className="text-white/70 text-sm mt-1 font-medium">
-                        {formatPrice(offer.unitPrice)}
-                        {offer.unitPriceLabel}
-                      </p>
-                    )}
+          <div className="space-y-5">
+            <section className="surface p-6">
+              <p className="section-label">Offre</p>
+              <div className="mt-4 flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-display text-4xl font-semibold tracking-tight text-accent">{formatPrice(offer.price)}</p>
+                  {offer.unitPrice && offer.unitPriceLabel && (
+                    <p className="mt-2 text-sm text-muted dark:text-slate-400">
+                      {formatPrice(offer.unitPrice)}
+                      {offer.unitPriceLabel}
+                    </p>
+                  )}
+                </div>
+                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-line bg-white dark:border-slate-800 dark:bg-slate-950">
+                  <Image
+                    src={retailer.logo}
+                    alt={retailer.name}
+                    width={56}
+                    height={56}
+                    className="h-10 w-10 object-contain p-1.5"
+                    unoptimized
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {offer.quantity && (
+                  <div className="rounded-2xl border border-line bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-950">
+                    <p className="section-label mb-2">Conditionnement</p>
+                    <p className="text-sm font-semibold text-foreground dark:text-slate-100">{offer.quantity}</p>
                   </div>
-                  <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden"
-                    style={{ backgroundColor: retailer.color }}
-                  >
-                    <Image
-                      src={retailer.logo}
-                      alt={retailer.name}
-                      width={56}
-                      height={56}
-                      className="object-contain p-2"
-                      unoptimized
-                    />
+                )}
+                {offer.availability && (
+                  <div className="rounded-2xl border border-line bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-950">
+                    <p className="section-label mb-2">Disponibilité</p>
+                    <p className="text-sm font-semibold text-foreground dark:text-slate-100">{offer.availability}</p>
                   </div>
+                )}
+              </div>
+            </section>
+
+            <section className="surface p-6">
+              <p className="section-label">Détails</p>
+              <div className="mt-4 space-y-4">
+                <div>
+                  <p className="text-sm font-semibold text-foreground dark:text-slate-100">Description</p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted dark:text-slate-400">
+                    {offer.description || 'Aucune description disponible pour cette offre.'}
+                  </p>
                 </div>
               </div>
 
-              <div className="card overflow-hidden">
-                <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-                  <h2 className="text-lg font-bold text-foreground dark:text-slate-100">Détails de l&apos;offre</h2>
-                </div>
-
-                <div className="p-6 space-y-5">
-                  {offer.quantity && (
-                    <div>
-                      <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-1 dark:text-slate-400">Conditionnement</p>
-                      <p className="text-foreground font-semibold dark:text-slate-200">{offer.quantity}</p>
-                    </div>
-                  )}
-
-                  {offer.availability && (
-                    <div>
-                      <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-1 dark:text-slate-400">Disponibilité</p>
-                      <p className="text-foreground font-semibold dark:text-slate-200">{offer.availability}</p>
-                    </div>
-                  )}
-
-                  {offer.description && (
-                    <div>
-                      <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-1 dark:text-slate-400">Description</p>
-                      <p className="text-muted leading-relaxed text-sm dark:text-slate-400">{offer.description}</p>
-                    </div>
-                  )}
-
-                  <a
-                    href={offer.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-secondary inline-flex items-center gap-2"
-                  >
-                    Voir la fiche enseigne <ExternalLink size={16} />
-                  </a>
-                </div>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <a
+                  href={offer.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-foreground px-4 py-3 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
+                >
+                  Voir la fiche enseigne
+                  <ExternalLink size={14} />
+                </a>
+                <Link
+                  href="/"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-line bg-white px-4 py-3 text-sm font-semibold text-foreground dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+                >
+                  <Tag size={14} />
+                  Nouvelle recherche
+                </Link>
               </div>
-
-              <div className="flex items-center gap-3 p-5 bg-slate-50 border border-slate-200 rounded-xl dark:bg-slate-700/50 dark:border-slate-700">
-                <Tag size={14} className="text-muted dark:text-slate-400" />
-                <p className="text-[10px] font-medium text-muted leading-relaxed uppercase tracking-widest dark:text-slate-400">
-                  Cette page affiche une offre enseigne unique, avec son prix, sa disponibilité et son lien d&apos;origine.
-                </p>
-              </div>
-            </div>
+            </section>
           </div>
         </div>
       </main>
-    </div>
+    </>
   )
 }

@@ -5,6 +5,8 @@ import {
   ensureUnitPriceText,
   extractQuantity,
   filterOffersByQuery,
+  normalizeRetailerBrand,
+  normalizeRetailerProductName,
   resolveScrapedOfferCategory,
   toAbsoluteUrl,
   toValidPrice,
@@ -144,10 +146,11 @@ function parseRetryAfterMs(headerValue: string | null) {
 }
 
 function buildOfferFromProduct(product: ShopifyProduct): ScrapedOffer | null {
-  const brand = cleanDisplayText(product.vendor)
-  const title = cleanDisplayText(product.title)
+  const brand = normalizeRetailerBrand('stokomani', product.vendor)
+  const title = normalizeRetailerProductName('stokomani', product.title)
   const description = stripHtml(product.body_html || product.body)
-  const finalName = brand && !title.toLowerCase().includes(brand.toLowerCase()) ? `${brand} ${title}` : title
+  const finalName =
+    brand && title && !title.toLowerCase().includes(brand.toLowerCase()) ? `${brand} ${title}` : title || brand || ''
   const sourceUrl = buildCanonicalUrl(product)
   const sourceProductId = product.id ? String(product.id) : cleanDisplayText(product.handle)
   const variant = product.variants?.[0]

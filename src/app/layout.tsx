@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import { Agentation } from 'agentation'
+import { Inter, Space_Grotesk } from 'next/font/google'
 
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { absoluteUrl, getSiteUrl } from '@/lib/site'
@@ -9,7 +8,13 @@ import './globals.css'
 
 const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-sans',
+  display: 'swap',
+})
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-display',
   display: 'swap',
 })
 
@@ -20,14 +25,14 @@ export const metadata: Metadata = {
     template: '%s | ComparPrix',
   },
   description:
-    "Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi et La Foir'Fouille. Comparez des offres mises à jour régulièrement et trouvez le meilleur prix plus vite.",
+    "Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
   alternates: {
     canonical: '/',
   },
   openGraph: {
     title: 'ComparPrix',
     description:
-      "Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi et La Foir'Fouille.",
+      "Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
     type: 'website',
     locale: 'fr_FR',
     url: absoluteUrl('/'),
@@ -45,51 +50,51 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'ComparPrix',
     description:
-      "Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi et La Foir'Fouille.",
+      "Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
     images: ['/logo.png'],
   },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={inter.variable} suppressHydrationWarning>
+    <html lang="fr" className={`${inter.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/logo.png" type="image/png" />
       </head>
       <body>
         <ThemeProvider>
-          <div className="min-h-screen flex flex-col">
-            <div className="flex-1">{children}</div>
-            <footer className="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50">
-              <div className="max-w-7xl mx-auto px-6 py-12">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                  <div>
-                    <h3 className="text-xl font-bold text-foreground mb-3 dark:text-slate-100">
-                      <span className="text-accent">Compar</span>Prix
-                    </h3>
-                    <p className="text-muted text-sm max-w-sm leading-relaxed dark:text-slate-400">
-                      Le comparateur intelligent pour vos enseignes de discount préférées. Mise à jour hebdomadaire pour des économies maximales.
+          <div className="flex min-h-screen flex-col overflow-x-clip">
+            <div className="flex-1 min-w-0 pb-48 sm:pb-52 md:pb-0">{children}</div>
+            <footer className="border-t border-line bg-paper/80 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/60">
+              <div className="mx-auto max-w-7xl px-6 pt-10 pb-36 md:py-10">
+                <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+                  <div className="max-w-md">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-slate-400">
+                      ComparPrix
+                    </p>
+                    <p className="mt-3 text-sm leading-relaxed text-muted dark:text-slate-300">
+                      Comparateur de prix discount pour repérer vite les meilleures offres, sans bruit visuel ni friction inutile.
                     </p>
                   </div>
-                  <div className="text-left md:text-right">
-                    <div className="flex gap-6 md:justify-end text-sm text-muted dark:text-slate-300">
-                      <a href="/" className="hover:text-accent transition-colors">Accueil</a>
-                      <a href="/a-propos" className="hover:text-accent transition-colors">À propos</a>
-                      <a href="mailto:contact@comparprix.fr" className="hover:text-accent transition-colors">Contact</a>
-                    </div>
-                    <p className="text-subtle text-xs mt-4 dark:text-slate-400">
-                      Les prix sont indicatifs et peuvent varier selon les magasins.
-                    </p>
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted dark:text-slate-300">
+                    <a href="/" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
+                      Accueil
+                    </a>
+                    <a href="/a-propos" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
+                      À propos
+                    </a>
+                    <a href="mailto:contact@comparprix.fr" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
+                      Contact
+                    </a>
                   </div>
                 </div>
-                <div className="border-t border-slate-200 mt-10 pt-6 text-center text-subtle text-xs dark:border-slate-800 dark:text-slate-400">
-                  &copy; {new Date().getFullYear()} ComparPrix. Fait avec passion pour votre pouvoir d&apos;achat.
+                <div className="mt-8 border-t border-line pt-5 text-xs text-subtle dark:border-slate-800 dark:text-slate-500">
+                  Les prix affichés dépendent du stock, des enseignes et du moment de relevé.
                 </div>
               </div>
             </footer>
           </div>
         </ThemeProvider>
-        {process.env.NODE_ENV === 'development' ? <Agentation /> : null}
       </body>
     </html>
   )

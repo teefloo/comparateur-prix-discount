@@ -21,6 +21,8 @@ const EXPECTED_CATEGORIES: Record<Retailer, SupportedCategory[]> = {
   gifi: [...SUPPORTED_CATEGORIES],
   lafoirfouille: [...SUPPORTED_CATEGORIES],
   lidl: [...SUPPORTED_CATEGORIES],
+  maxibazar: ['hygiene', 'menage', 'maison-deco', 'jardin', 'bricolage', 'loisirs', 'animaux', 'textile', 'mode', 'high-tech', 'bazar', 'jouets'],
+  noz: ['hygiene', 'alimentation', 'menage', 'jardin', 'loisirs', 'animaux', 'textile', 'mode', 'bazar', 'jouets'],
 }
 
 interface CategoryCoverageEntry {

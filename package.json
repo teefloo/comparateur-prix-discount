@@ -14,6 +14,8 @@
     "scrape:gifi": "npx tsx scripts/scrape-gifi.ts",
     "scrape:lafoirfouille": "npx tsx scripts/scrape-lafoirfouille.ts",
     "scrape:lidl": "npx tsx scripts/scrape-lidl.ts",
+    "scrape:maxibazar": "npx tsx scripts/scrape-maxibazar.ts",
+    "scrape:noz": "npx tsx scripts/scrape-noz.ts",
     "fix:gifi-images": "npx tsx scripts/fix-gifi-images.ts",
     "supervise": "npx tsx scripts/supervise-scrapers.ts",
     "supervise:action": "npx tsx scripts/supervise-scrapers.ts action",
@@ -24,7 +26,9 @@
     "supervise:gifi": "npx tsx scripts/supervise-scrapers.ts gifi",
     "supervise:lafoirfouille": "npx tsx scripts/supervise-scrapers.ts lafoirfouille",
     "supervise:lidl": "npx tsx scripts/supervise-scrapers.ts lidl",
-    "test:categories": "node --test --import tsx scripts/tests/category-resolution.test.ts scripts/tests/scraper-category-contract.test.ts scripts/tests/gifi-scraper.test.ts scripts/tests/lafoirfouille-scraper.test.ts scripts/tests/lidl-scraper.test.ts"
+    "supervise:maxibazar": "npx tsx scripts/supervise-scrapers.ts maxibazar",
+    "supervise:noz": "npx tsx scripts/supervise-scrapers.ts noz",
+    "test:categories": "node --test --import tsx scripts/tests/category-resolution.test.ts scripts/tests/scraper-category-contract.test.ts scripts/tests/gifi-scraper.test.ts scripts/tests/lafoirfouille-scraper.test.ts scripts/tests/lidl-scraper.test.ts scripts/tests/maxibazar-scraper.test.ts scripts/tests/noz-scraper.test.ts"
   },
   "dependencies": {
     "@vercel/postgres": "^0.5.1",

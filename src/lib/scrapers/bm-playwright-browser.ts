@@ -17,24 +17,24 @@ import { launchChromiumBrowser } from './chromium-launch'
 const BM_BASE_URL = 'https://bmstores.fr'
 const BM_MAX_PAGES = 60
 
-const BM_CATEGORIES: Array<{ name: SupportedCategory; url: string }> = [
+const BM_CATEGORIES: Array<{ name: SupportedCategory | null; url: string }> = [
   { name: 'maison-deco', url: `${BM_BASE_URL}/produits/2211-maison-deco` },
   { name: 'loisirs', url: `${BM_BASE_URL}/produits/2317-loisirs-fetes-cadeaux` },
   { name: 'alimentation', url: `${BM_BASE_URL}/produits/2406-alimentation-boisson` },
-  { name: 'hygiene', url: `${BM_BASE_URL}/produits/2443-hygiene-beaute-mode` },
-  { name: 'loisirs', url: `${BM_BASE_URL}/produits/2343-univers-enfant` },
+  { name: null, url: `${BM_BASE_URL}/produits/2443-hygiene-beaute-mode` },
+  { name: 'jouets', url: `${BM_BASE_URL}/produits/2343-univers-enfant` },
   { name: 'jardin', url: `${BM_BASE_URL}/produits/2553-jardin-plein-air` },
   { name: 'bricolage', url: `${BM_BASE_URL}/produits/2596-brico-auto` },
   { name: 'animaux', url: `${BM_BASE_URL}/produits/1416-animalerie` },
   { name: 'menage', url: `${BM_BASE_URL}/produits/2270-rangement-entretien` },
   { name: 'maison-deco', url: `${BM_BASE_URL}/produits/2212-mobilier` },
-  { name: 'maison-deco', url: `${BM_BASE_URL}/produits/2305-petit-electromenager` },
+  { name: 'bazar', url: `${BM_BASE_URL}/produits/2305-petit-electromenager` },
   { name: 'textile', url: `${BM_BASE_URL}/produits/2233-textile-de-maison` },
-  { name: 'maison-deco', url: `${BM_BASE_URL}/produits/2220-rangement` },
+  { name: 'menage', url: `${BM_BASE_URL}/produits/2220-rangement` },
   { name: 'maison-deco', url: `${BM_BASE_URL}/produits/2222-decoration` },
   { name: 'high-tech', url: `${BM_BASE_URL}/produits/2327-multimedia-electronique` },
   { name: 'loisirs', url: `${BM_BASE_URL}/produits/2368-idee-cadeau` },
-  { name: 'loisirs', url: `${BM_BASE_URL}/produits/2344-jeu-jouet` },
+  { name: 'jouets', url: `${BM_BASE_URL}/produits/2344-jeu-jouet` },
   { name: 'hygiene', url: `${BM_BASE_URL}/produits/2628-hygiene-soin` },
 ]
 

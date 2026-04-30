@@ -20,8 +20,9 @@ export const dynamic = 'force-dynamic'
 
 const LIVE_SCRAPE_TIMEOUT_MS = process.env.VERCEL === '1' ? 8000 : 30000
 const CATEGORY_DB_LIMIT = 5000
+const CATEGORY_RESULTS_LIMIT = 120
 const CATEGORY_ONLY_LIVE_SCRAPE_RETAILERS = RETAILERS.filter(
-  (retailer): retailer is Retailer => retailer !== 'lafoirfouille',
+  (retailer): retailer is Retailer => retailer !== 'lafoirfouille' && retailer !== 'maxibazar',
 )
 
 const DEMO_OFFERS: RetailerOfferCard[] = [
@@ -262,6 +263,32 @@ const DEMO_OFFERS: RetailerOfferCard[] = [
     unitPrice: 6.98,
     unitPriceLabel: '/kg',
   },
+  {
+    id: 'demo-noz-billes-chocolat-noir',
+    productId: 'demo-noz-billes-chocolat-noir',
+    retailer: 'noz',
+    name: 'Billes de chocolat noir',
+    category: 'alimentation',
+    price: 1.79,
+    url: 'https://www.noz.fr/shop/',
+    image: '',
+    quantity: '500g',
+    unitPrice: 3.58,
+    unitPriceLabel: '/kg',
+  },
+  {
+    id: 'demo-noz-blocs-wc',
+    productId: 'demo-noz-blocs-wc',
+    retailer: 'noz',
+    name: 'Blocs WC avec applicateur parfume',
+    category: 'menage',
+    price: 1.79,
+    url: 'https://www.noz.fr/shop/',
+    image: '',
+    quantity: '12pcs',
+    unitPrice: 0.15,
+    unitPriceLabel: '/pcs',
+  },
 ]
 
 type SearchSource = 'database' | 'real-time' | 'demo-fallback' | null
@@ -279,11 +306,15 @@ function dedupeOffers(offers: RetailerOfferCard[]) {
   return deduped
 }
 
-function getDemoOffers(query: string, category: SupportedCategory | null) {
+function getDemoOffers(query: string, category: SupportedCategory | null, selectedRetailers: Retailer[]) {
   let offers = DEMO_OFFERS
 
   if (category) {
     offers = offers.filter((offer) => offer.category === category)
+  }
+
+  if (selectedRetailers.length > 0) {
+    offers = offers.filter((offer) => selectedRetailers.includes(offer.retailer))
   }
 
   if (query) {
@@ -334,7 +365,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const query = (searchParams.get('query') || '').trim()
   const category = parseCategory(searchParams.get('category'))
-  const retailer = searchParams.get('retailer') || null
+  const retailerParam = searchParams.get('retailer') || ''
+  const selectedRetailers = retailerParam.split(',').filter((r): r is Retailer => isRetailer(r))
   const lastUpdate = readLastUpdateTimestamp()
 
   if (!query && !category) {
@@ -350,7 +382,7 @@ export async function GET(request: NextRequest) {
 
   let databaseOffers: RetailerOfferCard[] = []
 
-  const validatedRetailer = retailer && isRetailer(retailer) ? retailer : null
+  const validatedRetailer = selectedRetailers.length === 1 ? selectedRetailers[0] : null
   const dbLimit = validatedRetailer ? 5000 : CATEGORY_DB_LIMIT
 
   try {
@@ -364,9 +396,11 @@ export async function GET(request: NextRequest) {
   }
 
   let liveOffers: RetailerOfferCard[] = []
+  // Category browsing should stay responsive; rely on persisted data unless there
+  // is nothing stored yet, and keep live scraping for targeted search queries.
   const shouldLiveScrape = query
     ? databaseOffers.length < 5
-    : Boolean(category) && databaseOffers.length < CATEGORY_DB_LIMIT && process.env.VERCEL !== '1'
+    : Boolean(category) && databaseOffers.length === 0 && process.env.VERCEL !== '1'
 
   if (shouldLiveScrape) {
     const scrapeResults = await withTimeout(
@@ -394,6 +428,10 @@ export async function GET(request: NextRequest) {
 
   let mergedOffers = dedupeOffers([...databaseOffers, ...liveOffers])
 
+  if (selectedRetailers.length > 0) {
+    mergedOffers = mergedOffers.filter((offer) => selectedRetailers.includes(offer.retailer))
+  }
+
   if (category) {
     mergedOffers = mergedOffers.filter((offer) => offer.category === category)
   }
@@ -404,6 +442,10 @@ export async function GET(request: NextRequest) {
 
   mergedOffers = sortRetailerOfferCards(mergedOffers)
 
+  if (!query && category) {
+    mergedOffers = mergedOffers.slice(0, CATEGORY_RESULTS_LIMIT)
+  }
+
   let source: SearchSource = null
 
   if (databaseOffers.length > 0) {
@@ -411,7 +453,7 @@ export async function GET(request: NextRequest) {
   } else if (liveOffers.length > 0) {
     source = 'real-time'
   } else {
-    mergedOffers = getDemoOffers(query, category)
+    mergedOffers = getDemoOffers(query, category, selectedRetailers)
     source = 'demo-fallback'
   }
 

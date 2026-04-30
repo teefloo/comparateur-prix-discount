@@ -1,6 +1,8 @@
 'use client'
 
+import type { CSSProperties } from 'react'
 import { motion } from 'framer-motion'
+import { SearchX, Sparkles } from 'lucide-react'
 
 import ProductCard from './ProductCard'
 import type { RetailerOfferCard } from '@/lib/types'
@@ -23,20 +25,33 @@ const container = {
 }
 
 const item = {
-  hidden: { opacity: 0, y: 12 },
+  hidden: { opacity: 0, y: 10 },
   show: { opacity: 1, y: 0 },
+}
+
+const cardGridStyle: CSSProperties = {
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 38rem), 1fr))',
 }
 
 export default function ProductGrid({ products, loading, hasSearched, search }: ProductGridProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 py-10">
-        {[...Array(8)].map((_, index) => (
-          <div key={index} className="card p-4 min-h-[280px] animate-pulse">
-            <div className="aspect-[4/3] bg-slate-100 rounded-xl mb-4 dark:bg-slate-700" />
-            <div className="h-3 bg-slate-100 rounded w-20 mb-2 dark:bg-slate-700" />
-            <div className="h-4 bg-slate-100 rounded w-full mb-1 dark:bg-slate-700" />
-            <div className="h-4 bg-slate-100 rounded w-3/4 dark:bg-slate-700" />
+      <div className="grid gap-4" style={cardGridStyle}>
+        {[...Array(6)].map((_, index) => (
+          <div key={index} className="surface overflow-hidden">
+            <div className="grid gap-0 lg:grid-cols-[160px_minmax(0,1fr)_160px]">
+              <div className="min-h-[180px] border-b border-line bg-surfaceSoft animate-pulse dark:border-slate-800 dark:bg-slate-800/70 lg:border-b-0 lg:border-r" />
+              <div className="p-5">
+                <div className="h-4 w-24 rounded-full bg-line animate-pulse dark:bg-slate-700" />
+                <div className="mt-5 h-6 w-4/5 rounded-full bg-line animate-pulse dark:bg-slate-700" />
+                <div className="mt-3 h-4 w-full rounded-full bg-line animate-pulse dark:bg-slate-700" />
+                <div className="mt-2 h-4 w-2/3 rounded-full bg-line animate-pulse dark:bg-slate-700" />
+              </div>
+              <div className="border-t border-line bg-paper/40 p-4 dark:border-slate-800 dark:bg-slate-950/40 lg:border-t-0 lg:border-l">
+                <div className="h-3 w-12 rounded-full bg-line animate-pulse dark:bg-slate-700" />
+                <div className="mt-3 h-9 w-24 rounded-2xl bg-line animate-pulse dark:bg-slate-700" />
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -46,17 +61,18 @@ export default function ProductGrid({ products, loading, hasSearched, search }: 
   if (hasSearched && products.length === 0) {
     return (
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-center py-20 px-6 card max-w-lg mx-auto my-10"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="surface mx-auto my-8 max-w-2xl px-6 py-10 text-center"
       >
-        <div className="w-16 h-16 bg-slate-50 border border-slate-200 rounded-full flex items-center justify-center mx-auto mb-5 text-2xl dark:bg-slate-700 dark:border-slate-600">
-          🔍
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-line bg-accent-subtle text-accent dark:border-slate-700 dark:bg-accent/15">
+          <SearchX size={24} />
         </div>
-        <h3 className="text-xl font-bold text-foreground mb-2 dark:text-slate-100">Aucun résultat trouvé</h3>
-        <p className="text-muted text-sm dark:text-slate-400">
-          Nous n&apos;avons pas trouvé de correspondance pour &quot;{search}&quot;. Tentez une recherche plus large comme
-          &quot;lessive&quot; ou &quot;chocolat&quot;.
+        <h3 className="font-display mt-5 text-2xl font-semibold tracking-tight text-foreground dark:text-slate-100">
+          Aucun résultat trouvé
+        </h3>
+        <p className="support-copy mx-auto mt-3 max-w-lg">
+          Nous n&apos;avons rien trouvé pour &quot;{search}&quot;. Essayez un terme plus large ou passez par une catégorie pour relancer l&apos;exploration.
         </p>
       </motion.div>
     )
@@ -67,20 +83,23 @@ export default function ProductGrid({ products, loading, hasSearched, search }: 
   }
 
   return (
-    <section className="py-10">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-xl font-bold text-foreground dark:text-slate-100">
-          Résultats
-          {search && <span className="text-muted font-normal dark:text-slate-400"> pour &quot;{search}&quot;</span>}
-        </h2>
-        <div className="bg-accent-subtle border border-accent/20 text-accent px-3.5 py-1 rounded-full text-sm font-semibold dark:bg-accent/15">
+    <section className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="section-label">Résultats</p>
+          <h2 className="font-display mt-1 text-2xl font-semibold tracking-tight text-foreground dark:text-slate-100">
+            {search ? `Offres pour "${search}"` : 'Offres disponibles'}
+          </h2>
+        </div>
+        <div className="result-badge result-badge-accent">
+          <Sparkles size={12} />
           {products.length} offre{products.length > 1 ? 's' : ''}
         </div>
       </div>
 
-      <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+      <motion.div variants={container} initial="hidden" animate="show" className="grid gap-4" style={cardGridStyle}>
         {products.map((product, index) => (
-          <motion.div key={product.id} variants={item}>
+          <motion.div key={product.id} variants={item} className="min-w-0">
             <ProductCard product={product} isBest={index === 0} />
           </motion.div>
         ))}
