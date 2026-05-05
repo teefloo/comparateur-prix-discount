@@ -31,8 +31,9 @@ function parseSearchParams(searchParams: SearchParams) {
   return { query, category, retailer }
 }
 
-export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
-  const { query, category } = parseSearchParams(searchParams)
+export async function generateMetadata({ searchParams }: { searchParams: Promise<SearchParams> }): Promise<Metadata> {
+  const resolvedSearchParams = await searchParams
+  const { query, category } = parseSearchParams(resolvedSearchParams)
 
   if (query || category) {
     const title = query ? `Recherche: ${query}` : CATEGORY_LABELS[category as SupportedCategory]
@@ -88,8 +89,9 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
   }
 }
 
-export default async function Home({ searchParams }: { searchParams: SearchParams }) {
-  const { query, category, retailer } = parseSearchParams(searchParams)
+export default async function Home({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const resolvedSearchParams = await searchParams
+  const { query, category, retailer } = parseSearchParams(resolvedSearchParams)
   const hasSearched = Boolean(query || category)
   const { products, source, lastUpdate, error } = await runSearch({ query, category, retailer })
 

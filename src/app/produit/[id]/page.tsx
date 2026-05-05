@@ -45,15 +45,16 @@ function safeJsonLd(value: unknown) {
     .replace(/\u2029/g, '\\u2029')
 }
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const offer = await getOfferById(params.id)
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const resolvedParams = await params
+  const offer = await getOfferById(resolvedParams.id)
 
   if (!offer) {
     return {
       title: 'Offre introuvable',
       description: 'Cette offre n’existe pas ou n’est plus disponible.',
       alternates: {
-        canonical: `/produit/${params.id}`,
+        canonical: `/produit/${resolvedParams.id}`,
       },
     }
   }
@@ -74,13 +75,13 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       offer.description ||
       `${offer.name} chez ${retailer.name}. ${offer.price.toFixed(2)} EUR${offer.unitPrice ? `, ${offer.unitPrice}${offer.unitPriceLabel || ''}` : ''}.`,
     alternates: {
-      canonical: `/produit/${params.id}`,
+      canonical: `/produit/${resolvedParams.id}`,
     },
     openGraph: {
       title: offer.name,
       description,
       type: 'website',
-      url: absoluteUrl(`/produit/${params.id}`),
+      url: absoluteUrl(`/produit/${resolvedParams.id}`),
       images: [
         {
           url: offer.image || '/logo.png',
@@ -99,8 +100,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   }
 }
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
-  const offer = await getOfferById(params.id)
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params
+  const offer = await getOfferById(resolvedParams.id)
 
   if (!offer) {
     notFound()

@@ -27,26 +27,28 @@ export function generateStaticParams() {
   return SUPPORTED_CATEGORIES.map((category) => ({ category }))
 }
 
-export async function generateMetadata({ params }: { params: CategoryPageParams }): Promise<Metadata> {
-  if (!isSupportedCategory(params.category)) {
+export async function generateMetadata({ params }: { params: Promise<CategoryPageParams> }): Promise<Metadata> {
+  const resolvedParams = await params
+
+  if (!isSupportedCategory(resolvedParams.category)) {
     return {
       title: 'Catégorie introuvable',
       description: 'Cette catégorie n’existe pas.',
     }
   }
 
-  const categoryLabel = CATEGORY_LABELS[params.category]
+  const categoryLabel = CATEGORY_LABELS[resolvedParams.category]
 
   return {
     title: categoryLabel,
     description: `Découvrez les meilleures offres dans la catégorie ${categoryLabel.toLowerCase()} chez Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl et Noz.`,
     alternates: {
-      canonical: `/categorie/${params.category}`,
+      canonical: `/categorie/${resolvedParams.category}`,
     },
     openGraph: {
       title: `${categoryLabel} | ComparPrix`,
       description: `Les meilleures offres ${categoryLabel.toLowerCase()} mises à jour régulièrement.`,
-      url: absoluteUrl(`/categorie/${params.category}`),
+      url: absoluteUrl(`/categorie/${resolvedParams.category}`),
       type: 'website',
       images: [
         {
@@ -60,13 +62,15 @@ export async function generateMetadata({ params }: { params: CategoryPageParams 
   }
 }
 
-export default async function CategoryPage({ params }: { params: CategoryPageParams }) {
-  if (!isSupportedCategory(params.category)) {
+export default async function CategoryPage({ params }: { params: Promise<CategoryPageParams> }) {
+  const resolvedParams = await params
+
+  if (!isSupportedCategory(resolvedParams.category)) {
     notFound()
   }
 
-  const categoryLabel = CATEGORY_LABELS[params.category]
-  const offers = await getOffersByCategory(params.category)
+  const categoryLabel = CATEGORY_LABELS[resolvedParams.category]
+  const offers = await getOffersByCategory(resolvedParams.category)
 
   return (
     <>

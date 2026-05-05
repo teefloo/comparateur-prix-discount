@@ -57,8 +57,9 @@ async function fetchDeals(query: string, retailer: string | null, limit: number)
   })
 }
 
-export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
-  const { query } = parseSearchParams(searchParams)
+export async function generateMetadata({ searchParams }: { searchParams: Promise<SearchParams> }): Promise<Metadata> {
+  const resolvedSearchParams = await searchParams
+  const { query } = parseSearchParams(resolvedSearchParams)
   const title = query ? `Recherche bons plans: ${query}` : 'Bons plans'
   const canonicalParams = new URLSearchParams()
 
@@ -97,8 +98,9 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
   }
 }
 
-export default async function DealsPage({ searchParams }: { searchParams: SearchParams }) {
-  const { query, retailer, limit } = parseSearchParams(searchParams)
+export default async function DealsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const resolvedSearchParams = await searchParams
+  const { query, retailer, limit } = parseSearchParams(resolvedSearchParams)
   const selectedRetailers = retailer ? retailer.split(',').map((value) => value.trim()).filter(Boolean) : []
   const isMixedRetailerView = selectedRetailers.length !== 1
   const feed = await fetchDeals(query, retailer, limit)
