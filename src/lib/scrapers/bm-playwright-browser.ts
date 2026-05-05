@@ -1,6 +1,7 @@
 import { type Page } from 'playwright'
 
 import { isSupportedCategory, type SupportedCategory } from '../catalog'
+import { discoverDealUrlsFromHtml, getDealEntrypoint } from '../deals'
 import {
   cleanDisplayText,
   ensureUnitPriceText,
@@ -368,4 +369,87 @@ export async function scrapeBMProductsDetailed(searchQuery?: string): Promise<Re
 export async function scrapeBMProducts(searchQuery?: string): Promise<ScrapedOffer[]> {
   const result = await scrapeBMProductsDetailed(searchQuery)
   return result.offers
+}
+
+export async function scrapeBMDealsDetailed(): Promise<RetailerScrapeDetails> {
+  const browser = await launchChromiumBrowser({
+    args: ['--disable-blink-features=AutomationControlled', '--disable-dev-shm-usage', '--no-sandbox', '--disable-setuid-sandbox'],
+  })
+
+  const deals = getDealEntrypoint('bm')
+  const offers: ScrapedOffer[] = []
+  const issues: ScrapeIssue[] = []
+  const seenUrls = new Set<string>()
+  let discoveredListings = 0
+  let completedListings = 0
+
+  try {
+    const context = await browser.newContext({
+      userAgent:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      locale: 'fr-FR',
+      viewport: { width: 1920, height: 1080 },
+    })
+
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', { get: () => undefined })
+    })
+
+    const page = await context.newPage()
+    await page.route('**/*', (route) => {
+      const type = route.request().resourceType()
+      if (['image', 'font', 'media'].includes(type)) {
+        route.abort()
+      } else {
+        route.continue()
+      }
+    })
+
+    await page.goto(deals.url, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    const html = await page.content()
+    const sourceUrls = discoverDealUrlsFromHtml('bm', html, BM_BASE_URL)
+    discoveredListings = sourceUrls.length
+
+    for (const sourceUrl of sourceUrls) {
+      const result = await scrapeCategory(page, sourceUrl, null, BM_MAX_PAGES)
+      if (result.issue) {
+        issues.push(result.issue)
+      }
+
+      if (result.completed) {
+        completedListings += 1
+      }
+
+      for (const offer of result.offers) {
+        if (seenUrls.has(offer.sourceUrl)) continue
+        seenUrls.add(offer.sourceUrl)
+        offers.push({
+          ...offer,
+          isOnPromotion: true,
+        })
+      }
+    }
+  } catch (error) {
+    issues.push(
+      createBmIssue(
+        'scraper_error',
+        `B&M deals scraper failed: ${error instanceof Error ? error.message : String(error)}`,
+        deals.url,
+      ),
+    )
+  } finally {
+    await browser.close()
+  }
+
+  return {
+    retailer: 'bm',
+    offers,
+    issues,
+    coverage: {
+      discoveredListings,
+      completedListings,
+      collectionRate: discoveredListings === 0 ? 0 : Math.round((completedListings / discoveredListings) * 100),
+      isComplete: issues.length === 0 && discoveredListings > 0 && completedListings === discoveredListings,
+    },
+  }
 }

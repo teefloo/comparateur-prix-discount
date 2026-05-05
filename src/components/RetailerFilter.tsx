@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { Check, X } from 'lucide-react'
 
 import { RETAILERS, RETAILER_INFO } from '@/lib/catalog'
 
@@ -35,8 +36,9 @@ export default function RetailerFilter({ selectedRetailers, onChange }: Retailer
           <button
             type="button"
             onClick={() => onChange([])}
-            className="self-start text-sm font-semibold text-accent transition-colors hover:text-accent-muted"
+            className="inline-flex items-center gap-2 self-start text-sm font-semibold text-accent transition-colors hover:text-accent-muted"
           >
+            <X size={14} />
             Tout réinitialiser
           </button>
         )}
@@ -47,7 +49,9 @@ export default function RetailerFilter({ selectedRetailers, onChange }: Retailer
           type="button"
           onClick={() => onChange([])}
           className={`control-chip ${!hasFilter ? 'control-chip-active' : ''}`}
+          aria-pressed={!hasFilter}
         >
+          <Check size={14} />
           Toutes les enseignes
         </button>
 
@@ -61,6 +65,7 @@ export default function RetailerFilter({ selectedRetailers, onChange }: Retailer
               type="button"
               onClick={() => toggleRetailer(retailerId)}
               className={`control-chip ${isSelected ? 'control-chip-active' : ''}`}
+              aria-pressed={isSelected}
             >
               <span
                 className="inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-line bg-white"
@@ -68,7 +73,7 @@ export default function RetailerFilter({ selectedRetailers, onChange }: Retailer
               >
                 <Image src={retailer.logo} alt={retailer.name} width={16} height={16} className="h-4 w-4 object-contain" unoptimized />
               </span>
-              {retailer.name}
+              <span>{retailer.name}</span>
             </button>
           )
         })}

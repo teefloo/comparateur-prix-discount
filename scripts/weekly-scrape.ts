@@ -4,7 +4,8 @@ import { appendFileSync, writeFileSync } from 'fs'
 
 import { RETAILERS, SUPPORTED_CATEGORIES, type Retailer, type SupportedCategory } from '../src/lib/catalog'
 import { pruneStaleOffersByRetailer, upsertOfferPricesBatch, upsertOffersBatch } from '../src/lib/db'
-import { scrapeRetailers } from '../src/lib/scrape-runtime'
+import { isPromotionalOffer } from '../src/lib/deals'
+import { scrapeDealRetailers, scrapeRetailers } from '../src/lib/scrape-runtime'
 import type { CategoryResolutionConfidence, CategoryResolutionSource, ScrapeIssueSeverity } from '../src/lib/types'
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
@@ -268,6 +269,25 @@ async function runWeeklyScrape() {
     }
 
     console.log(`Saved ${optionalOffers.length} validated optional store offers to the database`)
+  }
+
+  const promotionalOffers = scrapeResults.flatMap((result) => result.offers.filter(isPromotionalOffer))
+  if (hasDatabaseUrl && promotionalOffers.length > 0) {
+    await upsertOffersBatch(promotionalOffers)
+    await upsertOfferPricesBatch(promotionalOffers)
+    console.log(`Re-applied ${promotionalOffers.length} validated promotional offers to the database`)
+  }
+
+  const dealScrapeResults = await scrapeDealRetailers({
+    retailers: [...RETAILERS],
+    includeBrowserScrapers: true,
+    maxAttempts: 2,
+  })
+  const dealOffers = dealScrapeResults.flatMap((result) => result.offers)
+  if (hasDatabaseUrl && dealOffers.length > 0) {
+    await upsertOffersBatch(dealOffers)
+    await upsertOfferPricesBatch(dealOffers)
+    console.log(`Persisted ${dealOffers.length} validated offers from deal sections`)
   }
 
   if (optionalFailedRetailers.length > 0) {

@@ -32,6 +32,10 @@ Thumbs.db
 # Scraper outputs
 scrape-results.json
 scrape-history.log
+.api-search-*.json
+.playwright-home.png
+browser-checks/
+browser-checks-*/
 
 # Testing
 coverage/

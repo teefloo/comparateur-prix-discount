@@ -1,31 +1,23 @@
-# Agents.md: `src/app/`
+# Agent Instructions: `src/app/`
 
 ## Role
-Next.js 14 App Router frontend application - UI layer for the price comparison site.
+Next.js 14 App Router frontend — server-rendered pages and API routes.
 
-## Components
+## Routes
 
-| File | Purpose |
-|------|---------|
-| `page.tsx` | Main landing page with search UI |
-| `layout.tsx` | Root layout with HTML wrapper |
-| `globals.css` | Global Tailwind styles |
-| `api/search/route.ts` | Search API endpoint (see `api/search/AGENTS.md`) |
+| Route | File | Notes |
+|-------|------|-------|
+| `/` | `page.tsx` | Search landing page; server-fetches `/api/search` internally |
+| `/categorie/[category]` | `categorie/[category]/page.tsx` | Category browse; `generateStaticParams` for all 13 categories; `force-dynamic` |
+| `/produit/[id]` | `produit/[id]/page.tsx` | Product detail page |
+| `/api/search` | `api/search/route.ts` | Search endpoint (see `api/search/AGENTS.md`) |
 
-## Behavior
-
-### Page Flow
-1. User lands on `/` - search page loads
-2. User enters query or selects category
-3. Frontend calls `/api/search?query=...&category=...`
-4. Results displayed with prices from multiple stores
-
-### Styling
-- Uses Tailwind CSS (configured in `tailwind.config.js`)
-- Responsive design for mobile/desktop
+## Key Conventions
+- Search page (`/`) and category pages are **Server Components** that call the internal `/api/search` endpoint via `fetch`
+- Both search and category pages export `dynamic = 'force-dynamic'`
+- `layout.tsx` wraps all pages; `globals.css` imports Tailwind base
 
 ## Agent Guidelines
-- **API integration**: Frontend expects `/api/search` to return `products` array
-- **TypeScript**: Props must match API response shape
-- **Demo mode**: UI shows "demo" badge when source is demo data
-- **Build**: Run `npm run build` to generate production build
+- **Props**: Components must match `RetailerOfferCard` from `@/lib/types`
+- **Demo badge**: UI shows a demo indicator when `source === 'demo-fallback'`
+- **Category labels**: Use `CATEGORY_LABELS` from `@/lib/catalog`, never hardcode

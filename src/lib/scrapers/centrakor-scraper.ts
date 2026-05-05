@@ -1,6 +1,7 @@
 import { type Browser, type Page } from 'playwright'
 
 import { type SupportedCategory } from '../catalog'
+import { discoverDealUrlsFromHtml, getDealEntrypoint } from '../deals'
 import {
   cleanDisplayText,
   filterOffersByQuery,
@@ -517,4 +518,83 @@ export async function scrapeCentrakorProductsDetailed(searchQuery?: string): Pro
 export async function scrapeCentrakorProducts(searchQuery?: string): Promise<ScrapedOffer[]> {
   const result = await scrapeCentrakorProductsDetailed(searchQuery)
   return result.offers
+}
+
+export async function scrapeCentrakorDealsDetailed(): Promise<RetailerScrapeDetails> {
+  const browser = await launchChromiumBrowser({
+    args: [
+      '--disable-blink-features=AutomationControlled',
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--disable-gpu',
+    ],
+  })
+
+  const deals = getDealEntrypoint('centrakor')
+  const issues: ScrapeIssue[] = []
+  const offers: ScrapedOffer[] = []
+  const seenUrls = new Set<string>()
+  let discoveredListings = 0
+  let completedListings = 0
+
+  try {
+    const discoveryContext = await browser.newContext({
+      userAgent:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      locale: 'fr-FR',
+      viewport: { width: 1920, height: 1080 },
+    })
+
+    const discoveryPage = await discoveryContext.newPage()
+    await discoveryPage.goto(deals.url, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    await discoveryPage.waitForTimeout(1000)
+    const html = await discoveryPage.content()
+    const sourceUrls = discoverDealUrlsFromHtml('centrakor', html, CENTRAKOR_BASE_URL)
+    await discoveryContext.close()
+
+    discoveredListings = sourceUrls.length
+
+    for (const sourceUrl of sourceUrls) {
+      const categoryName = inferCategoryFromText(sourceUrl) || 'bazar'
+      const result = await scrapeRootCategoryDetailed(browser, categoryName, sourceUrl)
+
+      issues.push(...result.issues)
+      completedListings += result.coverage.completedListings
+
+      for (const offer of result.offers) {
+        if (seenUrls.has(offer.sourceUrl)) continue
+        seenUrls.add(offer.sourceUrl)
+        offers.push({
+          ...offer,
+          isOnPromotion: true,
+        })
+      }
+    }
+  } catch (error) {
+    issues.push(
+      createCentrakorIssue(
+        'scraper_error',
+        `Centrakor deals scraper failed: ${error instanceof Error ? error.message : String(error)}`,
+        deals.url,
+      ),
+    )
+  } finally {
+    await browser.close()
+  }
+
+  return {
+    retailer: 'centrakor',
+    offers,
+    issues,
+    coverage: {
+      discoveredListings,
+      completedListings,
+      collectionRate: discoveredListings === 0 ? 0 : Math.round((completedListings / discoveredListings) * 100),
+      isComplete: issues.length === 0 && discoveredListings > 0 && completedListings > 0,
+    },
+  }
 }

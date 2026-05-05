@@ -5,7 +5,6 @@ import type {
   RetailerCoverageReport,
   RetailerScrapeDetails,
   ScrapeIssue,
-  ScrapedOffer,
   ValidatedOffer,
 } from './types'
 import {
@@ -13,6 +12,16 @@ import {
   scrapeAldiProductsDetailed,
   scrapeBMProductsDetailed,
   scrapeCentrakorProductsDetailed,
+  scrapeActionDealsDetailed,
+  scrapeAldiDealsDetailed,
+  scrapeBMDealsDetailed,
+  scrapeCentrakorDealsDetailed,
+  scrapeGifiDealsDetailed,
+  scrapeLafoirfouilleDealsDetailed,
+  scrapeLidlDealsDetailed,
+  scrapeMaxibazarDealsDetailed,
+  scrapeNozDealsDetailed,
+  scrapeStokomaniDealsDetailed,
   scrapeGifiProductsDetailed,
   scrapeMaxibazarProductsDetailed,
   scrapeNozProductsDetailed,
@@ -54,6 +63,19 @@ const SCRAPER_REGISTRY: Record<Retailer, { scraper: ScraperFn; browserRequired: 
   noz: { scraper: scrapeNozProductsDetailed, browserRequired: false },
 }
 
+const DEAL_SCRAPER_REGISTRY: Record<Retailer, { scraper: ScraperFn; browserRequired: boolean }> = {
+  action: { scraper: scrapeActionDealsDetailed, browserRequired: true },
+  stokomani: { scraper: scrapeStokomaniDealsDetailed, browserRequired: false },
+  bm: { scraper: scrapeBMDealsDetailed, browserRequired: true },
+  centrakor: { scraper: scrapeCentrakorDealsDetailed, browserRequired: true },
+  aldi: { scraper: scrapeAldiDealsDetailed, browserRequired: true },
+  gifi: { scraper: scrapeGifiDealsDetailed, browserRequired: false },
+  lafoirfouille: { scraper: scrapeLafoirfouilleDealsDetailed, browserRequired: false },
+  lidl: { scraper: scrapeLidlDealsDetailed, browserRequired: false },
+  maxibazar: { scraper: scrapeMaxibazarDealsDetailed, browserRequired: false },
+  noz: { scraper: scrapeNozDealsDetailed, browserRequired: false },
+}
+
 function hasBlockingIssues(issues: ScrapeIssue[]) {
   return issues.some((issue) => issue.severity !== 'warning')
 }
@@ -75,6 +97,26 @@ async function runRetailerScrapeWithTimeout(
     new Promise<never>((_, reject) => {
       const timer = setTimeout(() => {
         reject(new Error(`Scraper ${retailer} timed out after ${timeoutMs}ms`))
+      }, timeoutMs)
+      if ('unref' in timer && typeof timer.unref === 'function') {
+        timer.unref()
+      }
+    }),
+  ])
+}
+
+async function runRetailerDealScrapeWithTimeout(
+  retailer: Retailer,
+  searchQuery: string | undefined,
+  maxAttempts: number,
+): Promise<RetailerScrapeExecutionResult> {
+  const timeoutMs = getRetailerTimeoutMs(retailer)
+
+  return Promise.race([
+    runRetailerDealScrape(retailer, searchQuery, maxAttempts),
+    new Promise<never>((_, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error(`Deal scraper ${retailer} timed out after ${timeoutMs}ms`))
       }, timeoutMs)
       if ('unref' in timer && typeof timer.unref === 'function') {
         timer.unref()
@@ -161,6 +203,76 @@ async function runRetailerScrape(
   }
 }
 
+async function runRetailerDealScrape(
+  retailer: Retailer,
+  searchQuery: string | undefined,
+  maxAttempts: number,
+): Promise<RetailerScrapeExecutionResult> {
+  const start = Date.now()
+  const errors: string[] = []
+  let latestIssues: ScrapeIssue[] = []
+  let latestCoverage: RetailerCoverageReport = {
+    discoveredListings: 0,
+    completedListings: 0,
+    collectionRate: 0,
+    isComplete: false,
+  }
+  let attempts = 0
+  let latestReport = buildEmptyReport(retailer)
+  let latestOffers: ValidatedOffer[] = []
+
+  while (attempts < maxAttempts) {
+    attempts += 1
+
+    try {
+      const detailed = await DEAL_SCRAPER_REGISTRY[retailer].scraper(searchQuery)
+      const validated = validateOffersForRetailer(retailer, detailed.offers)
+
+      latestReport = validated.report
+      latestOffers = validated.offers
+      latestIssues = detailed.issues
+      latestCoverage = detailed.coverage
+
+      const isComplete = detailed.coverage.isComplete && !hasBlockingIssues(detailed.issues)
+      if (isComplete && validated.offers.length > 0) {
+        break
+      }
+
+      if (searchQuery && validated.offers.length > 0 && !hasBlockingIssues(detailed.issues)) {
+        break
+      }
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error))
+      latestReport = buildEmptyReport(retailer, 'scraper_error')
+      latestOffers = []
+      latestIssues = [
+        {
+          retailer,
+          code: 'scraper_error',
+          message: error instanceof Error ? error.message : String(error),
+        },
+      ]
+      latestCoverage = {
+        discoveredListings: 0,
+        completedListings: 0,
+        collectionRate: 0,
+        isComplete: false,
+      }
+    }
+  }
+
+  return {
+    retailer,
+    offers: latestOffers,
+    report: latestReport,
+    issues: latestIssues,
+    coverage: latestCoverage,
+    attempts,
+    durationMs: Date.now() - start,
+    errors,
+  }
+}
+
 export async function scrapeRetailers(options: ScrapeRetailersOptions = {}): Promise<RetailerScrapeExecutionResult[]> {
   const includeBrowserScrapers = process.env.VERCEL === '1' ? false : (options.includeBrowserScrapers ?? true)
   const maxAttempts = options.maxAttempts ?? 2
@@ -173,6 +285,53 @@ export async function scrapeRetailers(options: ScrapeRetailersOptions = {}): Pro
 
   const settled = await Promise.allSettled(
     retailers.map((retailer) => runRetailerScrapeWithTimeout(retailer, options.searchQuery, maxAttempts)),
+  )
+
+  for (const [index, result] of settled.entries()) {
+    const retailer = retailers[index]
+    if (result.status === 'fulfilled') {
+      results.push(result.value)
+    } else {
+      const error = result.reason
+      results.push({
+        retailer,
+        offers: [],
+        report: buildEmptyReport(retailer, 'scraper_error'),
+        issues: [
+          {
+            retailer,
+            code: 'scraper_error',
+            message: error instanceof Error ? error.message : String(error),
+          },
+        ],
+        coverage: {
+          discoveredListings: 0,
+          completedListings: 0,
+          collectionRate: 0,
+          isComplete: false,
+        },
+        attempts: maxAttempts,
+        durationMs: 0,
+        errors: [error instanceof Error ? error.message : String(error)],
+      })
+    }
+  }
+
+  return results
+}
+
+export async function scrapeDealRetailers(options: ScrapeRetailersOptions = {}): Promise<RetailerScrapeExecutionResult[]> {
+  const includeBrowserScrapers = process.env.VERCEL === '1' ? false : (options.includeBrowserScrapers ?? true)
+  const maxAttempts = options.maxAttempts ?? 2
+  const retailers = (options.retailers || RETAILERS).filter((retailer) => {
+    const config = DEAL_SCRAPER_REGISTRY[retailer]
+    return includeBrowserScrapers || !config.browserRequired
+  })
+
+  const results: RetailerScrapeExecutionResult[] = []
+
+  const settled = await Promise.allSettled(
+    retailers.map((retailer) => runRetailerDealScrapeWithTimeout(retailer, options.searchQuery, maxAttempts)),
   )
 
   for (const [index, result] of settled.entries()) {

@@ -39,8 +39,8 @@ export default function ProductGrid({ products, loading, hasSearched, search }: 
       <div className="grid gap-4" style={cardGridStyle}>
         {[...Array(6)].map((_, index) => (
           <div key={index} className="surface overflow-hidden">
-            <div className="grid gap-0 lg:grid-cols-[160px_minmax(0,1fr)_160px]">
-              <div className="min-h-[180px] border-b border-line bg-surfaceSoft animate-pulse dark:border-slate-800 dark:bg-slate-800/70 lg:border-b-0 lg:border-r" />
+            <div className="grid gap-0 lg:grid-cols-[160px_minmax(0,1fr)_168px]">
+              <div className="min-h-[170px] border-b border-line bg-surfaceSoft animate-pulse dark:border-slate-800 dark:bg-slate-800/70 lg:border-b-0 lg:border-r" />
               <div className="p-5">
                 <div className="h-4 w-24 rounded-full bg-line animate-pulse dark:bg-slate-700" />
                 <div className="mt-5 h-6 w-4/5 rounded-full bg-line animate-pulse dark:bg-slate-700" />
@@ -49,7 +49,7 @@ export default function ProductGrid({ products, loading, hasSearched, search }: 
               </div>
               <div className="border-t border-line bg-paper/40 p-4 dark:border-slate-800 dark:bg-slate-950/40 lg:border-t-0 lg:border-l">
                 <div className="h-3 w-12 rounded-full bg-line animate-pulse dark:bg-slate-700" />
-                <div className="mt-3 h-9 w-24 rounded-2xl bg-line animate-pulse dark:bg-slate-700" />
+                <div className="mt-3 h-9 w-24 rounded-[12px] bg-line animate-pulse dark:bg-slate-700" />
               </div>
             </div>
           </div>
@@ -65,7 +65,7 @@ export default function ProductGrid({ products, loading, hasSearched, search }: 
         animate={{ opacity: 1, y: 0 }}
         className="surface mx-auto my-8 max-w-2xl px-6 py-10 text-center"
       >
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-line bg-accent-subtle text-accent dark:border-slate-700 dark:bg-accent/15">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-line bg-accent-subtle text-accent dark:border-slate-700 dark:bg-accent/15">
           <SearchX size={24} />
         </div>
         <h3 className="font-display mt-5 text-2xl font-semibold tracking-tight text-foreground dark:text-slate-100">

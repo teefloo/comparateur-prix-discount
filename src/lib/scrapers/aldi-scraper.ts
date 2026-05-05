@@ -1,6 +1,7 @@
 import { type Page } from 'playwright'
 
 import { type SupportedCategory } from '../catalog'
+import { discoverDealUrlsFromHtml, getDealEntrypoint } from '../deals'
 import {
   cleanDisplayText,
   ensureUnitPriceText,
@@ -527,4 +528,93 @@ export async function scrapeAldiProductsDetailed(searchQuery?: string): Promise<
 export async function scrapeAldiProducts(searchQuery?: string): Promise<ScrapedOffer[]> {
   const result = await scrapeAldiProductsDetailed(searchQuery)
   return result.offers
+}
+
+export async function scrapeAldiDealsDetailed(): Promise<RetailerScrapeDetails> {
+  const browser = await launchChromiumBrowser({
+    args: [
+      '--disable-blink-features=AutomationControlled',
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+    ],
+  })
+
+  const deals = getDealEntrypoint('aldi')
+  const offers: ScrapedOffer[] = []
+  const issues: ScrapeIssue[] = []
+  const seenUrls = new Set<string>()
+  let discoveredListings = 0
+  let completedListings = 0
+
+  try {
+    const context = await browser.newContext({
+      userAgent:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+      locale: 'fr-FR',
+      viewport: { width: 1920, height: 1080 },
+      timezoneId: 'Europe/Paris',
+    })
+
+    const page = await context.newPage()
+    await page.route('**/*', (route) => {
+      const type = route.request().resourceType()
+      if (['image', 'font', 'media'].includes(type)) {
+        route.abort()
+      } else {
+        route.continue()
+      }
+    })
+
+    await page.goto(deals.url, { waitUntil: 'networkidle', timeout: 60000 })
+    await page.waitForTimeout(1000)
+    await acceptCookies(page)
+
+    const html = await page.content()
+    const sourceUrls = discoverDealUrlsFromHtml('aldi', html, ALDI_BASE_URL)
+    discoveredListings = sourceUrls.length
+
+    for (const sourceUrl of sourceUrls) {
+      const result = await scrapeListingPage(page, sourceUrl, null)
+      if (result.issue) {
+        issues.push(result.issue)
+      }
+
+      if (result.completed) {
+        completedListings += 1
+      }
+
+      for (const offer of result.offers) {
+        if (seenUrls.has(offer.sourceUrl)) continue
+        seenUrls.add(offer.sourceUrl)
+        offers.push({
+          ...offer,
+          isOnPromotion: true,
+        })
+      }
+    }
+  } catch (error) {
+    issues.push(
+      createAldiIssue(
+        'scraper_error',
+        `Aldi deals scraper failed: ${error instanceof Error ? error.message : String(error)}`,
+        deals.url,
+      ),
+    )
+  } finally {
+    await browser.close()
+  }
+
+  return {
+    retailer: 'aldi',
+    offers,
+    issues,
+    coverage: {
+      discoveredListings,
+      completedListings,
+      collectionRate: discoveredListings === 0 ? 0 : Math.round((completedListings / discoveredListings) * 100),
+      isComplete: issues.length === 0 && discoveredListings > 0 && completedListings === discoveredListings,
+    },
+  }
 }

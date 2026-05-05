@@ -32,6 +32,8 @@ type OfferDbRow = {
   updated_at: Date | string | null
 }
 
+export type DealCoverageByRetailer = Record<Retailer, number>
+
 const PRODUCT_COLUMNS = [
   'id',
   'store_id',
@@ -220,6 +222,71 @@ function buildNormalizedSqlTextExpression(columnSql: string) {
   return `regexp_replace(translate(lower(coalesce(${columnSql}, '')), '${SQL_ACCENT_SOURCE}', '${SQL_ACCENT_TARGET}'), '[^a-z0-9]+', ' ', 'g')`
 }
 
+function buildEmptyDealCoverage(): DealCoverageByRetailer {
+  return RETAILERS.reduce(
+    (acc, retailer) => {
+      acc[retailer] = 0
+      return acc
+    },
+    {} as DealCoverageByRetailer,
+  )
+}
+
+function normalizeRetailerSelection(value: string | string[] | null | undefined) {
+  const rawValues = Array.isArray(value)
+    ? value
+    : typeof value === 'string'
+      ? value.split(',')
+      : []
+
+  return rawValues.map((entry) => entry.trim()).filter((entry): entry is Retailer => RETAILERS.includes(entry as Retailer))
+}
+
+function buildDealFilterClauses(options: {
+  query?: string | null
+  category?: SupportedCategory | null
+  retailer?: string | string[] | null
+  promotionOnly?: boolean
+}) {
+  const whereClauses: string[] = []
+  const values: Array<string | number | string[]> = []
+
+  if (options.query) {
+    const normalizedQuery = normalizeSearchQuery(options.query)
+    if (normalizedQuery) {
+      values.push(`%${normalizedQuery}%`)
+      const placeholder = `$${values.length}`
+      const normalizedName = buildNormalizedSqlTextExpression('p.name')
+      const normalizedBrand = buildNormalizedSqlTextExpression('COALESCE(p.brand, \'\')')
+      const normalizedDescription = buildNormalizedSqlTextExpression('COALESCE(p.description, \'\')')
+      whereClauses.push(
+        `(${normalizedName} LIKE ${placeholder} OR ${normalizedBrand} LIKE ${placeholder} OR ${normalizedDescription} LIKE ${placeholder})`,
+      )
+    }
+  }
+
+  if (options.category) {
+    values.push(options.category)
+    whereClauses.push(`p.category = $${values.length}`)
+  }
+
+  const retailers = normalizeRetailerSelection(options.retailer)
+  if (retailers.length === 1) {
+    values.push(retailers[0])
+    whereClauses.push(`p.store_id = $${values.length}`)
+  } else if (retailers.length > 1) {
+    values.push(retailers)
+    whereClauses.push(`p.store_id = ANY($${values.length}::text[])`)
+  }
+
+  if (options.promotionOnly) {
+    whereClauses.push(`pr.is_on_promotion = TRUE`)
+  }
+
+  const whereStatement = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : ''
+  return { whereStatement, values, retailers }
+}
+
 async function ensureProductRetailerConstraint(client: InstanceType<typeof Client>) {
   if (hasEnsuredProductRetailerConstraint) {
     return
@@ -263,10 +330,12 @@ async function queryOffers(options: {
   category?: SupportedCategory | null
   limit?: number
   id?: string
-  retailer?: string | null
+  retailer?: string | string[] | null
+  promotionOnly?: boolean
+  sortByDeals?: boolean
 }) {
   const whereClauses: string[] = []
-  const values: Array<string | number> = []
+  const values: Array<string | number | string[]> = []
 
   if (options.id) {
     values.push(options.id)
@@ -275,14 +344,16 @@ async function queryOffers(options: {
 
   if (options.query) {
     const normalizedQuery = normalizeSearchQuery(options.query)
-    values.push(`%${normalizedQuery}%`)
-    const placeholder = `$${values.length}`
-    const normalizedName = buildNormalizedSqlTextExpression('p.name')
-    const normalizedBrand = buildNormalizedSqlTextExpression('COALESCE(p.brand, \'\')')
-    const normalizedDescription = buildNormalizedSqlTextExpression('COALESCE(p.description, \'\')')
-    whereClauses.push(
-      `(${normalizedName} LIKE ${placeholder} OR ${normalizedBrand} LIKE ${placeholder} OR ${normalizedDescription} LIKE ${placeholder})`,
-    )
+    if (normalizedQuery) {
+      values.push(`%${normalizedQuery}%`)
+      const placeholder = `$${values.length}`
+      const normalizedName = buildNormalizedSqlTextExpression('p.name')
+      const normalizedBrand = buildNormalizedSqlTextExpression('COALESCE(p.brand, \'\')')
+      const normalizedDescription = buildNormalizedSqlTextExpression('COALESCE(p.description, \'\')')
+      whereClauses.push(
+        `(${normalizedName} LIKE ${placeholder} OR ${normalizedBrand} LIKE ${placeholder} OR ${normalizedDescription} LIKE ${placeholder})`,
+      )
+    }
   }
 
   if (options.category) {
@@ -291,8 +362,23 @@ async function queryOffers(options: {
   }
 
   if (options.retailer) {
-    values.push(options.retailer)
-    whereClauses.push(`p.store_id = $${values.length}`)
+    const retailers = Array.isArray(options.retailer)
+      ? options.retailer
+      : options.retailer.includes(',')
+        ? options.retailer.split(',').map((value) => value.trim()).filter(Boolean)
+        : [options.retailer]
+
+    if (retailers.length === 1) {
+      values.push(retailers[0])
+      whereClauses.push(`p.store_id = $${values.length}`)
+    } else if (retailers.length > 1) {
+      values.push(retailers)
+      whereClauses.push(`p.store_id = ANY($${values.length}::text[])`)
+    }
+  }
+
+  if (options.promotionOnly) {
+    whereClauses.push(`pr.is_on_promotion = TRUE`)
   }
 
   values.push(options.limit || 100)
@@ -323,7 +409,7 @@ async function queryOffers(options: {
     FROM products p
     JOIN prices pr ON pr.product_id = p.id
     ${whereStatement}
-    ORDER BY pr.price ASC, p.name ASC
+    ${options.sortByDeals ? 'ORDER BY COALESCE(pr.discount, 0) DESC, pr.updated_at DESC, pr.price ASC, p.name ASC' : 'ORDER BY pr.price ASC, p.name ASC'}
     LIMIT ${limitPlaceholder}
   `
 
@@ -356,6 +442,124 @@ export async function getOfferById(id: string) {
   } catch (error) {
     console.error('DB Error in getOfferById:', error)
     return null
+  }
+}
+
+export async function getDealsInDb(
+  category?: SupportedCategory | null,
+  limit = 500,
+  retailer?: string | string[] | null,
+  query?: string | null,
+) {
+  try {
+    return await queryOffers({
+      query: query || undefined,
+      category: category || null,
+      limit,
+      retailer,
+      promotionOnly: true,
+      sortByDeals: true,
+    })
+  } catch (error) {
+    console.error('DB Error in getDealsInDb:', error)
+    return []
+  }
+}
+
+export async function getDealsCoverageInDb(
+  category?: SupportedCategory | null,
+  retailer?: string | string[] | null,
+  query?: string | null,
+): Promise<DealCoverageByRetailer> {
+  try {
+    const { whereStatement, values } = buildDealFilterClauses({
+      query: query || null,
+      category: category || null,
+      retailer,
+      promotionOnly: true,
+    })
+
+    const { rows } = await sql.query<{ store_id: Retailer; count: string | number }>(
+      `
+        SELECT p.store_id, COUNT(*) AS count
+        FROM products p
+        JOIN prices pr ON pr.product_id = p.id
+        ${whereStatement}
+        GROUP BY p.store_id
+      `,
+      values,
+    )
+
+    const coverage = buildEmptyDealCoverage()
+    for (const row of rows) {
+      coverage[row.store_id] = Number.parseInt(String(row.count), 10) || 0
+    }
+
+    return coverage
+  } catch (error) {
+    console.error('DB Error in getDealsCoverageInDb:', error)
+    return buildEmptyDealCoverage()
+  }
+}
+
+export async function getBalancedDealsInDb(
+  category?: SupportedCategory | null,
+  retailer?: string | string[] | null,
+  perRetailerLimit = 20,
+  query?: string | null,
+) {
+  try {
+    const { whereStatement, values } = buildDealFilterClauses({
+      query: query || null,
+      category: category || null,
+      retailer,
+      promotionOnly: true,
+    })
+
+    values.push(perRetailerLimit)
+    const perRetailerLimitPlaceholder = `$${values.length}`
+
+    const sqlQuery = `
+      WITH ranked_deals AS (
+        SELECT
+          p.id,
+          p.store_id,
+          p.source_product_id,
+          p.source_url,
+          p.source_category_path,
+          p.name,
+          p.category,
+          p.brand,
+          p.image,
+          p.description,
+          p.availability,
+          p.quantity,
+          p.unit_price,
+          p.last_scraped_at,
+          pr.price,
+          pr.original_price,
+          pr.discount,
+          pr.is_on_promotion,
+          pr.updated_at,
+          ROW_NUMBER() OVER (
+            PARTITION BY p.store_id
+            ORDER BY COALESCE(pr.discount, 0) DESC, pr.updated_at DESC, pr.price ASC, p.name ASC
+          ) AS retailer_rank
+        FROM products p
+        JOIN prices pr ON pr.product_id = p.id
+        ${whereStatement}
+      )
+      SELECT *
+      FROM ranked_deals
+      WHERE retailer_rank <= ${perRetailerLimitPlaceholder}
+      ORDER BY store_id ASC, retailer_rank ASC
+    `
+
+    const { rows } = await sql.query<(OfferDbRow & { retailer_rank: number })>(sqlQuery, values)
+    return rows.map(mapOfferRow)
+  } catch (error) {
+    console.error('DB Error in getBalancedDealsInDb:', error)
+    return []
   }
 }
 

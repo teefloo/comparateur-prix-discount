@@ -46,6 +46,21 @@
     outline-offset: 2px;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -66,15 +81,15 @@
 
 @layer components {
   .surface {
-    @apply rounded-3xl border border-line bg-surface shadow-card dark:border-slate-800 dark:bg-slate-900;
+    @apply rounded-lg border border-line bg-surface shadow-card dark:border-slate-800 dark:bg-slate-900;
   }
 
   .surface-strong {
-    @apply rounded-[1.75rem] border border-line bg-white shadow-card dark:border-slate-800 dark:bg-slate-900;
+    @apply rounded-lg border border-line bg-white shadow-card dark:border-slate-800 dark:bg-slate-900;
   }
 
   .field-shell {
-    @apply rounded-[1.5rem] border border-line bg-white shadow-card transition-all duration-200 focus-within:border-accent/40 focus-within:shadow-accent-sm dark:border-slate-700 dark:bg-slate-900;
+    @apply rounded-[12px] border border-line bg-white shadow-card transition-all duration-200 focus-within:border-accent/40 focus-within:shadow-accent-sm dark:border-slate-700 dark:bg-slate-900;
   }
 
   .control-chip {
@@ -106,11 +121,11 @@
   }
 
   .price-figure {
-    @apply font-display text-2xl font-semibold tracking-tight text-foreground dark:text-slate-100;
+    @apply font-display text-2xl font-semibold tracking-tight text-foreground tabular-nums dark:text-slate-100;
   }
 
   .price-figure-lg {
-    @apply font-display text-4xl font-semibold tracking-tight text-foreground dark:text-slate-100;
+    @apply font-display text-4xl font-semibold tracking-tight text-foreground tabular-nums dark:text-slate-100;
   }
 
   .support-copy {

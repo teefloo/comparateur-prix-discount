@@ -1,7 +1,8 @@
 'use client'
 
 import Image from 'next/image'
-import { ArrowRight, Search, ShieldCheck, Sparkles, Store, TrendingDown } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowRight, Search, ShieldCheck, Sparkles, Store, Tag, TrendingDown } from 'lucide-react'
 
 import { RETAILERS, RETAILER_INFO, CATEGORY_LABELS, SUPPORTED_CATEGORIES, type SupportedCategory } from '@/lib/catalog'
 
@@ -80,6 +81,13 @@ export default function Hero({ search, selectedCategory }: HeroProps) {
                   </button>
                 </div>
               </form>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link href="/deals" className="nav-pill nav-pill-active">
+                  <Tag size={14} />
+                  Bons plans
+                </Link>
+              </div>
 
               <div className="mt-5">
                 <p className="section-label mb-3">Raccourcis</p>

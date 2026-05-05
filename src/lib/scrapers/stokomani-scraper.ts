@@ -1,3 +1,4 @@
+import { load } from 'cheerio'
 import { chromium, type Page } from 'playwright'
 
 import {
@@ -254,6 +255,62 @@ async function fetchJson<T>(page: Page, url: string): Promise<T> {
   throw lastError || new Error(`Unable to fetch Stokomani endpoint: ${url}`)
 }
 
+function extractStokomaniCollectionUrls(html: string) {
+  const $ = load(html)
+  const urls = new Set<string>()
+
+  $('a[href*="/collections/"]').each((_, element) => {
+    const href = cleanDisplayText($(element).attr('href'))
+    if (!href) return
+
+    const absolute = toAbsoluteUrl(href, STOKOMANI_BASE_URL)
+    if (absolute) {
+      urls.add(absolute.replace(/\/+$/, ''))
+    }
+  })
+
+  return Array.from(urls)
+}
+
+async function scrapeStokomaniCollection(page: Page, collectionUrl: string) {
+  const offers: ScrapedOffer[] = []
+  const catalogUrl = `${collectionUrl}/products.json?limit=${STOKOMANI_PAGE_LIMIT}&page=1`
+
+  try {
+    const data = await fetchJson<{ products?: ShopifyProduct[] }>(page, catalogUrl)
+    const products = data.products || []
+
+    for (const product of products) {
+      const offer = buildOfferFromProduct(product)
+      if (offer) {
+        offers.push({
+          ...offer,
+          isOnPromotion: true,
+        })
+      }
+    }
+  } catch (error) {
+    return {
+      offers,
+      discoveredListings: 1,
+      completedListings: 0,
+      issue: createIssue(
+        'api_error',
+        `Failed to fetch Stokomani collection page 1: ${error instanceof Error ? error.message : String(error)}`,
+        catalogUrl,
+        1,
+      ),
+    }
+  }
+
+  return {
+    offers,
+    discoveredListings: 1,
+    completedListings: 1,
+    issue: undefined,
+  }
+}
+
 export async function scrapeStokomaniProductsDetailed(searchQuery?: string): Promise<RetailerScrapeDetails> {
   const offers: ScrapedOffer[] = []
   const issues: ScrapeIssue[] = []
@@ -432,4 +489,64 @@ export async function scrapeStokomaniProducts(searchQuery?: string): Promise<Scr
 export async function scrapeStokomaniCategory(category: string) {
   const products = await scrapeStokomaniProducts()
   return products.filter((product) => product.category === category)
+}
+
+export async function scrapeStokomaniDealsDetailed(): Promise<RetailerScrapeDetails> {
+  const offers: ScrapedOffer[] = []
+  const issues: ScrapeIssue[] = []
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--disable-blink-features=AutomationControlled', '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+  })
+
+  let discoveredListings = 0
+  let completedListings = 0
+
+  try {
+    const context = await browser.newContext({
+      userAgent:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      locale: 'fr-FR',
+      viewport: { width: 1920, height: 1080 },
+    })
+
+    const page = await context.newPage()
+    const dealsUrl = 'https://www.stokomani.fr/pages/conditions-et-offres-promotionnelles'
+    await page.goto(dealsUrl, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    const html = await page.content()
+    const collectionUrls = extractStokomaniCollectionUrls(html)
+    discoveredListings = collectionUrls.length
+
+    for (const collectionUrl of collectionUrls) {
+      const result = await scrapeStokomaniCollection(page, collectionUrl)
+      if (result.issue) {
+        issues.push(result.issue)
+      }
+
+      completedListings += result.completedListings
+      offers.push(...result.offers)
+    }
+  } catch (error) {
+    issues.push(
+      createIssue(
+        'scraper_error',
+        `Stokomani deals scraper failed: ${error instanceof Error ? error.message : String(error)}`,
+        'https://www.stokomani.fr/pages/conditions-et-offres-promotionnelles',
+      ),
+    )
+  } finally {
+    await browser.close()
+  }
+
+  return {
+    retailer: 'stokomani',
+    offers,
+    issues,
+    coverage: {
+      discoveredListings,
+      completedListings,
+      collectionRate: discoveredListings === 0 ? 0 : Math.round((completedListings / discoveredListings) * 100),
+      isComplete: issues.length === 0 && discoveredListings > 0 && completedListings > 0,
+    },
+  }
 }

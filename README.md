@@ -1,22 +1,20 @@
 # Comparateur de Prix Discount
 
-Comparateur de prix discount pour **Action**, **Stokomani**, **B&M**, **Centrakor** et **Aldi**.
+Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.
 
-## 🛠 Tech Stack
+## Stack
 
-- **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) & [Framer Motion](https://www.framer.com/motion/)
-- **Scraping**: [Playwright](https://playwright.dev/) & [Puppeteer Stealth](https://github.com/berstend/puppeteer-extra/tree/master/packages/puppeteer-extra-plugin-stealth)
-- **Database**: [PostgreSQL](https://www.postgresql.org/) (Vercel Postgres)
-- **Data Processing**: [Cheerio](https://cheerio.js.org/) & [Fuse.js](https://fusejs.io/) (Fuzzy Search)
+- Next.js 14 App Router
+- Tailwind CSS
+- Vercel Postgres / PostgreSQL
+- Playwright et Cheerio pour le scraping
+- Fuse.js pour la recherche
 
-## Fonctionnalités
+## Fonctionnement
 
-- Recherche d'offres en base ou en fallback live scraping
-- Stockage **store-specific**: une offre par enseigne et par URL/source produit
-- Couverture de 9 catégories: `hygiene`, `alimentation`, `menage`, `maison-deco`, `jardin`, `bricolage`, `loisirs`, `animaux`, `textile`
-- Scraping hebdomadaire avec rapport de validation par enseigne
-- Suivi des rejets de scraping (`wrong_domain`, `invalid_price`, `unsupported_category`, etc.)
+- La page d'accueil compare les offres en base avec fallback de recherche si nécessaire.
+- La section [Bons plans](/deals) affiche uniquement les offres promotionnelles persistées en base.
+- Le scraping live est réservé aux scripts d'exploitation et aux jobs planifiés, pas au rendu utilisateur de la section Bons plans.
 
 ## Installation
 
@@ -36,54 +34,49 @@ npm run dev
 ```bash
 npm run lint
 npm run typecheck
+npm run test:categories
 ```
 
 ## Base de données
 
-Le schéma stocke désormais les offres par enseigne:
+Variables d'environnement principales :
 
-- `products`: métadonnées d'offre (`store_id`, `source_product_id`, `source_url`, `category`, `quantity`, `unit_price`, etc.)
-- `prices`: snapshot courant du prix (`price`, `original_price`, `discount`, `is_on_promotion`)
+- `POSTGRES_URL`
+- `DATABASE_URL` comme alias accepté
 
-Reconstruction du schéma:
+Le schéma principal est composé de :
+
+- `products` pour les métadonnées d'offres
+- `prices` pour l'état courant du prix, du prix d'origine, de la remise et du statut promo
+
+Reconstruction du schéma :
 
 ```bash
 npx tsx scripts/init-db.ts
 ```
 
-Nettoyage des données:
-
-```bash
-npx tsx scripts/clean-db.ts
-```
-
 ## Scraping
 
-Scrape complet:
+Scrape hebdomadaire complet :
 
 ```bash
 npm run scrape
 ```
 
-Mise à jour ciblée des recherches populaires:
+Scrape des bons plans :
 
 ```bash
-npx tsx scripts/update-popular.ts
+npm run scrape:deals
 ```
 
-Le fichier `scrape-results.json` contient:
+Rapports produits :
 
-- le timestamp du dernier run
-- les volumes `raw`, `validated`, `rejected`
-- les raisons de rejet par enseigne
-- la répartition par catégorie
+- `scrape-results.json`
+- `scrape-history.log`
 
 ## Déploiement
 
-1. Déployer sur Vercel
-2. Configurer `POSTGRES_URL` ou `DATABASE_URL`
-3. Recréer le schéma si nécessaire avec `scripts/init-db.ts`
-4. Lancer un scrape complet avec `npm run scrape`
+Le projet est prévu pour Vercel avec une source de vérité en base de données et un job planifié séparé pour le scraping.
+Le hook de postbuild reste désactivé par défaut afin d'éviter un scrape lourd pendant les déploiements.
 
-Sur Vercel, chaque déploiement exécute automatiquement le scrape hebdomadaire après le build.
-Pour le désactiver temporairement sur un déploiement précis, définir `VERCEL_SKIP_SCRAPE=1`.
+Avant publication publique, configurez la base, exécutez un scrape complet puis vérifiez la couverture des enseignes.

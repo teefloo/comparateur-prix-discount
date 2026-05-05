@@ -90,7 +90,7 @@ export default function AboutPage() {
             <div className="grid gap-3 sm:grid-cols-3">
               {stats.map((stat) => (
                 <div key={stat.label} className="surface px-5 py-5">
-                  <p className="font-display text-3xl font-semibold tracking-tight text-accent">{stat.value}</p>
+                  <p className="font-display text-3xl font-semibold tracking-tight text-accent tabular-nums">{stat.value}</p>
                   <p className="mt-2 text-xs font-medium uppercase tracking-[0.24em] text-subtle dark:text-slate-500">
                     {stat.label}
                   </p>
@@ -102,9 +102,9 @@ export default function AboutPage() {
               <p className="section-label">Logique UX</p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 {values.map((value) => (
-                  <div key={value.title} className="rounded-3xl border border-line bg-white p-5 dark:border-slate-800 dark:bg-slate-950">
+                  <div key={value.title} className="rounded-lg border border-line bg-white p-5 dark:border-slate-800 dark:bg-slate-950">
                     <div className="flex items-center gap-3">
-                      <div className="rounded-2xl border border-line bg-accent-subtle p-2 text-accent dark:border-slate-700 dark:bg-accent/15">
+                      <div className="rounded-xl border border-line bg-accent-subtle p-2 text-accent dark:border-slate-700 dark:bg-accent/15">
                         <value.icon size={18} />
                       </div>
                       <h2 className="font-display text-lg font-semibold tracking-tight text-foreground dark:text-slate-100">
@@ -127,10 +127,7 @@ export default function AboutPage() {
                     key={name}
                     className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-2 text-sm font-semibold text-foreground dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
                   >
-                    <span
-                      className="h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: RETAILER_INFO[RETAILERS[index]].color }}
-                    />
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: RETAILER_INFO[RETAILERS[index]].color }} />
                     {name}
                   </span>
                 ))}
@@ -140,26 +137,22 @@ export default function AboutPage() {
             <section className="surface p-6">
               <p className="section-label">Ressources</p>
               <div className="mt-4 space-y-3 text-sm text-muted dark:text-slate-300">
-                <p>
-                  Prix relevés sur les plateformes des enseignes, puis normalisés pour rester lisibles dans une vue unique.
-                </p>
-                <p>
-                  Les pages produit gardent le contexte utile, les liens d&apos;origine et les métadonnées de partage.
-                </p>
+                <p>Prix relevés sur les plateformes des enseignes, puis normalisés pour rester lisibles dans une vue unique.</p>
+                <p>Les pages produit gardent le contexte utile, les liens d&apos;origine et les métadonnées de partage.</p>
               </div>
               <div className="mt-6 flex flex-wrap gap-3">
                 <a
                   href="https://github.com/teefloo/comparateur-prix-discount"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-2xl bg-foreground px-4 py-3 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
+                  className="inline-flex items-center gap-2 rounded-[12px] bg-foreground px-4 py-3 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
                 >
                   <ExternalLink size={14} />
                   GitHub
                 </a>
                 <Link
                   href="/"
-                  className="inline-flex items-center gap-2 rounded-2xl border border-line bg-white px-4 py-3 text-sm font-semibold text-foreground dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+                  className="inline-flex items-center gap-2 rounded-[12px] border border-line bg-white px-4 py-3 text-sm font-semibold text-foreground dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
                 >
                   Rechercher
                 </Link>

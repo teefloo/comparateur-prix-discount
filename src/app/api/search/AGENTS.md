@@ -1,49 +1,43 @@
-# Agents.md: `src/app/api/search/`
+# Agent Instructions: `src/app/api/search/`
 
 ## Role
-Search API endpoint providing product search functionality with multi-source fallback: database → real-time scraping → demo data.
+Search API endpoint with multi-source fallback: database → live scraping → demo fallback.
 
-## Behavior
-
-### Request
+## Request
 ```
-GET /api/search?query=<term>&category=<cat>
+GET /api/search?query=<term>&category=<cat>&retailer=<retailer>
 ```
 - `query`: Search term (optional)
-- `category`: Filter by `hygiene`, `alimentation`, or `menage` (optional)
+- `category`: One of 13 supported categories (optional)
+- `retailer`: Single retailer slug to filter (optional)
 
-### Response
+## Response
 ```json
 {
   "products": [...],
-  "count": 20,
-  "source": "database" | "real-time" | "demo" | "demo-fallback"
+  "count": 120,
+  "grouped": false,
+  "source": "database" | "real-time" | "demo-fallback" | null,
+  "lastUpdate": "2026-01-01T00:00:00.000Z",
+  "categories": { "hygiene": "Hygiène", ... }
 }
 ```
 
-### Data Flow
-1. **Database first** (`src/lib/db.ts`): If `POSTGRES_URL` set, search in stored products
-2. **Scrapers** (if DB empty): Run all 6 scrapers in parallel via `Promise.allSettled()`
-3. **Demo fallback**: If both DB and scrapers fail, return hardcoded sample products
+## Fallback Chain
+1. **Database** first (`src/lib/db.ts`): queries `products` + `prices` if `POSTGRES_URL` is set
+2. **Live scraping**: triggered only when DB results are insufficient
+   - Search query: live scrape if `< 5` DB results
+   - Category-only: live scrape if `0` DB results **and not on Vercel**
+   - Timeout: **8s on Vercel**, **30s locally**
+3. **Demo fallback**: 22 hardcoded `RetailerOfferCard` samples covering all 13 categories and 10 retailers
 
-### Product Format
-```typescript
-{
-  id: string,
-  name: string,
-  category: 'hygiene' | 'alimentation' | 'menage',
-  prices: { [store]: number },  // e.g. {action: 2.99, stokomani: 3.49}
-  urls: { [store]: string }
-}
-```
-
-## Demo Products
-Hardcoded list of 20 sample products used when no real data available:
-- Each has `id` prefixed with `demo-`
-- Covers all 3 categories and 6 stores
+## Key Behavior
+- Category pages on Vercel **never** trigger live scrapes; they rely on persisted data
+- Uses `Promise.allSettled()` for live scrapes so one failure does not block others
+- Browser scrapers are skipped on Vercel (`process.env.VERCEL === '1'`)
+- The endpoint always returns successfully; errors fall back to demo data
 
 ## Agent Guidelines
-- **Error handling**: Returns demo products on any exception - always succeeds
-- **Logging**: Logs `POSTGRES_URL` and `DATABASE_URL` env vars for debugging
-- **Scraper timeout**: Uses `Promise.allSettled()` so one failure doesn't block others
-- **No POST**: Only accepts GET requests
+- Only accepts `GET` requests
+- Do not change the demo offer count or shape without updating the UI expectations
+- `lastUpdate` is read from `scrape-results.json` timestamp

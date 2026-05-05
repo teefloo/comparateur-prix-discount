@@ -87,11 +87,11 @@ export default async function CategoryPage({ params }: { params: CategoryPagePar
             <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight text-foreground dark:text-slate-50">
               {categoryLabel}
             </h1>
-              <p className="support-copy mt-4 text-base sm:text-lg">
-                {offers.length
-                  ? `Sélection actuelle de ${formatCount(offers.length)} offre${offers.length > 1 ? 's' : ''} dans ${categoryLabel.toLowerCase()}.`
-                  : `Aucune offre n&apos;est disponible pour ${categoryLabel.toLowerCase()} pour le moment.`}
-              </p>
+            <p className="support-copy mt-4 text-base sm:text-lg">
+              {offers.length
+                ? `Sélection actuelle de ${formatCount(offers.length)} offre${offers.length > 1 ? 's' : ''} dans ${categoryLabel.toLowerCase()}.`
+                : `Aucune offre n&apos;est disponible pour ${categoryLabel.toLowerCase()} pour le moment.`}
+            </p>
           </div>
           <div className="result-badge result-badge-accent self-start">
             <ArrowRight size={12} />
@@ -110,16 +110,13 @@ export default async function CategoryPage({ params }: { params: CategoryPagePar
               </p>
               <Link
                 href="/"
-                className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-foreground px-4 py-3 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
+                className="mt-6 inline-flex items-center gap-2 rounded-[12px] bg-foreground px-4 py-3 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
               >
                 Retour à l&apos;accueil
               </Link>
             </div>
           ) : (
-            <div
-              className="grid gap-4"
-              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 38rem), 1fr))' }}
-            >
+            <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 38rem), 1fr))' }}>
               {offers.map((offer, index) => (
                 <ProductCard key={offer.id} product={offer} isBest={index === 0} />
               ))}

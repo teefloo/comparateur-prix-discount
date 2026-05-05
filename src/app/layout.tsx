@@ -64,10 +64,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ThemeProvider>
           <div className="flex min-h-screen flex-col overflow-x-clip">
-            <div className="flex-1 min-w-0 pb-48 sm:pb-52 md:pb-0">{children}</div>
+            <div className="flex-1 min-w-0 pb-28 md:pb-0">{children}</div>
             <footer className="border-t border-line bg-paper/80 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/60">
-              <div className="mx-auto max-w-7xl px-6 pt-10 pb-36 md:py-10">
-                <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+              <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:py-10">
+                <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
                   <div className="max-w-md">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-slate-400">
                       ComparPrix
@@ -76,9 +76,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       Comparateur de prix discount pour repérer vite les meilleures offres, sans bruit visuel ni friction inutile.
                     </p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted dark:text-slate-300">
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted dark:text-slate-300">
                     <a href="/" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
                       Accueil
+                    </a>
+                    <a href="/deals" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
+                      Bons plans
                     </a>
                     <a href="/a-propos" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
                       À propos
@@ -88,7 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     </a>
                   </div>
                 </div>
-                <div className="mt-8 border-t border-line pt-5 text-xs text-subtle dark:border-slate-800 dark:text-slate-500">
+                <div className="mt-6 border-t border-line pt-4 text-xs text-subtle dark:border-slate-800 dark:text-slate-500">
                   Les prix affichés dépendent du stock, des enseignes et du moment de relevé.
                 </div>
               </div>

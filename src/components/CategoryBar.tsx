@@ -25,9 +25,15 @@ interface CategoryBarProps {
   search: string
   selectedCategory: SupportedCategory | null
   onSelectCategory?: (category: SupportedCategory) => void
+  basePath?: string
 }
 
-function buildCategoryHref(search: string, currentCategory: SupportedCategory | null, nextCategory: SupportedCategory) {
+function buildCategoryHref(
+  search: string,
+  currentCategory: SupportedCategory | null,
+  nextCategory: SupportedCategory,
+  basePath: string,
+) {
   const params = new URLSearchParams()
   const normalizedSearch = search.trim()
 
@@ -40,10 +46,10 @@ function buildCategoryHref(search: string, currentCategory: SupportedCategory | 
   }
 
   const queryString = params.toString()
-  return queryString ? `/?${queryString}` : '/'
+  return queryString ? `${basePath}?${queryString}` : basePath
 }
 
-export default function CategoryBar({ search, selectedCategory, onSelectCategory }: CategoryBarProps) {
+export default function CategoryBar({ search, selectedCategory, onSelectCategory, basePath = '/' }: CategoryBarProps) {
   return (
     <section id="categories" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-5 sm:px-6 sm:scroll-mt-28">
       <div className="surface-strong overflow-hidden">
@@ -85,8 +91,9 @@ export default function CategoryBar({ search, selectedCategory, onSelectCategory
               return (
                 <Link
                   key={category}
-                  href={buildCategoryHref(search, selectedCategory, category)}
+                  href={buildCategoryHref(search, selectedCategory, category, basePath)}
                   className={`nav-pill shrink-0 snap-start px-4 py-2.5 ${isActive ? 'nav-pill-active' : ''}`}
+                  aria-current={isActive ? 'page' : undefined}
                 >
                   <Icon size={14} className={isActive ? 'text-accent' : 'text-subtle dark:text-slate-500'} />
                   <span>{CATEGORY_LABELS[category]}</span>

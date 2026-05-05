@@ -8,3 +8,15 @@ export { scrapeLafoirfouilleProducts, scrapeLafoirfouilleProductsDetailed } from
 export { scrapeLidlProducts, scrapeLidlProductsDetailed } from './lidl-scraper'
 export { dedupeMaxibazarOffers, extractMaxibazarProductPageOffer, parseMaxibazarPrice, scrapeMaxibazarProducts, scrapeMaxibazarProductsDetailed } from './maxibazar-scraper'
 export { dedupeNozOffers, extractNozApiProductOffer, extractNozListingEnhancements, parseNozPrice, scrapeNozProducts, scrapeNozProductsDetailed } from './noz-scraper'
+export {
+  scrapeActionDealsDetailed,
+  scrapeAldiDealsDetailed,
+  scrapeBMDealsDetailed,
+  scrapeCentrakorDealsDetailed,
+  scrapeGifiDealsDetailed,
+  scrapeLafoirfouilleDealsDetailed,
+  scrapeLidlDealsDetailed,
+  scrapeMaxibazarDealsDetailed,
+  scrapeNozDealsDetailed,
+  scrapeStokomaniDealsDetailed,
+} from './deals'

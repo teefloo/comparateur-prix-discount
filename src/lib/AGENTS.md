@@ -1,50 +1,36 @@
-# Agents.md: `src/lib/`
+# Agent Instructions: `src/lib/`
 
 ## Role
-Shared library layer for category/store constants, scraper normalization, validation, database persistence, and runtime scrape orchestration.
+Shared library for types, catalog constants, scraper validation, DB persistence, and runtime orchestration.
 
-## Responsibilities
-- Normalize raw scraped data into **store-specific offers**
-- Validate retailer/domain/category/price integrity before persistence
-- Read and write the store-specific Postgres schema
-- Provide shared query and offer-card helpers for the API/UI
-
-## Components
+## Key Files
 
 | File | Purpose |
 |------|---------|
-| `catalog.ts` | Source of truth for retailers, categories, labels, and domain rules |
-| `types.ts` | Shared store-specific offer types for scrapers, DB, and UI |
-| `scraper-utils.ts` | Category resolution, quantity/unit-price parsing, validation, sorting, card shaping |
-| `db.ts` | Store-specific DB upserts and read helpers |
-| `scrape-runtime.ts` | Shared runtime wrapper for retries, validation, and per-retailer reporting |
-| `scrapers/` | Individual store scraper implementations |
+| `catalog.ts` | Source of truth: `RETAILERS`, `SUPPORTED_CATEGORIES`, labels, domain rules |
+| `types.ts` | Shared TS types: `ScrapedOffer`, `ValidatedOffer`, `RetailerOfferCard`, etc. |
+| `scraper-utils.ts` | Category resolution, quantity parsing, offer validation, sorting, card shaping |
+| `db.ts` | DB reads (`@vercel/postgres`) and batch writes (`pg` Client) |
+| `scrape-runtime.ts` | Orchestrates scraper execution with retries, timeouts, and per-retailer reporting |
+| `deals.ts` / `deals-config.ts` | Promotional-offer detection and deal-section keywords |
+| `scrapers/` | Individual retailer scraper implementations |
+| `ensure-db-env.ts` | Normalizes `DATABASE_URL` → `POSTGRES_URL` at runtime |
 
-## Database Schema
+## Validation Rules (`scraper-utils.ts`)
+Raw offers can be rejected for:
+- `missing_name` — empty or whitespace name
+- `invalid_source_url` — missing or unparseable URL
+- `wrong_domain` — URL does not match retailer domain in `RETAILER_INFO`
+- `invalid_price` — missing, zero, or non-numeric price
+- `unsupported_category` — category not in `SUPPORTED_CATEGORIES`
+- `missing_source_identity` — cannot derive `sourceProductId`
+- `duplicate_offer` — same `id` seen twice in one batch
 
-### `products`
-- `id`
-- `store_id`
-- `source_product_id`
-- `source_url`
-- `source_category_path`
-- `name`
-- `category`
-- `brand`
-- `image`
-- `description`
-- `availability`
-- `quantity`
-- `unit_price`
-- `last_scraped_at`
-
-### `prices`
-- `product_id`
-- `price`
-- `original_price`
-- `discount`
-- `is_on_promotion`
-- `updated_at`
+## DB Persistence (`db.ts`)
+- Reads use `@vercel/postgres` `sql.query`
+- Batch writes use `pg` `Client` with explicit transactions
+- Upsert chunk sizes: **150 products** / **200 prices** per transaction
+- `pruneStaleOffersByRetailer` deletes every offer for a retailer not in the active ID list
 
 ## Agent Guidelines
 - Prefer explicit source-category metadata over keyword inference

@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 
 const shouldRunOnVercel = process.env.VERCEL === '1'
-const skipScrape = process.env.VERCEL_SKIP_SCRAPE === '1'
+const runPostbuildScrape = process.env.VERCEL_ENABLE_POSTBUILD_SCRAPE === '1'
 const command = process.platform === 'win32' ? 'npx.cmd' : 'npx'
 
 if (!shouldRunOnVercel) {
@@ -9,8 +9,8 @@ if (!shouldRunOnVercel) {
   process.exit(0)
 }
 
-if (skipScrape) {
-  console.log('[postbuild] VERCEL_SKIP_SCRAPE=1, skipping deployment scrape.')
+if (!runPostbuildScrape) {
+  console.log('[postbuild] Postbuild scraping is disabled; use the scheduled deal scraper instead.')
   process.exit(0)
 }
 
@@ -32,6 +32,6 @@ child.on('close', (code) => {
     process.exit(0)
   }
 
-  console.error(`[postbuild] Deployment scrape failed with exit code ${code ?? 1}, but the deployment will continue.`)
-  process.exit(0)
+  console.error(`[postbuild] Deployment scrape failed with exit code ${code ?? 1}.`)
+  process.exit(code ?? 1)
 })
