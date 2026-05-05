@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import { motion } from 'framer-motion'
-import { SearchX, Sparkles } from 'lucide-react'
+import { AlertTriangle, SearchX, Sparkles } from 'lucide-react'
 
 import ProductCard from './ProductCard'
 import type { RetailerOfferCard } from '@/lib/types'
@@ -12,6 +12,7 @@ interface ProductGridProps {
   loading: boolean
   hasSearched: boolean
   search: string
+  error?: string
 }
 
 const container = {
@@ -33,7 +34,7 @@ const cardGridStyle: CSSProperties = {
   gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 38rem), 1fr))',
 }
 
-export default function ProductGrid({ products, loading, hasSearched, search }: ProductGridProps) {
+export default function ProductGrid({ products, loading, hasSearched, search, error }: ProductGridProps) {
   if (loading) {
     return (
       <div className="grid gap-4" style={cardGridStyle}>
@@ -55,6 +56,24 @@ export default function ProductGrid({ products, loading, hasSearched, search }: 
           </div>
         ))}
       </div>
+    )
+  }
+
+  if (error && hasSearched && products.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="surface mx-auto my-8 max-w-2xl px-6 py-10 text-center"
+      >
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-danger/20 bg-danger/10 text-danger dark:border-danger/30 dark:bg-danger/10">
+          <AlertTriangle size={24} />
+        </div>
+        <h3 className="font-display mt-5 text-2xl font-semibold tracking-tight text-foreground dark:text-slate-100">
+          Recherche temporairement indisponible
+        </h3>
+        <p className="support-copy mx-auto mt-3 max-w-lg">{error}</p>
+      </motion.div>
     )
   }
 

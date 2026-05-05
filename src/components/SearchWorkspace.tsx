@@ -110,7 +110,7 @@ export default function SearchWorkspace({ search, selectedCategory, source, last
                       {error ? <AlertTriangle size={16} /> : source === 'demo-fallback' ? <RefreshCw size={16} /> : <Database size={16} />}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-semibold">{error ? 'Recherche interrompue' : sourceLabel ?? 'Recherche prête'}</p>
+                      <p className="font-semibold">{error ? 'Recherche temporairement indisponible' : sourceLabel ?? 'Recherche prête'}</p>
                       <p className="mt-1 text-xs leading-relaxed opacity-90">
                         {error
                           ? error

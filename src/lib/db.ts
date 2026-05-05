@@ -426,6 +426,14 @@ export async function searchOffersInDb(query: string, category?: SupportedCatego
   }
 }
 
+export async function searchOffersInDbStrict(
+  query: string,
+  category?: SupportedCategory | null,
+  retailer?: string | null,
+) {
+  return queryOffers({ query, category, limit: 120, retailer })
+}
+
 export async function getOffersByCategory(category: SupportedCategory, limit = 5000, retailer?: string | null) {
   try {
     return await queryOffers({ category, limit, retailer })
@@ -433,6 +441,14 @@ export async function getOffersByCategory(category: SupportedCategory, limit = 5
     console.error('DB Error in getOffersByCategory:', error)
     return []
   }
+}
+
+export async function getOffersByCategoryStrict(
+  category: SupportedCategory,
+  limit = 5000,
+  retailer?: string | null,
+) {
+  return queryOffers({ category, limit, retailer })
 }
 
 export async function getOfferById(id: string) {

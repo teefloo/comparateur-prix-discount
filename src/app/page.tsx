@@ -1,14 +1,15 @@
 import type { Metadata } from 'next'
-import { headers } from 'next/headers'
 
 import CategoryBar from '@/components/CategoryBar'
 import Navbar from '@/components/Navbar'
 import ProductGrid from '@/components/ProductGrid'
 import SearchWorkspace from '@/components/SearchWorkspace'
 import { isSupportedCategory, CATEGORY_LABELS } from '@/lib/catalog'
-import { absoluteUrl, getSiteUrl } from '@/lib/site'
-import type { SearchSource } from '@/lib/search-ui'
-import type { RetailerOfferCard, SupportedCategory } from '@/lib/types'
+import { runSearch } from '@/lib/search-service'
+import { absoluteUrl } from '@/lib/site'
+import type { SupportedCategory } from '@/lib/types'
+
+export const dynamic = 'force-dynamic'
 
 type SearchParams = {
   query?: string | string[]
@@ -28,39 +29,6 @@ function parseSearchParams(searchParams: SearchParams) {
   const retailer = retailerValue || null
 
   return { query, category, retailer }
-}
-
-async function fetchSearchResults(
-  query: string,
-  category: SupportedCategory | null,
-  retailer: string | null,
-  baseUrl: string,
-) {
-  if (!query && !category) {
-    return {
-      products: [] as RetailerOfferCard[],
-      source: null as SearchSource,
-      lastUpdate: null as string | null,
-      error: undefined as string | undefined,
-    }
-  }
-
-  const params = new URLSearchParams()
-  if (query) params.set('query', query)
-  if (category) params.set('category', category)
-  if (retailer) params.set('retailer', retailer)
-
-  const response = await fetch(new URL(`/api/search?${params.toString()}`, baseUrl), {
-    cache: 'no-store',
-  })
-  const data = await response.json()
-
-  return {
-    products: (data.products || []) as RetailerOfferCard[],
-    source: (data.source || null) as SearchSource,
-    lastUpdate: (data.lastUpdate || null) as string | null,
-    error: data.error as string | undefined,
-  }
 }
 
 export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
@@ -121,14 +89,9 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
 }
 
 export default async function Home({ searchParams }: { searchParams: SearchParams }) {
-  const requestHeaders = await headers()
-  const forwardedHost = requestHeaders.get('x-forwarded-host')
-  const host = forwardedHost || requestHeaders.get('host')
-  const proto = requestHeaders.get('x-forwarded-proto') || 'http'
-  const origin = host ? `${proto}://${host}` : process.env.NEXT_PUBLIC_SITE_URL || getSiteUrl()
   const { query, category, retailer } = parseSearchParams(searchParams)
   const hasSearched = Boolean(query || category)
-  const { products, source, lastUpdate, error } = await fetchSearchResults(query, category, retailer, origin)
+  const { products, source, lastUpdate, error } = await runSearch({ query, category, retailer })
 
   return (
     <>
@@ -145,7 +108,7 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
       <main className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
         <CategoryBar search={query} selectedCategory={category} />
         <div className="space-y-4">
-          <ProductGrid products={products} loading={false} hasSearched={hasSearched} search={query} />
+          <ProductGrid products={products} loading={false} hasSearched={hasSearched} search={query} error={error} />
         </div>
       </main>
     </>
