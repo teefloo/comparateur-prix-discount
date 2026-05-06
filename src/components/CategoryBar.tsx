@@ -51,58 +51,43 @@ function buildCategoryHref(
 
 export default function CategoryBar({ search, selectedCategory, onSelectCategory, basePath = '/' }: CategoryBarProps) {
   return (
-    <section id="categories" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-5 sm:px-6 sm:scroll-mt-28">
-      <div className="surface-strong overflow-hidden">
-        <div className="flex items-center justify-between gap-4 border-b border-line px-4 py-4 dark:border-slate-800 sm:px-5">
-          <div>
-            <p className="section-label">Explorer par rayon</p>
-            <p className="mt-1 text-sm text-muted dark:text-slate-400">
-              Choisissez une catégorie pour affiner les résultats.
-            </p>
-          </div>
-          {selectedCategory && (
-            <span className="result-badge result-badge-accent hidden sm:inline-flex">
-              {CATEGORY_LABELS[selectedCategory]}
-            </span>
-          )}
-        </div>
+    <section id="categories" className="mx-auto max-w-7xl scroll-mt-24 pb-6 sm:scroll-mt-28">
+      <div className="overflow-x-auto pb-2 scrollbar-none">
+        <div className="flex min-w-max snap-x snap-proximity gap-2 md:min-w-0 md:flex-wrap">
+          {SUPPORTED_CATEGORIES.map((category) => {
+            const isActive = selectedCategory === category
+            const Icon = CATEGORY_ICONS[category]
 
-        <div className="overflow-x-auto px-3 py-4 scrollbar-none sm:px-5 md:overflow-visible">
-          <div className="flex min-w-max snap-x snap-proximity gap-2 md:min-w-0 md:flex-wrap">
-            {SUPPORTED_CATEGORIES.map((category) => {
-              const isActive = selectedCategory === category
-              const Icon = CATEGORY_ICONS[category]
-
-              if (onSelectCategory) {
-                return (
-                  <button
-                    key={category}
-                    type="button"
-                    onClick={() => onSelectCategory(category)}
-                    className={`nav-pill min-h-11 shrink-0 snap-start px-4 py-3 text-sm ${isActive ? 'nav-pill-active' : ''}`}
-                    aria-pressed={isActive}
-                  >
-                    <Icon size={14} className={isActive ? 'text-accent' : 'text-subtle dark:text-slate-500'} />
-                    <span>{CATEGORY_LABELS[category]}</span>
-                  </button>
-                )
-              }
-
+            if (onSelectCategory) {
               return (
-                <Link
+                <button
                   key={category}
-                  href={buildCategoryHref(search, selectedCategory, category, basePath)}
-                  className={`nav-pill min-h-11 shrink-0 snap-start px-4 py-3 text-sm ${isActive ? 'nav-pill-active' : ''}`}
-                  aria-current={isActive ? 'page' : undefined}
+                  type="button"
+                  onClick={() => onSelectCategory(category)}
+                  className={`nav-pill min-h-10 shrink-0 snap-start px-4 py-2 text-sm transition-all ${isActive ? 'nav-pill-active ring-2 ring-accent/30' : 'bg-transparent border-transparent hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                  aria-pressed={isActive}
                 >
                   <Icon size={14} className={isActive ? 'text-accent' : 'text-subtle dark:text-slate-500'} />
                   <span>{CATEGORY_LABELS[category]}</span>
-                </Link>
+                </button>
               )
-            })}
-          </div>
+            }
+
+            return (
+              <Link
+                key={category}
+                href={buildCategoryHref(search, selectedCategory, category, basePath)}
+                className={`nav-pill min-h-10 shrink-0 snap-start px-4 py-2 text-sm transition-all ${isActive ? 'nav-pill-active ring-2 ring-accent/30' : 'bg-transparent border-transparent hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <Icon size={14} className={isActive ? 'text-accent' : 'text-subtle dark:text-slate-500'} />
+                <span>{CATEGORY_LABELS[category]}</span>
+              </Link>
+            )
+          })}
         </div>
       </div>
     </section>
   )
 }
+

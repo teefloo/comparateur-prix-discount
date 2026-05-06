@@ -39,18 +39,20 @@ export default function ProductGrid({ products, loading, hasSearched, search, er
     return (
       <div className="grid gap-4" style={cardGridStyle}>
         {[...Array(6)].map((_, index) => (
-          <div key={index} className="surface overflow-hidden">
-            <div className="grid gap-0 lg:grid-cols-[160px_minmax(0,1fr)_168px]">
-              <div className="min-h-[170px] border-b border-line bg-surfaceSoft animate-pulse dark:border-slate-800 dark:bg-slate-800/70 lg:border-b-0 lg:border-r" />
-              <div className="p-5">
-                <div className="h-4 w-24 rounded-full bg-line animate-pulse dark:bg-slate-700" />
-                <div className="mt-5 h-6 w-4/5 rounded-full bg-line animate-pulse dark:bg-slate-700" />
-                <div className="mt-3 h-4 w-full rounded-full bg-line animate-pulse dark:bg-slate-700" />
-                <div className="mt-2 h-4 w-2/3 rounded-full bg-line animate-pulse dark:bg-slate-700" />
+          <div key={index} className="flex flex-col sm:flex-row gap-4 sm:gap-6 rounded-[24px] bg-white p-4 shadow-sm dark:bg-slate-900">
+            <div className="h-48 w-full shrink-0 rounded-[16px] bg-line animate-pulse dark:bg-slate-800 sm:h-auto sm:w-48" />
+            <div className="flex flex-1 flex-col justify-between min-w-0 py-2">
+              <div className="space-y-3">
+                <div className="h-4 w-24 rounded-full bg-line animate-pulse dark:bg-slate-800" />
+                <div className="h-6 w-4/5 rounded-full bg-line animate-pulse dark:bg-slate-800" />
+                <div className="h-4 w-1/3 rounded-full bg-line animate-pulse dark:bg-slate-800 mt-2" />
               </div>
-              <div className="border-t border-line bg-paper/40 p-4 dark:border-slate-800 dark:bg-slate-950/40 lg:border-t-0 lg:border-l">
-                <div className="h-3 w-12 rounded-full bg-line animate-pulse dark:bg-slate-700" />
-                <div className="mt-3 h-9 w-24 rounded-[12px] bg-line animate-pulse dark:bg-slate-700" />
+              <div className="mt-6 flex items-end justify-between border-t border-line/40 dark:border-slate-800 pt-4">
+                <div className="h-8 w-24 rounded-full bg-line animate-pulse dark:bg-slate-800" />
+                <div className="flex gap-2">
+                  <div className="h-10 w-20 rounded-xl bg-line animate-pulse dark:bg-slate-800" />
+                  <div className="h-10 w-10 rounded-xl bg-line animate-pulse dark:bg-slate-800" />
+                </div>
               </div>
             </div>
           </div>
