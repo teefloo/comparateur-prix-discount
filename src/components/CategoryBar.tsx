@@ -55,9 +55,9 @@ export default function CategoryBar({ search, selectedCategory, onSelectCategory
       <div className="surface-strong overflow-hidden">
         <div className="flex items-center justify-between gap-4 border-b border-line px-4 py-4 dark:border-slate-800 sm:px-5">
           <div>
-            <p className="section-label">Navigation par univers</p>
+            <p className="section-label">Explorer par rayon</p>
             <p className="mt-1 text-sm text-muted dark:text-slate-400">
-              Filtrez immédiatement la recherche par catégorie.
+              Choisissez une catégorie pour affiner les résultats.
             </p>
           </div>
           {selectedCategory && (
@@ -79,7 +79,7 @@ export default function CategoryBar({ search, selectedCategory, onSelectCategory
                     key={category}
                     type="button"
                     onClick={() => onSelectCategory(category)}
-                    className={`nav-pill shrink-0 snap-start px-4 py-2.5 ${isActive ? 'nav-pill-active' : ''}`}
+                    className={`nav-pill min-h-11 shrink-0 snap-start px-4 py-3 text-sm ${isActive ? 'nav-pill-active' : ''}`}
                     aria-pressed={isActive}
                   >
                     <Icon size={14} className={isActive ? 'text-accent' : 'text-subtle dark:text-slate-500'} />
@@ -92,7 +92,7 @@ export default function CategoryBar({ search, selectedCategory, onSelectCategory
                 <Link
                   key={category}
                   href={buildCategoryHref(search, selectedCategory, category, basePath)}
-                  className={`nav-pill shrink-0 snap-start px-4 py-2.5 ${isActive ? 'nav-pill-active' : ''}`}
+                  className={`nav-pill min-h-11 shrink-0 snap-start px-4 py-3 text-sm ${isActive ? 'nav-pill-active' : ''}`}
                   aria-current={isActive ? 'page' : undefined}
                 >
                   <Icon size={14} className={isActive ? 'text-accent' : 'text-subtle dark:text-slate-500'} />

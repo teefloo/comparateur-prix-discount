@@ -245,7 +245,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
                 </div>
                 <Flame size={18} className="text-accent" />
               </div>
-              <RetailerFilterPanel />
+              <RetailerFilterPanel defaultExpanded />
             </div>
 
             <div className="surface p-5 sm:p-6">

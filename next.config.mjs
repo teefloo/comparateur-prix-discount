@@ -15,6 +15,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'www.aldi.fr' },
       { protocol: 'https', hostname: 'www.noz.fr' },
       { protocol: 'https', hostname: 'www.lafoirfouille.fr' },
+      { protocol: 'https', hostname: 's7g10.scene7.com' },
+      { protocol: 'https', hostname: 'imgproxy-retcat.assets.schwarz' },
       { protocol: 'https', hostname: '**.omn.proximis.com' },
     ],
   },

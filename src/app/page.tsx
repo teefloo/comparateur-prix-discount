@@ -108,7 +108,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
       />
 
       <main className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
-        <CategoryBar search={query} selectedCategory={category} />
+        {hasSearched && <CategoryBar search={query} selectedCategory={category} />}
         <div className="space-y-4">
           <ProductGrid products={products} loading={false} hasSearched={hasSearched} search={query} error={error} />
         </div>

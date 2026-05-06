@@ -1,11 +1,15 @@
 'use client'
 
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useCallback } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import RetailerFilter from './RetailerFilter'
 
-export default function RetailerFilterPanel() {
+interface RetailerFilterPanelProps {
+  defaultExpanded?: boolean
+}
+
+export default function RetailerFilterPanel({ defaultExpanded = false }: RetailerFilterPanelProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -21,10 +25,11 @@ export default function RetailerFilterPanel() {
       } else {
         params.delete('retailer')
       }
-      router.push(`${pathname}?${params.toString()}`)
+      const queryString = params.toString()
+      router.push(queryString ? `${pathname}?${queryString}` : pathname)
     },
     [router, pathname, searchParams],
   )
 
-  return <RetailerFilter selectedRetailers={selectedRetailers} onChange={onChange} />
+  return <RetailerFilter selectedRetailers={selectedRetailers} onChange={onChange} defaultExpanded={defaultExpanded} />
 }
