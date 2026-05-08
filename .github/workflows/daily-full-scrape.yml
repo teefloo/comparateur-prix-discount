@@ -1,0 +1,88 @@
+name: Daily full scrape
+
+on:
+  schedule:
+    - cron: '30 1 * * *'
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: daily-full-scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+
+    steps:
+      - name: Guard Paris night schedule
+        id: schedule_guard
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "Manual run requested."
+            exit 0
+          fi
+
+          paris_time="$(TZ=Europe/Paris date +'%H:%M')"
+          echo "Paris time: ${paris_time}"
+
+          if [ "${paris_time:0:2}" = "03" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping duplicate UTC schedule outside the 03:xx Europe/Paris window."
+          fi
+
+      - name: Checkout
+        if: steps.schedule_guard.outputs.should_run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: steps.schedule_guard.outputs.should_run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.schedule_guard.outputs.should_run == 'true'
+        run: npm ci
+
+      - name: Install Chromium
+        if: steps.schedule_guard.outputs.should_run == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Check database secret
+        if: steps.schedule_guard.outputs.should_run == 'true'
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        shell: bash
+        run: |
+          if [ -z "$POSTGRES_URL" ] && [ -z "$DATABASE_URL" ]; then
+            echo "::error::Missing POSTGRES_URL or DATABASE_URL repository secret."
+            exit 1
+          fi
+
+          echo "Database URL secret is configured."
+
+      - name: Run full scrape
+        if: steps.schedule_guard.outputs.should_run == 'true'
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run scrape
+
+      - name: Upload scrape artifacts
+        if: always() && steps.schedule_guard.outputs.should_run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-full-scrape-results
+          path: |
+            scrape-results.json
+            scrape-history.log
+          if-no-files-found: ignore
+          retention-days: 14
