@@ -107,12 +107,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
         error={error}
       />
 
-      <main className="mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6">
-        {hasSearched && <CategoryBar search={query} selectedCategory={category} />}
-        <div className="space-y-4">
-          <ProductGrid products={products} loading={false} hasSearched={hasSearched} search={query} error={error} />
-        </div>
-      </main>
+      {hasSearched && (
+        <main className="mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6">
+          <CategoryBar search={query} selectedCategory={category} />
+          <div className="space-y-4">
+            <ProductGrid products={products} loading={false} hasSearched={hasSearched} search={query} error={error} />
+          </div>
+        </main>
+      )}
     </>
   )
 }

@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter, Space_Grotesk } from 'next/font/google'
+import { ArrowUpRight } from 'lucide-react'
 
+import AgentationDev from '@/components/AgentationDev'
+import Logo from '@/components/Logo'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { absoluteUrl, getSiteUrl } from '@/lib/site'
 
@@ -65,34 +68,71 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <div className="flex min-h-screen flex-col overflow-x-clip">
             <div className="flex-1 min-w-0 pb-28 md:pb-0">{children}</div>
-            <footer className="border-t border-line bg-paper/80 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/60">
-              <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:py-10">
-                <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-                  <div className="max-w-md">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-slate-400">
-                      ComparPrix
-                    </p>
-                    <p className="mt-3 text-sm leading-relaxed text-muted dark:text-slate-300">
-                      Comparateur de prix discount pour repérer vite les meilleures offres, sans bruit visuel ni friction inutile.
-                    </p>
+            <AgentationDev />
+            <footer className="bg-paper/90 dark:bg-slate-950/70">
+              <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-12">
+                <div className="rounded-2xl bg-white/80 p-5 shadow-card backdrop-blur-sm dark:bg-slate-900/80 sm:p-6">
+                  <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="max-w-lg space-y-4">
+                      <Logo />
+                      <p className="text-sm leading-relaxed text-muted dark:text-slate-300">
+                        Comparez plus vite les prix discount et gardez l&apos;essentiel sous les yeux, sans bruit ni détour.
+                      </p>
+                      <div className="flex flex-wrap gap-2 text-xs font-medium text-muted dark:text-slate-400">
+                        <span className="rounded-full bg-paper px-3 py-1.5 dark:bg-slate-950/70">
+                          10 enseignes suivies
+                        </span>
+                        <span className="rounded-full bg-paper px-3 py-1.5 dark:bg-slate-950/70">
+                          Recherche produit
+                        </span>
+                        <span className="rounded-full bg-paper px-3 py-1.5 dark:bg-slate-950/70">
+                          Bons plans centralises
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-8 sm:grid-cols-[minmax(0,12rem)_minmax(0,15rem)]">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-subtle dark:text-slate-500">
+                          Navigation
+                        </p>
+                        <div className="mt-4 flex flex-col gap-3 text-sm text-muted dark:text-slate-300">
+                          <a href="/" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
+                            Accueil
+                          </a>
+                          <a href="/deals" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
+                            Bons plans
+                          </a>
+                          <a href="/a-propos" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
+                            A propos
+                          </a>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-subtle dark:text-slate-500">
+                          Projet
+                        </p>
+                        <a
+                          href="https://github.com/teefloo/comparateur-prix-discount"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-paper px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-white dark:bg-slate-950/70 dark:text-slate-100 dark:hover:bg-slate-900"
+                        >
+                          <span>GitHub</span>
+                          <ArrowUpRight size={16} className="text-subtle dark:text-slate-500" />
+                        </a>
+                        <p className="mt-3 text-sm leading-relaxed text-muted dark:text-slate-400">
+                          Le code source et le suivi du projet sont disponibles sur le depot public.
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted dark:text-slate-300">
-                    <a href="/" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
-                      Accueil
-                    </a>
-                    <a href="/deals" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
-                      Bons plans
-                    </a>
-                    <a href="/a-propos" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
-                      À propos
-                    </a>
-                    <a href="mailto:contact@comparprix.fr" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
-                      Contact
-                    </a>
+
+                  <div className="mt-8 flex flex-col gap-3 pt-4 text-xs text-subtle dark:text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                    <span>Les prix affiches dependent du stock, des enseignes et du moment de releve.</span>
+                    <span>ComparPrix</span>
                   </div>
-                </div>
-                <div className="mt-6 border-t border-line pt-4 text-xs text-subtle dark:border-slate-800 dark:text-slate-500">
-                  Les prix affichés dépendent du stock, des enseignes et du moment de relevé.
                 </div>
               </div>
             </footer>
