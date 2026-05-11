@@ -9,12 +9,25 @@ export interface ProductPageDetails {
 
 const PAGE_TEXT_CACHE = new Map<string, Promise<string>>()
 const PAGE_TEXT_CACHE_LIMIT = 50
+const DEFAULT_PAGE_TEXT_TIMEOUT_MS = 8000
 
 function normalizePageText(value: string) {
   return value
     .replace(/\u00a0/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+function readPositiveIntegerEnv(name: string) {
+  const value = process.env[name]
+  if (!value) return null
+
+  const parsed = Number.parseInt(value, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
+function getPageTextTimeoutMs() {
+  return readPositiveIntegerEnv('PRODUCT_PAGE_DETAILS_TIMEOUT_MS') || DEFAULT_PAGE_TEXT_TIMEOUT_MS
 }
 
 async function fetchPageText(url: string): Promise<string> {
@@ -24,6 +37,9 @@ async function fetchPageText(url: string): Promise<string> {
   }
 
   const promise = (async () => {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), getPageTextTimeoutMs())
+
     try {
       const response = await fetch(url, {
         headers: {
@@ -31,6 +47,7 @@ async function fetchPageText(url: string): Promise<string> {
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
           Accept: 'text/html,application/xhtml+xml',
         },
+        signal: controller.signal,
       })
 
       if (!response.ok) {
@@ -42,6 +59,8 @@ async function fetchPageText(url: string): Promise<string> {
       return normalizePageText(`${document('body').text()} ${document('script').text()}`)
     } catch (_error) {
       return ''
+    } finally {
+      clearTimeout(timeout)
     }
   })()
 

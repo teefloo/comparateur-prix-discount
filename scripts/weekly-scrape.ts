@@ -299,7 +299,11 @@ async function runWeeklyScrape() {
   }
 }
 
-runWeeklyScrape().catch((error) => {
-  console.error('Weekly scrape failed:', error)
-  setImmediate(() => process.exit(1))
-})
+runWeeklyScrape()
+  .then(() => {
+    setImmediate(() => process.exit(0))
+  })
+  .catch((error) => {
+    console.error('Weekly scrape failed:', error)
+    setImmediate(() => process.exit(1))
+  })

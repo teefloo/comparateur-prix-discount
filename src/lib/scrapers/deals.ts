@@ -15,6 +15,8 @@ import { extractNozListingEnhancements, scrapeNozProductsDetailed } from './noz-
 import { scrapeStokomaniDealsDetailed as scrapeStokomaniDealSources } from './stokomani-scraper'
 
 type DealResult = Promise<RetailerScrapeDetails>
+const DEAL_FETCH_DEFAULT_TIMEOUT_MS = 15000
+const DEAL_MAX_CANDIDATE_URLS_PER_RETAILER = 80
 
 function forceDealPromotion(offers: ScrapedOffer[]) {
   return offers.map((offer) => ({
@@ -27,21 +29,80 @@ function uniqueStrings(values: string[]) {
   return Array.from(new Set(values.map((value) => cleanDisplayText(value)).filter(Boolean)))
 }
 
+async function mapWithConcurrency<T, U>(items: T[], concurrency: number, mapper: (item: T, index: number) => Promise<U>) {
+  const results: U[] = []
+  let nextIndex = 0
+  const workerCount = Math.max(1, concurrency)
+
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const currentIndex = nextIndex
+        nextIndex += 1
+        results[currentIndex] = await mapper(items[currentIndex], currentIndex)
+      }
+    }),
+  )
+
+  return results
+}
+
+function readPositiveIntegerEnv(name: string) {
+  const value = process.env[name]
+  if (!value) return null
+
+  const parsed = Number.parseInt(value, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
+function getDealFetchTimeoutMs() {
+  return readPositiveIntegerEnv('DEAL_FETCH_TIMEOUT_MS') || DEAL_FETCH_DEFAULT_TIMEOUT_MS
+}
+
+function getDealCandidateUrlLimit() {
+  return readPositiveIntegerEnv('DEAL_MAX_CANDIDATE_URLS_PER_RETAILER') || DEAL_MAX_CANDIDATE_URLS_PER_RETAILER
+}
+
 async function fetchHtml(url: string) {
-  const response = await fetch(url, {
-    headers: {
-      'user-agent': 'Mozilla/5.0 (compatible; ComparateurPrixDiscountBot/1.0)',
-      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'accept-language': 'fr-FR,fr;q=0.9,en;q=0.8',
-    },
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), getDealFetchTimeoutMs())
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'user-agent': 'Mozilla/5.0 (compatible; ComparateurPrixDiscountBot/1.0)',
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'accept-language': 'fr-FR,fr;q=0.9,en;q=0.8',
+      },
+      signal: controller.signal,
+    })
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      url: response.url,
+      text: await response.text(),
+    }
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+function capCandidateUrls(retailer: RetailerScrapeDetails['retailer'], urls: string[], issues: ScrapeIssue[], sourceUrl: string) {
+  const limit = getDealCandidateUrlLimit()
+  if (urls.length <= limit) {
+    return urls
+  }
+
+  issues.push({
+    retailer,
+    code: 'candidate_url_cap_reached',
+    message: `Deal crawler capped at ${limit} candidate URLs for ${retailer}`,
+    severity: 'warning',
+    url: sourceUrl,
   })
 
-  return {
-    ok: response.ok,
-    status: response.status,
-    url: response.url,
-    text: await response.text(),
-  }
+  return urls.slice(0, limit)
 }
 
 function extractSameOriginLinks(html: string, baseUrl: string) {
@@ -164,20 +225,28 @@ async function scrapeLidlDealsFromOfficialPage(): Promise<RetailerScrapeDetails>
       apiUrl.searchParams.set('locale', 'fr_FR')
       apiUrl.searchParams.set('version', 'v2.0.0')
 
-      const response = await fetch(apiUrl.toString(), {
-        headers: {
-          'user-agent': 'Mozilla/5.0 (compatible; ComparateurPrixDiscountBot/1.0)',
-          accept: 'application/json, text/plain, */*',
-          'accept-language': 'fr-FR,fr;q=0.9,en;q=0.8',
-          referer: source.sourceUrl,
-          'x-requested-with': 'XMLHttpRequest',
-        },
-      })
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), getDealFetchTimeoutMs())
 
-      const payload = (await response.json()) as Parameters<typeof extractLidlOffersFromApiResponse>[0]
-      const pageOffers = extractLidlOffersFromApiResponse(payload, source, source.sourceUrl)
-      offers.push(...pageOffers)
-      completedListings += 1
+      try {
+        const response = await fetch(apiUrl.toString(), {
+          headers: {
+            'user-agent': 'Mozilla/5.0 (compatible; ComparateurPrixDiscountBot/1.0)',
+            accept: 'application/json, text/plain, */*',
+            'accept-language': 'fr-FR,fr;q=0.9,en;q=0.8',
+            referer: source.sourceUrl,
+            'x-requested-with': 'XMLHttpRequest',
+          },
+          signal: controller.signal,
+        })
+
+        const payload = (await response.json()) as Parameters<typeof extractLidlOffersFromApiResponse>[0]
+        const pageOffers = extractLidlOffersFromApiResponse(payload, source, source.sourceUrl)
+        offers.push(...pageOffers)
+        completedListings += 1
+      } finally {
+        clearTimeout(timeout)
+      }
     } catch (error) {
       issues.push({
         retailer: 'lidl',
@@ -205,18 +274,19 @@ async function scrapeLidlDealsFromOfficialPage(): Promise<RetailerScrapeDetails>
 async function scrapeLafoirfouilleDealsFromOfficialPage(): Promise<RetailerScrapeDetails> {
   const deals = getDealEntrypoint('lafoirfouille')
   const { text } = await fetchHtml(deals.url)
+  const issues: ScrapeIssue[] = []
   const candidateUrls = uniqueStrings([
     deals.url,
     ...discoverDealUrlsFromHtml('lafoirfouille', text, deals.url),
     ...extractSameOriginLinks(text, deals.url),
   ])
+  const cappedCandidateUrls = capCandidateUrls('lafoirfouille', candidateUrls, issues, deals.url)
 
   const offers: ScrapedOffer[] = []
-  const issues: ScrapeIssue[] = []
-  let discoveredListings = candidateUrls.length
+  let discoveredListings = cappedCandidateUrls.length
   let completedListings = 0
 
-  for (const candidateUrl of candidateUrls) {
+  await mapWithConcurrency(cappedCandidateUrls, 4, async (candidateUrl) => {
     try {
       const page = await fetchHtml(candidateUrl)
       const categoryPage = extractLafoirfouilleCategoryPage(page.text, candidateUrl)
@@ -241,7 +311,7 @@ async function scrapeLafoirfouilleDealsFromOfficialPage(): Promise<RetailerScrap
         severity: 'warning',
       })
     }
-  }
+  })
 
   return {
     retailer: 'lafoirfouille',
@@ -259,19 +329,20 @@ async function scrapeLafoirfouilleDealsFromOfficialPage(): Promise<RetailerScrap
 async function scrapeMaxibazarDealsFromOfficialPage(): Promise<RetailerScrapeDetails> {
   const deals = getDealEntrypoint('maxibazar')
   const { text } = await fetchHtml(deals.url)
+  const issues: ScrapeIssue[] = []
   const candidateUrls = uniqueStrings([
     deals.url,
     ...discoverDealUrlsFromHtml('maxibazar', text, deals.url),
     ...extractSameOriginLinks(text, deals.url),
   ])
     .filter((url) => !/promotions|catalogue|emploi|tous-nos-produits/i.test(url))
+  const cappedCandidateUrls = capCandidateUrls('maxibazar', candidateUrls, issues, deals.url)
 
   const offers: ScrapedOffer[] = []
-  const issues: ScrapeIssue[] = []
-  let discoveredListings = candidateUrls.length
+  let discoveredListings = cappedCandidateUrls.length
   let completedListings = 0
 
-  for (const candidateUrl of candidateUrls) {
+  await mapWithConcurrency(cappedCandidateUrls, 6, async (candidateUrl) => {
     try {
       const page = await fetchHtml(candidateUrl)
       const offer = extractMaxibazarProductPageOffer(page.text, candidateUrl)
@@ -280,14 +351,14 @@ async function scrapeMaxibazarDealsFromOfficialPage(): Promise<RetailerScrapeDet
       } else {
         const linkedUrls = extractSameOriginLinks(page.text, candidateUrl).filter((url) => !/promotions|catalogue|emploi|tous-nos-produits/i.test(url))
         discoveredListings += linkedUrls.length
-        for (const linkedUrl of linkedUrls) {
+        await mapWithConcurrency(linkedUrls.slice(0, getDealCandidateUrlLimit()), 4, async (linkedUrl) => {
           const linkedPage = await fetchHtml(linkedUrl)
           const linkedOffer = extractMaxibazarProductPageOffer(linkedPage.text, linkedUrl)
           if (linkedOffer) {
             offers.push(linkedOffer)
           }
           completedListings += 1
-        }
+        })
       }
       completedListings += 1
     } catch (error) {
@@ -299,7 +370,7 @@ async function scrapeMaxibazarDealsFromOfficialPage(): Promise<RetailerScrapeDet
         severity: 'warning',
       })
     }
-  }
+  })
 
   return {
     retailer: 'maxibazar',

@@ -52,7 +52,11 @@ async function run() {
   }
 }
 
-run().catch((error) => {
-  console.error('Deal scrape failed:', error)
-  setImmediate(() => process.exit(1))
-})
+run()
+  .then(() => {
+    setImmediate(() => process.exit(0))
+  })
+  .catch((error) => {
+    console.error('Deal scrape failed:', error)
+    setImmediate(() => process.exit(1))
+  })
