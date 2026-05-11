@@ -26,14 +26,29 @@ jobs:
             exit 0
           fi
 
-          paris_time="$(TZ=Europe/Paris date +'%H:%M')"
-          echo "Paris time: ${paris_time}"
+          paris_offset="$(TZ=Europe/Paris date +'%z')"
+          scheduled_cron="${{ github.event.schedule }}"
+          echo "Paris offset: ${paris_offset}"
+          echo "Scheduled cron: ${scheduled_cron}"
 
-          if [ "${paris_time:0:2}" = "03" ]; then
+          case "${paris_offset}" in
+            +0200)
+              expected_cron='30 1 * * *'
+              ;;
+            +0100)
+              expected_cron='30 2 * * *'
+              ;;
+            *)
+              echo "::error::Unsupported Europe/Paris offset: ${paris_offset}"
+              exit 1
+              ;;
+          esac
+
+          if [ "${scheduled_cron}" = "${expected_cron}" ]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
-            echo "Skipping duplicate UTC schedule outside the 03:xx Europe/Paris window."
+            echo "Skipping cron ${scheduled_cron}; Europe/Paris offset ${paris_offset} maps to ${expected_cron}."
           fi
 
       - name: Checkout
@@ -44,7 +59,7 @@ jobs:
         if: steps.schedule_guard.outputs.should_run == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22.17.0
           cache: npm
 
       - name: Install dependencies

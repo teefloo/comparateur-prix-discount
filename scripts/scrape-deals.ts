@@ -54,5 +54,5 @@ async function run() {
 
 run().catch((error) => {
   console.error('Deal scrape failed:', error)
-  process.exitCode = 1
+  setImmediate(() => process.exit(1))
 })

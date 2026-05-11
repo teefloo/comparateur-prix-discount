@@ -301,5 +301,5 @@ async function runWeeklyScrape() {
 
 runWeeklyScrape().catch((error) => {
   console.error('Weekly scrape failed:', error)
-  process.exitCode = 1
+  setImmediate(() => process.exit(1))
 })
