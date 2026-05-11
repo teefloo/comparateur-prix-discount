@@ -11,6 +11,7 @@ import {
   type SupportedCategory,
 } from './catalog'
 import { getOffersByCategoryStrict, searchOffersInDbStrict } from './db'
+import { applyPriceFilters, normalizePriceRange, normalizePriceSort, type PriceSortOption } from './result-filters'
 import { scrapeRetailers } from './scrape-runtime'
 import { filterOffersByQuery, sortRetailerOfferCards, toRetailerOfferCard } from './scraper-utils'
 import type { RetailerOfferCard } from './types'
@@ -20,6 +21,9 @@ export interface SearchFilters {
   query?: string
   category?: string | null
   retailer?: string | string[] | null
+  minPrice?: string | number | null
+  maxPrice?: string | number | null
+  sort?: string | null
 }
 
 export interface SearchResponse {
@@ -46,6 +50,9 @@ interface SearchContext {
   category: SupportedCategory | null
   selectedRetailers: Retailer[]
   validatedRetailer: Retailer | null
+  minPrice: number | null
+  maxPrice: number | null
+  sort: PriceSortOption
   lastUpdate: string | null
 }
 
@@ -393,22 +400,32 @@ function toSearchErrorMessage(error: unknown) {
   return 'La recherche est temporairement indisponible. Réessayez dans quelques instants.'
 }
 
-function buildDemoOffers(query: string, category: SupportedCategory | null, selectedRetailers: Retailer[]) {
+function buildDemoOffers(context: SearchContext) {
   let offers = DEMO_OFFERS
 
-  if (category) {
-    offers = offers.filter((offer) => offer.category === category)
+  if (context.category) {
+    offers = offers.filter((offer) => offer.category === context.category)
   }
 
-  if (selectedRetailers.length > 0) {
-    offers = offers.filter((offer) => selectedRetailers.includes(offer.retailer))
+  if (context.selectedRetailers.length > 0) {
+    offers = offers.filter((offer) => context.selectedRetailers.includes(offer.retailer))
   }
 
-  if (query) {
-    offers = filterOffersByQuery(offers, query)
+  if (context.query) {
+    offers = filterOffersByQuery(offers, context.query)
   }
 
-  return sortRetailerOfferCards(offers)
+  offers = applyPriceFilters(offers, {
+    minPrice: context.minPrice,
+    maxPrice: context.maxPrice,
+    sort: context.sort,
+  })
+
+  if (context.sort === 'default') {
+    return sortRetailerOfferCards(offers)
+  }
+
+  return offers
 }
 
 function buildSearchResponse(options: {
@@ -446,9 +463,9 @@ async function fetchDatabaseOffers(
 ): Promise<{ offers: RetailerOfferCard[]; error?: string }> {
   try {
     const offers = context.query
-      ? await deps.searchOffersInDb(context.query, context.category, context.validatedRetailer)
+      ? await deps.searchOffersInDb(context.query, context.category, context.validatedRetailer, context.sort)
       : context.category
-        ? await deps.getOffersByCategory(context.category, CATEGORY_DB_LIMIT, context.validatedRetailer)
+        ? await deps.getOffersByCategory(context.category, CATEGORY_DB_LIMIT, context.validatedRetailer, context.sort)
         : []
 
     return { offers }
@@ -515,7 +532,15 @@ function finalizeOffers(context: SearchContext, databaseOffers: RetailerOfferCar
     mergedOffers = filterOffersByQuery(mergedOffers, context.query)
   }
 
-  mergedOffers = sortRetailerOfferCards(mergedOffers)
+  mergedOffers = applyPriceFilters(mergedOffers, {
+    minPrice: context.minPrice,
+    maxPrice: context.maxPrice,
+    sort: context.sort,
+  })
+
+  if (context.sort === 'default') {
+    mergedOffers = sortRetailerOfferCards(mergedOffers)
+  }
 
   if (!context.query && context.category) {
     mergedOffers = mergedOffers.slice(0, CATEGORY_RESULTS_LIMIT)
@@ -534,6 +559,8 @@ export async function runSearch(filters: SearchFilters, deps: Partial<SearchDeps
   const category = parseCategory(filters.category)
   const selectedRetailers = normalizeRetailerSelection(filters.retailer)
   const validatedRetailer = selectedRetailers.length === 1 ? selectedRetailers[0] : null
+  const { minPrice, maxPrice } = normalizePriceRange(filters.minPrice, filters.maxPrice)
+  const sort = normalizePriceSort(filters.sort)
   const lastUpdate = resolvedDeps.readLastUpdateTimestamp()
 
   if (!query && !category) {
@@ -549,6 +576,9 @@ export async function runSearch(filters: SearchFilters, deps: Partial<SearchDeps
     category,
     selectedRetailers,
     validatedRetailer,
+    minPrice,
+    maxPrice,
+    sort,
     lastUpdate,
   }
 
@@ -573,7 +603,7 @@ export async function runSearch(filters: SearchFilters, deps: Partial<SearchDeps
   } else if (liveOffers.length > 0) {
     source = 'real-time'
   } else if (!query) {
-    mergedOffers = buildDemoOffers(query, category, selectedRetailers)
+    mergedOffers = buildDemoOffers(context)
     source = 'demo-fallback'
   }
 

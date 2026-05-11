@@ -9,6 +9,7 @@ import {
 } from './catalog'
 import { getDealsInDb } from './db'
 import { sortDealsByPriority } from './deals'
+import { applyPriceFilters, normalizePriceBound, normalizePriceSort, sortOffersByPrice, type PriceSortOption } from './result-filters'
 import type { RetailerOfferCard } from './types'
 
 export interface DealsFeedOptions {
@@ -16,6 +17,9 @@ export interface DealsFeedOptions {
   category?: string | null
   retailer?: string | string[] | null
   limit?: number
+  minPrice?: string | number | null
+  maxPrice?: string | number | null
+  sort?: string | null
   liveScrape?: boolean
   persistLive?: boolean
 }
@@ -71,6 +75,31 @@ function getLatestUpdate(products: RetailerOfferCard[]) {
   }
 
   return new Date(Math.max(...timestamps)).toISOString()
+}
+
+export function prepareDealsProducts(
+  offers: RetailerOfferCard[],
+  options: {
+    limit: number
+    retailerOrder: Retailer[]
+    minPrice?: number | null
+    maxPrice?: number | null
+    sort?: PriceSortOption
+  },
+) {
+  const filteredOffers = applyPriceFilters(offers, {
+    minPrice: options.minPrice ?? null,
+    maxPrice: options.maxPrice ?? null,
+  })
+
+  if (options.sort === 'price-asc' || options.sort === 'price-desc') {
+    return sortOffersByPrice(filteredOffers, options.sort).slice(0, options.limit)
+  }
+
+  const shouldBalancedMix = options.retailerOrder.length > 1
+  return shouldBalancedMix
+    ? mixDealsByRetailer(filteredOffers, options.limit, options.retailerOrder)
+    : sortDealsByPriority(filteredOffers).slice(0, options.limit)
 }
 
 export function mixDealsByRetailer(
@@ -149,6 +178,9 @@ export async function loadDealsFeed(options: DealsFeedOptions = {}): Promise<Dea
   const category = normalizeCategoryFilter(options.category)
   const retailers = normalizeRetailerFilter(options.retailer)
   const limit = options.limit ?? 120
+  const minPrice = normalizePriceBound(options.minPrice)
+  const maxPrice = normalizePriceBound(options.maxPrice)
+  const sort = normalizePriceSort(options.sort)
   const retailerFilter = retailers.length > 0 ? retailers : null
   const requestedRetailers = retailerFilter || [...RETAILERS]
   const hasDatabaseUrl = Boolean(process.env.POSTGRES_URL || process.env.DATABASE_URL)
@@ -157,8 +189,10 @@ export async function loadDealsFeed(options: DealsFeedOptions = {}): Promise<Dea
   let databaseOffers: RetailerOfferCard[] = []
   if (hasDatabaseUrl) {
     const candidateLimit = shouldBalancedMix ? Math.max(limit * 4, requestedRetailers.length * 25, 200) : limit
-    databaseOffers = await getDealsInDb(category, candidateLimit, retailerFilter || null, query || null)
+    databaseOffers = await getDealsInDb(category, candidateLimit, retailerFilter || null, query || null, sort)
   }
+
+  const coveredRetailers = Array.from(new Set(databaseOffers.map((product) => product.retailer)))
 
   for (const retailer of requestedRetailers) {
     if (process.env.VERCEL === '1' && BROWSER_ONLY_RETAILERS.has(retailer)) {
@@ -166,13 +200,17 @@ export async function loadDealsFeed(options: DealsFeedOptions = {}): Promise<Dea
     }
   }
 
-  const products = shouldBalancedMix
-    ? mixDealsByRetailer(databaseOffers, limit, requestedRetailers)
-    : sortDealsByPriority(databaseOffers).slice(0, limit)
+  const products = prepareDealsProducts(databaseOffers, {
+    limit,
+    retailerOrder: requestedRetailers,
+    minPrice,
+    maxPrice,
+    sort,
+  })
 
   const warnings = buildDealsWarnings({
     requestedRetailers,
-    coveredRetailers: Array.from(new Set(products.map((product) => product.retailer))),
+    coveredRetailers,
     browserUnavailableRetailers,
   })
 
@@ -189,11 +227,11 @@ export async function loadDealsFeed(options: DealsFeedOptions = {}): Promise<Dea
   return {
     products: [],
     count: 0,
-    source: 'empty',
+    source: databaseOffers.length > 0 ? 'database' : 'empty',
     lastUpdate: null,
     warnings: buildDealsWarnings({
       requestedRetailers,
-      coveredRetailers: [],
+      coveredRetailers,
       browserUnavailableRetailers,
     }),
   }

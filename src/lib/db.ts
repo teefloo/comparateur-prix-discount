@@ -3,6 +3,7 @@ import pg from 'pg'
 
 import { RETAILERS, SUPPORTED_CATEGORIES, type Retailer, type SupportedCategory } from './catalog'
 import { ensureDatabaseUrlEnv } from './ensure-db-env'
+import { type PriceSortOption } from './result-filters'
 import { normalizeSearchQuery, toRetailerOfferCard } from './scraper-utils'
 import type { RetailerOfferCard, ValidatedOffer } from './types'
 
@@ -333,6 +334,7 @@ async function queryOffers(options: {
   retailer?: string | string[] | null
   promotionOnly?: boolean
   sortByDeals?: boolean
+  sort?: Exclude<PriceSortOption, 'default'>
 }) {
   const whereClauses: string[] = []
   const values: Array<string | number | string[]> = []
@@ -409,7 +411,15 @@ async function queryOffers(options: {
     FROM products p
     JOIN prices pr ON pr.product_id = p.id
     ${whereStatement}
-    ${options.sortByDeals ? 'ORDER BY COALESCE(pr.discount, 0) DESC, pr.updated_at DESC, pr.price ASC, p.name ASC' : 'ORDER BY pr.price ASC, p.name ASC'}
+    ${
+      options.sort === 'price-desc'
+        ? 'ORDER BY pr.price DESC, p.name ASC'
+        : options.sort === 'price-asc'
+          ? 'ORDER BY pr.price ASC, p.name ASC'
+          : options.sortByDeals
+            ? 'ORDER BY COALESCE(pr.discount, 0) DESC, pr.updated_at DESC, pr.price ASC, p.name ASC'
+            : 'ORDER BY pr.price ASC, p.name ASC'
+    }
     LIMIT ${limitPlaceholder}
   `
 
@@ -430,13 +440,30 @@ export async function searchOffersInDbStrict(
   query: string,
   category?: SupportedCategory | null,
   retailer?: string | null,
+  sort?: PriceSortOption,
 ) {
-  return queryOffers({ query, category, limit: 120, retailer })
+  return queryOffers({
+    query,
+    category,
+    limit: 120,
+    retailer,
+    sort: sort === 'price-asc' || sort === 'price-desc' ? sort : undefined,
+  })
 }
 
-export async function getOffersByCategory(category: SupportedCategory, limit = 5000, retailer?: string | null) {
+export async function getOffersByCategory(
+  category: SupportedCategory,
+  limit = 5000,
+  retailer?: string | null,
+  sort?: PriceSortOption,
+) {
   try {
-    return await queryOffers({ category, limit, retailer })
+    return await queryOffers({
+      category,
+      limit,
+      retailer,
+      sort: sort === 'price-asc' || sort === 'price-desc' ? sort : undefined,
+    })
   } catch (error) {
     console.error('DB Error in getOffersByCategory:', error)
     return []
@@ -447,8 +474,14 @@ export async function getOffersByCategoryStrict(
   category: SupportedCategory,
   limit = 5000,
   retailer?: string | null,
+  sort?: PriceSortOption,
 ) {
-  return queryOffers({ category, limit, retailer })
+  return queryOffers({
+    category,
+    limit,
+    retailer,
+    sort: sort === 'price-asc' || sort === 'price-desc' ? sort : undefined,
+  })
 }
 
 export async function getOfferById(id: string) {
@@ -466,6 +499,7 @@ export async function getDealsInDb(
   limit = 500,
   retailer?: string | string[] | null,
   query?: string | null,
+  sort?: PriceSortOption,
 ) {
   try {
     return await queryOffers({
@@ -474,7 +508,8 @@ export async function getDealsInDb(
       limit,
       retailer,
       promotionOnly: true,
-      sortByDeals: true,
+      sort: sort === 'price-asc' || sort === 'price-desc' ? sort : undefined,
+      sortByDeals: sort === 'default' || !sort,
     })
   } catch (error) {
     console.error('DB Error in getDealsInDb:', error)

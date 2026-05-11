@@ -5,14 +5,39 @@ import { ArrowLeft } from 'lucide-react'
 
 import Navbar from '@/components/Navbar'
 import ProductCard from '@/components/ProductCard'
+import RetailerFilterPanel from '@/components/RetailerFilterPanel'
 import { CATEGORY_LABELS, SUPPORTED_CATEGORIES, type SupportedCategory } from '@/lib/catalog'
 import { getOffersByCategory } from '@/lib/db'
+import { applyPriceFilters, normalizePriceBound, normalizePriceSort } from '@/lib/result-filters'
 import { absoluteUrl } from '@/lib/site'
 
 export const dynamic = 'force-dynamic'
 
 type CategoryPageParams = {
   category: string
+}
+
+type CategorySearchParams = {
+  retailer?: string | string[]
+  minPrice?: string | string[]
+  maxPrice?: string | string[]
+  sort?: string | string[]
+}
+
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value
+}
+
+function parseSearchParams(searchParams: CategorySearchParams) {
+  const retailer = (firstParam(searchParams.retailer) || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+  const minPrice = normalizePriceBound(firstParam(searchParams.minPrice))
+  const maxPrice = normalizePriceBound(firstParam(searchParams.maxPrice))
+  const sort = normalizePriceSort(firstParam(searchParams.sort))
+
+  return { retailer, minPrice, maxPrice, sort }
 }
 
 function isSupportedCategory(value: string): value is SupportedCategory {
@@ -62,15 +87,26 @@ export async function generateMetadata({ params }: { params: Promise<CategoryPag
   }
 }
 
-export default async function CategoryPage({ params }: { params: Promise<CategoryPageParams> }) {
+export default async function CategoryPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<CategoryPageParams>
+  searchParams: Promise<CategorySearchParams>
+}) {
   const resolvedParams = await params
+  const resolvedSearchParams = await searchParams
+  const { retailer, minPrice, maxPrice, sort } = parseSearchParams(resolvedSearchParams)
 
   if (!isSupportedCategory(resolvedParams.category)) {
     notFound()
   }
 
   const categoryLabel = CATEGORY_LABELS[resolvedParams.category]
-  const offers = await getOffersByCategory(resolvedParams.category)
+  const offers = applyPriceFilters(
+    await getOffersByCategory(resolvedParams.category, 5000, retailer.join(',') || null, sort),
+    { minPrice, maxPrice, sort },
+  )
 
   return (
     <>
@@ -89,7 +125,9 @@ export default async function CategoryPage({ params }: { params: Promise<Categor
           </p>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-6 space-y-4">
+          <RetailerFilterPanel selectedRetailers={retailer} minPrice={minPrice} maxPrice={maxPrice} sort={sort} />
+
           {offers.length === 0 ? (
             <div className="mx-auto max-w-xl rounded-lg border border-line/70 bg-white px-4 py-6 text-center dark:border-slate-800 dark:bg-slate-900">
               <h2 className="text-lg font-semibold text-foreground dark:text-slate-100">Aucune offre trouvée</h2>
@@ -103,7 +141,7 @@ export default async function CategoryPage({ params }: { params: Promise<Categor
           ) : (
             <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 28rem), 1fr))' }}>
               {offers.map((offer, index) => (
-                <ProductCard key={offer.id} product={offer} isBest={index === 0} />
+                <ProductCard key={offer.id} product={offer} isBest={index === 0 && sort !== 'price-desc'} />
               ))}
             </div>
           )}

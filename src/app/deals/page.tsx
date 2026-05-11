@@ -5,7 +5,9 @@ import { AlertTriangle, ArrowLeft, Search } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import ProductCard from '@/components/ProductCard'
 import RetailerFilterPanel from '@/components/RetailerFilterPanel'
+import { isSupportedCategory } from '@/lib/catalog'
 import { loadDealsFeed } from '@/lib/deals-feed'
+import { normalizePriceBound, normalizePriceSort } from '@/lib/result-filters'
 import { absoluteUrl } from '@/lib/site'
 
 export const dynamic = 'force-dynamic'
@@ -14,6 +16,10 @@ type SearchParams = {
   query?: string | string[]
   retailer?: string | string[]
   limit?: string | string[]
+  category?: string | string[]
+  minPrice?: string | string[]
+  maxPrice?: string | string[]
+  sort?: string | string[]
 }
 
 function firstParam(value: string | string[] | undefined) {
@@ -22,13 +28,25 @@ function firstParam(value: string | string[] | undefined) {
 
 function parseSearchParams(searchParams: SearchParams) {
   const query = (firstParam(searchParams.query) || '').trim()
-  const retailer = firstParam(searchParams.retailer) || null
+  const retailer = (firstParam(searchParams.retailer) || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+  const categoryValue = firstParam(searchParams.category)
+  const category = isSupportedCategory(categoryValue) ? categoryValue : null
   const limitValue = Number.parseInt(firstParam(searchParams.limit) || '', 10)
+  const minPrice = normalizePriceBound(firstParam(searchParams.minPrice))
+  const maxPrice = normalizePriceBound(firstParam(searchParams.maxPrice))
+  const sort = normalizePriceSort(firstParam(searchParams.sort))
 
   return {
     query,
     retailer,
+    category,
     limit: Number.isFinite(limitValue) ? limitValue : 120,
+    minPrice,
+    maxPrice,
+    sort,
   }
 }
 
@@ -47,11 +65,23 @@ function describeWarning(code: string) {
   }
 }
 
-async function fetchDeals(query: string, retailer: string | null, limit: number) {
+async function fetchDeals(
+  query: string,
+  retailer: string | null,
+  limit: number,
+  category: string | null,
+  minPrice: number | null,
+  maxPrice: number | null,
+  sort: string,
+) {
   return loadDealsFeed({
     query,
     retailer,
+    category,
     limit: Number.isFinite(limit) && limit > 0 ? Math.min(limit, 500) : 120,
+    minPrice,
+    maxPrice,
+    sort,
     liveScrape: false,
     persistLive: false,
   })
@@ -100,8 +130,8 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 
 export default async function DealsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const resolvedSearchParams = await searchParams
-  const { query, retailer, limit } = parseSearchParams(resolvedSearchParams)
-  const feed = await fetchDeals(query, retailer, limit)
+  const { query, retailer, category, limit, minPrice, maxPrice, sort } = parseSearchParams(resolvedSearchParams)
+  const feed = await fetchDeals(query, retailer.join(',') || null, limit, category, minPrice, maxPrice, sort)
 
   return (
     <>
@@ -123,8 +153,12 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
 
         <div className="mt-5 space-y-3">
           <form action="/deals" method="get">
-            {retailer && <input type="hidden" name="retailer" value={retailer} />}
+            {retailer.length > 0 && <input type="hidden" name="retailer" value={retailer.join(',')} />}
             {Number.isFinite(limit) && limit > 0 && <input type="hidden" name="limit" value={limit} />}
+            {category && <input type="hidden" name="category" value={category} />}
+            {minPrice !== null && <input type="hidden" name="minPrice" value={String(minPrice)} />}
+            {maxPrice !== null && <input type="hidden" name="maxPrice" value={String(maxPrice)} />}
+            {sort !== 'default' && <input type="hidden" name="sort" value={sort} />}
             <div className="flex min-h-12 items-center gap-2 rounded-xl border border-line bg-white px-3 dark:border-slate-800 dark:bg-slate-900">
               <Search className="shrink-0 text-muted dark:text-slate-500" size={18} />
               <input
@@ -144,7 +178,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
             </div>
           </form>
 
-          <RetailerFilterPanel />
+          <RetailerFilterPanel selectedRetailers={retailer} minPrice={minPrice} maxPrice={maxPrice} sort={sort} />
 
           {feed.warnings.length > 0 && (
             <div className="flex gap-3 rounded-lg border border-amber-300/40 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-50">
@@ -162,7 +196,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
           {feed.products.length > 0 ? (
             <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 28rem), 1fr))' }}>
               {feed.products.map((product, index) => (
-                <ProductCard key={product.id} product={product} isBest={index === 0} />
+                <ProductCard key={product.id} product={product} isBest={index === 0 && sort !== 'price-desc'} />
               ))}
             </div>
           ) : (

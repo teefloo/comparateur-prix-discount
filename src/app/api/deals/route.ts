@@ -24,11 +24,17 @@ export async function GET(request: NextRequest) {
   const category = parseCategory(searchParams.get('category'))
   const retailer = searchParams.get('retailer')
   const limit = parseLimit(searchParams.get('limit'))
+  const minPrice = searchParams.get('minPrice')
+  const maxPrice = searchParams.get('maxPrice')
+  const sort = searchParams.get('sort')
   const feed = await loadDealsFeed({
     query,
     category,
     retailer,
     limit,
+    minPrice,
+    maxPrice,
+    sort,
     liveScrape: false,
     persistLive: false,
   })

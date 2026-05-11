@@ -4,18 +4,34 @@ import { AlertTriangle, Search, Sparkles } from 'lucide-react'
 
 import RetailerFilterPanel from './RetailerFilterPanel'
 import type { SupportedCategory } from '@/lib/catalog'
+import type { PriceSortOption } from '@/lib/result-filters'
 import type { SearchSource } from '@/lib/search-ui'
 
 interface SearchWorkspaceProps {
   search: string
   selectedCategory: SupportedCategory | null
+  selectedRetailers: string[]
+  minPrice: number | null
+  maxPrice: number | null
+  sort: PriceSortOption
   source: SearchSource
   lastUpdate: string | null
   error?: string
 }
 
-export default function SearchWorkspace({ search, selectedCategory, source, error }: SearchWorkspaceProps) {
-  const hasSearchContext = Boolean(search || selectedCategory)
+export default function SearchWorkspace({
+  search,
+  selectedCategory,
+  selectedRetailers,
+  minPrice,
+  maxPrice,
+  sort,
+  source,
+  error,
+}: SearchWorkspaceProps) {
+  const hasSearchContext = Boolean(
+    search || selectedCategory || selectedRetailers.length > 0 || minPrice !== null || maxPrice !== null || sort !== 'default',
+  )
   const showNotice = Boolean(error || source === 'demo-fallback')
 
   return (
@@ -28,6 +44,10 @@ export default function SearchWorkspace({ search, selectedCategory, source, erro
         <div className="space-y-4">
           <form action="/" method="get" className="space-y-3">
             {selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}
+            {selectedRetailers.length > 0 && <input type="hidden" name="retailer" value={selectedRetailers.join(',')} />}
+            {minPrice !== null && <input type="hidden" name="minPrice" value={String(minPrice)} />}
+            {maxPrice !== null && <input type="hidden" name="maxPrice" value={String(maxPrice)} />}
+            {sort !== 'default' && <input type="hidden" name="sort" value={sort} />}
 
             <div
               className={`flex items-center gap-2 rounded-xl border border-line bg-white px-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${
@@ -65,7 +85,12 @@ export default function SearchWorkspace({ search, selectedCategory, source, erro
                   </div>
                 )}
                 <div className="w-full sm:w-auto">
-                  <RetailerFilterPanel />
+                  <RetailerFilterPanel
+                    selectedRetailers={selectedRetailers}
+                    minPrice={minPrice}
+                    maxPrice={maxPrice}
+                    sort={sort}
+                  />
                 </div>
               </div>
             )}

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { AlertTriangle, SearchX } from 'lucide-react'
 
 import ProductCard from './ProductCard'
+import type { PriceSortOption } from '@/lib/result-filters'
 import type { RetailerOfferCard } from '@/lib/types'
 
 interface ProductGridProps {
@@ -12,6 +13,7 @@ interface ProductGridProps {
   loading: boolean
   hasSearched: boolean
   search: string
+  sort: PriceSortOption
   error?: string
 }
 
@@ -34,7 +36,9 @@ const cardGridStyle: CSSProperties = {
   gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 28rem), 1fr))',
 }
 
-export default function ProductGrid({ products, loading, hasSearched, search, error }: ProductGridProps) {
+export default function ProductGrid({ products, loading, hasSearched, search, sort, error }: ProductGridProps) {
+  const highlightTopResult = sort !== 'price-desc'
+
   if (loading) {
     return (
       <div className="grid gap-3" style={cardGridStyle}>
@@ -101,7 +105,7 @@ export default function ProductGrid({ products, loading, hasSearched, search, er
       <motion.div variants={container} initial="hidden" animate="show" className="grid gap-3" style={cardGridStyle}>
         {products.map((product, index) => (
           <motion.div key={product.id} variants={item} className="min-w-0">
-            <ProductCard product={product} isBest={index === 0} />
+            <ProductCard product={product} isBest={index === 0 && highlightTopResult} />
           </motion.div>
         ))}
       </motion.div>

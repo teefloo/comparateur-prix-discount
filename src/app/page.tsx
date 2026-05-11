@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar'
 import ProductGrid from '@/components/ProductGrid'
 import SearchWorkspace from '@/components/SearchWorkspace'
 import { isSupportedCategory, CATEGORY_LABELS } from '@/lib/catalog'
+import { normalizePriceRange, normalizePriceSort } from '@/lib/result-filters'
 import { runSearch } from '@/lib/search-service'
 import { absoluteUrl } from '@/lib/site'
 import type { SupportedCategory } from '@/lib/types'
@@ -15,6 +16,9 @@ type SearchParams = {
   query?: string | string[]
   category?: string | string[]
   retailer?: string | string[]
+  minPrice?: string | string[]
+  maxPrice?: string | string[]
+  sort?: string | string[]
 }
 
 function firstParam(value: string | string[] | undefined) {
@@ -25,10 +29,17 @@ function parseSearchParams(searchParams: SearchParams) {
   const query = (firstParam(searchParams.query) || '').trim()
   const categoryValue = firstParam(searchParams.category)
   const category = isSupportedCategory(categoryValue) ? categoryValue : null
-  const retailerValue = firstParam(searchParams.retailer)
-  const retailer = retailerValue || null
+  const retailer = (firstParam(searchParams.retailer) || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+  const { minPrice, maxPrice } = normalizePriceRange(
+    firstParam(searchParams.minPrice),
+    firstParam(searchParams.maxPrice),
+  )
+  const sort = normalizePriceSort(firstParam(searchParams.sort))
 
-  return { query, category, retailer }
+  return { query, category, retailer, minPrice, maxPrice, sort }
 }
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<SearchParams> }): Promise<Metadata> {
@@ -91,9 +102,9 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 
 export default async function Home({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const resolvedSearchParams = await searchParams
-  const { query, category, retailer } = parseSearchParams(resolvedSearchParams)
+  const { query, category, retailer, minPrice, maxPrice, sort } = parseSearchParams(resolvedSearchParams)
   const hasSearched = Boolean(query || category)
-  const { products, source, lastUpdate, error } = await runSearch({ query, category, retailer })
+  const { products, source, lastUpdate, error } = await runSearch({ query, category, retailer, minPrice, maxPrice, sort })
 
   return (
     <>
@@ -102,6 +113,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
       <SearchWorkspace
         search={query}
         selectedCategory={category}
+        selectedRetailers={retailer}
+        minPrice={minPrice}
+        maxPrice={maxPrice}
+        sort={sort}
         source={source}
         lastUpdate={lastUpdate}
         error={error}
@@ -109,9 +124,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 
       {hasSearched && (
         <main className="mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6">
-          <CategoryBar search={query} selectedCategory={category} />
+          <CategoryBar
+            search={query}
+            selectedCategory={category}
+            selectedRetailers={retailer}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
+            sort={sort}
+          />
           <div className="space-y-4">
-            <ProductGrid products={products} loading={false} hasSearched={hasSearched} search={query} error={error} />
+            <ProductGrid products={products} loading={false} hasSearched={hasSearched} search={query} error={error} sort={sort} />
           </div>
         </main>
       )}
