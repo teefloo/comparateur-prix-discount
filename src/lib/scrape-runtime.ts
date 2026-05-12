@@ -80,9 +80,16 @@ function hasBlockingIssues(issues: ScrapeIssue[]) {
   return issues.some((issue) => issue.severity !== 'warning')
 }
 
+const FETCH_RETAILER_TIMEOUT_MS = 20 * 60 * 1000
+const STOKOMANI_RETAILER_TIMEOUT_MS = 45 * 60 * 1000
+
 function getRetailerTimeoutMs(retailer: Retailer): number {
   // Browser scrapers need more time (navigation + rendering); fetch scrapers are faster
-  return SCRAPER_REGISTRY[retailer].browserRequired ? 45 * 60 * 1000 : 20 * 60 * 1000
+  if (retailer === 'stokomani') {
+    return STOKOMANI_RETAILER_TIMEOUT_MS
+  }
+
+  return SCRAPER_REGISTRY[retailer].browserRequired ? 45 * 60 * 1000 : FETCH_RETAILER_TIMEOUT_MS
 }
 
 async function runRetailerScrapeWithTimeout(
