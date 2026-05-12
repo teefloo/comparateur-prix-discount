@@ -21,6 +21,7 @@ const STOKOMANI_RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504])
 const STOKOMANI_MAX_HTTP_ATTEMPTS = 5
 const STOKOMANI_BASE_RETRY_DELAY_MS = 1200
 const STOKOMANI_DEFAULT_REQUEST_TIMEOUT_MS = 15000
+const STOKOMANI_DEFAULT_PAGE_DELAY_MS = 3000
 
 type ShopifyVariant = {
   price?: unknown
@@ -137,6 +138,10 @@ function readPositiveIntegerEnv(name: string) {
 
 function getRequestTimeoutMs() {
   return readPositiveIntegerEnv('STOKOMANI_REQUEST_TIMEOUT_MS') || STOKOMANI_DEFAULT_REQUEST_TIMEOUT_MS
+}
+
+export function getStokomaniPageDelayMs() {
+  return readPositiveIntegerEnv('STOKOMANI_PAGE_DELAY_MS') || STOKOMANI_DEFAULT_PAGE_DELAY_MS
 }
 
 function getFullEnrichmentLimit() {
@@ -364,6 +369,7 @@ export async function scrapeStokomaniProductsDetailed(searchQuery?: string): Pro
   const issues: ScrapeIssue[] = []
   let discoveredListings = 0
   let completedListings = 0
+  const pageDelayMs = getStokomaniPageDelayMs()
 
   try {
     try {
@@ -424,7 +430,8 @@ export async function scrapeStokomaniProductsDetailed(searchQuery?: string): Pro
     let safetyLimitReached = false
 
     while (pageNumber <= STOKOMANI_MAX_PAGES) {
-      const catalogUrl = `${STOKOMANI_BASE_URL}/products.json?limit=${STOKOMANI_PAGE_LIMIT}&page=${pageNumber}`
+      const currentPageNumber = pageNumber
+      const catalogUrl = `${STOKOMANI_BASE_URL}/products.json?limit=${STOKOMANI_PAGE_LIMIT}&page=${currentPageNumber}`
       discoveredListings += 1
 
       try {
@@ -444,23 +451,27 @@ export async function scrapeStokomaniProductsDetailed(searchQuery?: string): Pro
           }
         }
 
-        if (pageNumber === STOKOMANI_MAX_PAGES) {
+        if (currentPageNumber === STOKOMANI_MAX_PAGES && products.length === STOKOMANI_PAGE_LIMIT) {
           safetyLimitReached = true
+        }
+
+        if (products.length < STOKOMANI_PAGE_LIMIT) {
+          break
         }
       } catch (error) {
         issues.push(
           createIssue(
             'api_error',
-            `Failed to fetch Stokomani catalog page ${pageNumber}: ${error instanceof Error ? error.message : String(error)}`,
+            `Failed to fetch Stokomani catalog page ${currentPageNumber}: ${error instanceof Error ? error.message : String(error)}`,
             catalogUrl,
-            pageNumber,
+            currentPageNumber,
           ),
         )
         break
       }
 
       pageNumber += 1
-      await sleep(800)
+      await sleep(pageDelayMs)
     }
 
     if (safetyLimitReached) {
@@ -469,7 +480,7 @@ export async function scrapeStokomaniProductsDetailed(searchQuery?: string): Pro
           'max_pages_reached',
           `Reached safety page limit while scraping Stokomani catalog`,
           `${STOKOMANI_BASE_URL}/products.json`,
-          pageNumber,
+          STOKOMANI_MAX_PAGES,
         ),
       )
     }
