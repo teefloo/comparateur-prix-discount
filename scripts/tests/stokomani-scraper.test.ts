@@ -63,7 +63,7 @@ test('stokomani page delay is configurable and pagination stops on partial pages
 
   try {
     setEnv('STOKOMANI_PAGE_DELAY_MS', undefined)
-    assert.equal(getStokomaniPageDelayMs(), 3000)
+    assert.equal(getStokomaniPageDelayMs(), 1500)
 
     setEnv('STOKOMANI_PAGE_DELAY_MS', '1')
     setEnv('STOKOMANI_REQUEST_TIMEOUT_MS', '1000')
