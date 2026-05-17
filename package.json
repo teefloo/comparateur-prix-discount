@@ -29,7 +29,7 @@
     "supervise:lidl": "npx tsx scripts/supervise-scrapers.ts lidl",
     "supervise:maxibazar": "npx tsx scripts/supervise-scrapers.ts maxibazar",
     "supervise:noz": "npx tsx scripts/supervise-scrapers.ts noz",
-    "test:categories": "node --test --import tsx scripts/tests/category-resolution.test.ts scripts/tests/scraper-category-contract.test.ts scripts/tests/deals-discovery.test.ts scripts/tests/deals-api.test.ts scripts/tests/gifi-scraper.test.ts scripts/tests/lafoirfouille-scraper.test.ts scripts/tests/lidl-scraper.test.ts scripts/tests/maxibazar-scraper.test.ts scripts/tests/noz-scraper.test.ts"
+    "test:categories": "node --test --import tsx scripts/tests/category-resolution.test.ts scripts/tests/scraper-category-contract.test.ts scripts/tests/deals-discovery.test.ts scripts/tests/deals-api.test.ts scripts/tests/gifi-scraper.test.ts scripts/tests/lafoirfouille-scraper.test.ts scripts/tests/lidl-scraper.test.ts scripts/tests/maxibazar-scraper.test.ts scripts/tests/noz-scraper.test.ts scripts/tests/stokomani-scraper.test.ts"
   },
   "dependencies": {
     "@vercel/postgres": "^0.10.0",
