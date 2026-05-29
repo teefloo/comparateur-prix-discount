@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { getDemoOfferById } from '@/lib/demo-offers'
 import { getOfferById } from '@/lib/db'
 
 export async function GET(
@@ -13,7 +14,7 @@ export async function GET(
   }
 
   try {
-    const offer = await getOfferById(id)
+    const offer = (await getOfferById(id)) || getDemoOfferById(id)
 
     if (!offer) {
       return NextResponse.json({ error: 'Produit non trouvé' }, { status: 404 })

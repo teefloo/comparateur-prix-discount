@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { Inter, Space_Grotesk } from 'next/font/google'
 import { ArrowUpRight } from 'lucide-react'
 
@@ -97,15 +98,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                           Navigation
                         </p>
                         <div className="mt-4 flex flex-col gap-3 text-sm text-muted dark:text-slate-300">
-                          <a href="/" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
+                          <Link href="/" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
                             Accueil
-                          </a>
-                          <a href="/deals" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
+                          </Link>
+                          <Link href="/deals" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
                             Bons plans
-                          </a>
-                          <a href="/a-propos" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
+                          </Link>
+                          <Link href="/a-propos" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
                             A propos
-                          </a>
+                          </Link>
                         </div>
                       </div>
 

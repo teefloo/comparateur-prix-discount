@@ -12,8 +12,6 @@ interface CategoryBarProps {
   minPrice: number | null
   maxPrice: number | null
   sort: PriceSortOption
-  onSelectCategory?: (category: SupportedCategory) => void
-  basePath?: string
 }
 
 function buildCategoryHref(
@@ -24,7 +22,6 @@ function buildCategoryHref(
   minPrice: number | null,
   maxPrice: number | null,
   sort: PriceSortOption,
-  basePath: string,
 ) {
   const params = new URLSearchParams()
   const normalizedSearch = search.trim()
@@ -54,7 +51,7 @@ function buildCategoryHref(
   }
 
   const queryString = params.toString()
-  return queryString ? `${basePath}?${queryString}` : basePath
+  return queryString ? `/?${queryString}` : '/'
 }
 
 export default function CategoryBar({
@@ -64,8 +61,6 @@ export default function CategoryBar({
   minPrice,
   maxPrice,
   sort,
-  onSelectCategory,
-  basePath = '/',
 }: CategoryBarProps) {
   return (
     <section id="categories" className="mx-auto max-w-7xl scroll-mt-24 pb-4 sm:scroll-mt-28">
@@ -79,18 +74,10 @@ export default function CategoryBar({
                 : 'border-transparent text-muted hover:bg-white hover:text-foreground dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100'
             }`
 
-            if (onSelectCategory) {
-              return (
-                <button key={category} type="button" onClick={() => onSelectCategory(category)} className={className} aria-pressed={isActive}>
-                  {CATEGORY_LABELS[category]}
-                </button>
-              )
-            }
-
             return (
               <Link
                 key={category}
-                href={buildCategoryHref(search, selectedCategory, category, selectedRetailers, minPrice, maxPrice, sort, basePath)}
+                href={buildCategoryHref(search, selectedCategory, category, selectedRetailers, minPrice, maxPrice, sort)}
                 className={className}
                 aria-current={isActive ? 'page' : undefined}
               >

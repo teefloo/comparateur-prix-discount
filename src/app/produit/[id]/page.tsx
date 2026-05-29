@@ -6,6 +6,7 @@ import { ArrowLeft, Calendar, ExternalLink, Tag } from 'lucide-react'
 
 import Navbar from '@/components/Navbar'
 import { RETAILER_INFO } from '@/lib/catalog'
+import { getDemoOfferById } from '@/lib/demo-offers'
 import { getOfferById } from '@/lib/db'
 import { absoluteUrl } from '@/lib/site'
 
@@ -47,7 +48,7 @@ function safeJsonLd(value: unknown) {
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const resolvedParams = await params
-  const offer = await getOfferById(resolvedParams.id)
+  const offer = (await getOfferById(resolvedParams.id)) || getDemoOfferById(resolvedParams.id)
 
   if (!offer) {
     return {
@@ -102,7 +103,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params
-  const offer = await getOfferById(resolvedParams.id)
+  const offer = (await getOfferById(resolvedParams.id)) || getDemoOfferById(resolvedParams.id)
 
   if (!offer) {
     notFound()

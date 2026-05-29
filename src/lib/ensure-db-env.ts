@@ -5,3 +5,7 @@ export function ensureDatabaseUrlEnv() {
 
   return process.env.POSTGRES_URL || process.env.DATABASE_URL || ''
 }
+
+export function hasDatabaseUrl() {
+  return Boolean(ensureDatabaseUrlEnv())
+}

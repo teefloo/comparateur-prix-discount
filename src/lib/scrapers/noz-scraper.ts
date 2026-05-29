@@ -95,7 +95,7 @@ function normalizeNozText(value: string | null | undefined) {
   const decoded = load(`<span>${cleaned}</span>`)('span').text()
   return cleanDisplayText(decoded)
     .replace(/[\u2018\u2019\u0092]/g, "'")
-    .replace(/[\u0080]/g, 'EUR')
+    .replace(/[\u20AC]/g, 'EUR')
 }
 
 function stripHtmlText(value: string | null | undefined) {

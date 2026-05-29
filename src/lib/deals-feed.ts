@@ -7,7 +7,9 @@ import {
   type Retailer,
   type SupportedCategory,
 } from './catalog'
+import { filterDemoOffers } from './demo-offers'
 import { getDealsInDb } from './db'
+import { hasDatabaseUrl } from './ensure-db-env'
 import { sortDealsByPriority } from './deals'
 import { applyPriceFilters, normalizePriceBound, normalizePriceSort, sortOffersByPrice, type PriceSortOption } from './result-filters'
 import type { RetailerOfferCard } from './types'
@@ -27,7 +29,7 @@ export interface DealsFeedOptions {
 export interface DealsFeedResult {
   products: RetailerOfferCard[]
   count: number
-  source: 'database' | 'real-time' | 'empty'
+  source: 'database' | 'real-time' | 'demo-fallback' | 'empty'
   lastUpdate: string | null
   warnings: string[]
 }
@@ -157,8 +159,14 @@ export function buildDealsWarnings(options: {
   requestedRetailers: Retailer[]
   coveredRetailers: Retailer[]
   browserUnavailableRetailers?: Retailer[]
+  demoFallback?: boolean
 }) {
   const warnings = new Set<string>()
+  if (options.demoFallback) {
+    warnings.add('demo_fallback')
+    return Array.from(warnings)
+  }
+
   const coveredRetailerSet = new Set(options.coveredRetailers)
   const missingRetailers = options.requestedRetailers.filter((retailer) => !coveredRetailerSet.has(retailer))
 
@@ -183,14 +191,43 @@ export async function loadDealsFeed(options: DealsFeedOptions = {}): Promise<Dea
   const sort = normalizePriceSort(options.sort)
   const retailerFilter = retailers.length > 0 ? retailers : null
   const requestedRetailers = retailerFilter || [...RETAILERS]
-  const hasDatabaseUrl = Boolean(process.env.POSTGRES_URL || process.env.DATABASE_URL)
+  const hasDb = hasDatabaseUrl()
   const shouldBalancedMix = requestedRetailers.length > 1
   const browserUnavailableRetailers: Retailer[] = []
   let databaseOffers: RetailerOfferCard[] = []
-  if (hasDatabaseUrl) {
-    const candidateLimit = shouldBalancedMix ? Math.max(limit * 4, requestedRetailers.length * 25, 200) : limit
-    databaseOffers = await getDealsInDb(category, candidateLimit, retailerFilter || null, query || null, sort)
+  if (!hasDb) {
+    const demoOffers = filterDemoOffers({
+      query,
+      category,
+      retailer: retailerFilter,
+      minPrice,
+      maxPrice,
+      sort,
+    })
+
+    const products = prepareDealsProducts(demoOffers, {
+      limit,
+      retailerOrder: requestedRetailers,
+      minPrice,
+      maxPrice,
+      sort,
+    })
+
+    return {
+      products,
+      count: products.length,
+      source: 'demo-fallback',
+      lastUpdate: null,
+      warnings: buildDealsWarnings({
+        requestedRetailers,
+        coveredRetailers: [],
+        demoFallback: true,
+      }),
+    }
   }
+
+  const candidateLimit = shouldBalancedMix ? Math.max(limit * 4, requestedRetailers.length * 25, 200) : limit
+  databaseOffers = await getDealsInDb(category, candidateLimit, retailerFilter || null, query || null, sort)
 
   const coveredRetailers = Array.from(new Set(databaseOffers.map((product) => product.retailer)))
 

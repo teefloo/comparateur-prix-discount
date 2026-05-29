@@ -6,8 +6,10 @@ import { ArrowLeft } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import ProductCard from '@/components/ProductCard'
 import RetailerFilterPanel from '@/components/RetailerFilterPanel'
-import { CATEGORY_LABELS, SUPPORTED_CATEGORIES, type SupportedCategory } from '@/lib/catalog'
+import { CATEGORY_LABELS, SUPPORTED_CATEGORIES, isSupportedCategory, type SupportedCategory } from '@/lib/catalog'
+import { filterDemoOffers } from '@/lib/demo-offers'
 import { getOffersByCategory } from '@/lib/db'
+import { hasDatabaseUrl } from '@/lib/ensure-db-env'
 import { applyPriceFilters, normalizePriceBound, normalizePriceSort } from '@/lib/result-filters'
 import { absoluteUrl } from '@/lib/site'
 
@@ -38,10 +40,6 @@ function parseSearchParams(searchParams: CategorySearchParams) {
   const sort = normalizePriceSort(firstParam(searchParams.sort))
 
   return { retailer, minPrice, maxPrice, sort }
-}
-
-function isSupportedCategory(value: string): value is SupportedCategory {
-  return SUPPORTED_CATEGORIES.includes(value as SupportedCategory)
 }
 
 function formatCount(value: number) {
@@ -103,10 +101,19 @@ export default async function CategoryPage({
   }
 
   const categoryLabel = CATEGORY_LABELS[resolvedParams.category]
-  const offers = applyPriceFilters(
-    await getOffersByCategory(resolvedParams.category, 5000, retailer.join(',') || null, sort),
-    { minPrice, maxPrice, sort },
-  )
+  const databaseOffers = await getOffersByCategory(resolvedParams.category, 5000, retailer.join(',') || null, sort)
+  const offers =
+    databaseOffers.length > 0
+      ? applyPriceFilters(databaseOffers, { minPrice, maxPrice, sort })
+      : !hasDatabaseUrl()
+        ? filterDemoOffers({
+            category: resolvedParams.category,
+            retailer: retailer.join(',') || null,
+            minPrice,
+            maxPrice,
+            sort,
+          })
+        : []
 
   return (
     <>

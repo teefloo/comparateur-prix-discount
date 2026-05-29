@@ -209,7 +209,7 @@ function normalizeUnitLabel(unit: string | null | undefined) {
   if (normalized.includes('kg')) return '/kg'
   if (normalized.includes('l')) return '/l'
   if (normalized.includes('m2') || normalized.includes('m 2') || normalized.includes('m²')) return '/m²'
-  if (normalized.includes('piece') || normalized.includes('unite') || normalized.includes('unite') || normalized.includes('pc')) return '/pcs'
+  if (normalized.includes('piece') || normalized.includes('unite') || normalized.includes('pc')) return '/pcs'
   return `/${normalized}`
 }
 

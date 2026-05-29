@@ -4,7 +4,7 @@ Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi,
 
 ## Stack
 
-- Next.js 14 App Router
+- Next.js 16 App Router
 - Tailwind CSS
 - Vercel Postgres / PostgreSQL
 - Playwright et Cheerio pour le scraping

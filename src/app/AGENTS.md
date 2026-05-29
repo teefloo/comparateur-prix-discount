@@ -1,7 +1,7 @@
 # Agent Instructions: `src/app/`
 
 ## Role
-Next.js 14 App Router frontend — server-rendered pages and API routes.
+Next.js 16 App Router frontend — server-rendered pages and API routes.
 
 ## Routes
 
@@ -13,7 +13,7 @@ Next.js 14 App Router frontend — server-rendered pages and API routes.
 | `/api/search` | `api/search/route.ts` | Search endpoint (see `api/search/AGENTS.md`) |
 
 ## Key Conventions
-- Search page (`/`) and category pages are **Server Components** that call the internal `/api/search` endpoint via `fetch`
+- Search page (`/`) uses `runSearch` directly in a Server Component; category pages share the same fallback-friendly data path
 - Both search and category pages export `dynamic = 'force-dynamic'`
 - `layout.tsx` wraps all pages; `globals.css` imports Tailwind base
 

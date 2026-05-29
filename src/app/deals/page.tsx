@@ -7,7 +7,7 @@ import ProductCard from '@/components/ProductCard'
 import RetailerFilterPanel from '@/components/RetailerFilterPanel'
 import { isSupportedCategory } from '@/lib/catalog'
 import { loadDealsFeed } from '@/lib/deals-feed'
-import { normalizePriceBound, normalizePriceSort } from '@/lib/result-filters'
+import { normalizePriceRange, normalizePriceSort } from '@/lib/result-filters'
 import { absoluteUrl } from '@/lib/site'
 
 export const dynamic = 'force-dynamic'
@@ -35,8 +35,10 @@ function parseSearchParams(searchParams: SearchParams) {
   const categoryValue = firstParam(searchParams.category)
   const category = isSupportedCategory(categoryValue) ? categoryValue : null
   const limitValue = Number.parseInt(firstParam(searchParams.limit) || '', 10)
-  const minPrice = normalizePriceBound(firstParam(searchParams.minPrice))
-  const maxPrice = normalizePriceBound(firstParam(searchParams.maxPrice))
+  const { minPrice, maxPrice } = normalizePriceRange(
+    firstParam(searchParams.minPrice),
+    firstParam(searchParams.maxPrice),
+  )
   const sort = normalizePriceSort(firstParam(searchParams.sort))
 
   return {
@@ -56,6 +58,8 @@ function formatCount(value: number) {
 
 function describeWarning(code: string) {
   switch (code) {
+    case 'demo_fallback':
+      return 'Les offres de démonstration sont affichées en l’absence de base locale.'
     case 'partial_database_coverage':
       return 'La base locale ne couvre pas encore toutes les enseignes demandées.'
     case 'browser_scraper_unavailable_on_runtime':

@@ -37,18 +37,6 @@
     @apply border-line dark:border-slate-800;
   }
 
-  :where(
-    [class~='border'],
-    [class~='border-t'],
-    [class~='border-r'],
-    [class~='border-b'],
-    [class~='border-l'],
-    [class*=' border-'],
-    [class^='border-']
-  ):not(.animate-spin) {
-    border-width: 0 !important;
-  }
-
   ::selection {
     @apply bg-accent/20 text-foreground;
   }

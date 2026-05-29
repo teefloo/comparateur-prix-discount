@@ -74,13 +74,7 @@ export function extractDealOffersFromScrapeResult(result: RetailerScrapeDetails)
   return {
     ...result,
     offers,
-    coverage: {
-      ...result.coverage,
-      discoveredListings: result.coverage.discoveredListings,
-      completedListings: result.coverage.completedListings,
-      collectionRate: result.coverage.collectionRate,
-      isComplete: result.coverage.isComplete && offers.length > 0,
-    },
+    coverage: { ...result.coverage, isComplete: result.coverage.isComplete && offers.length > 0 },
   }
 }
 

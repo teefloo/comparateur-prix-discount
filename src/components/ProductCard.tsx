@@ -1,11 +1,16 @@
-'use client'
-
 import Image from 'next/image'
 import Link from 'next/link'
 import { ExternalLink, Package } from 'lucide-react'
 
 import { RETAILER_INFO } from '@/lib/catalog'
 import type { RetailerOfferCard } from '@/lib/types'
+
+function formatPrice(value: number) {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(value)
+}
 
 function getRetailerInfo(retailerId: string) {
   return (
@@ -27,12 +32,6 @@ export default function ProductCard({
   isBest?: boolean
   showQuantity?: boolean
 }) {
-  const formatPrice = (value: number) =>
-    new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(value)
-
   const retailer = getRetailerInfo(product.retailer)
 
   return (

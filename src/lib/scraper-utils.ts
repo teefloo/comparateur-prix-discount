@@ -4,6 +4,7 @@ import {
   CATEGORY_LABELS,
   RETAILER_INFO,
   SUPPORTED_CATEGORIES,
+  isRetailer,
   isSupportedCategory,
   type Retailer,
   type SupportedCategory,
@@ -930,6 +931,11 @@ function parseQuantityToBaseUnit(quantity: string | null | undefined) {
   }
 
   return null
+}
+
+export function normalizeRetailerSelection(value: string | string[] | null | undefined): Retailer[] {
+  const rawValues = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : []
+  return rawValues.map((entry) => entry.trim()).filter((entry): entry is Retailer => isRetailer(entry))
 }
 
 export function cleanDisplayText(value: string | null | undefined): string {

@@ -15,7 +15,6 @@ interface SearchWorkspaceProps {
   maxPrice: number | null
   sort: PriceSortOption
   source: SearchSource
-  lastUpdate: string | null
   error?: string
 }
 
@@ -33,6 +32,7 @@ export default function SearchWorkspace({
     search || selectedCategory || selectedRetailers.length > 0 || minPrice !== null || maxPrice !== null || sort !== 'default',
   )
   const showNotice = Boolean(error || source === 'demo-fallback')
+  const noticeLabel = error ? 'Recherche indisponible' : 'Mode demo local'
 
   return (
     <section
@@ -76,22 +76,21 @@ export default function SearchWorkspace({
               </button>
             </div>
 
+            {showNotice && (
+              <div className="flex items-center gap-1.5 px-1 text-xs font-medium text-muted dark:text-slate-400">
+                {error ? <AlertTriangle size={14} className="text-danger" /> : <Sparkles size={14} className="text-warning" />}
+                <span>{noticeLabel}</span>
+              </div>
+            )}
+
             {hasSearchContext && (
-              <div className="space-y-2">
-                {showNotice && (
-                  <div className="flex items-center gap-1.5 px-1 text-xs font-medium text-muted dark:text-slate-400">
-                    {error ? <AlertTriangle size={14} className="text-danger" /> : <Sparkles size={14} className="text-warning" />}
-                    <span>{error ? 'Recherche indisponible' : 'Mode demo'}</span>
-                  </div>
-                )}
-                <div className="w-full sm:w-auto">
-                  <RetailerFilterPanel
-                    selectedRetailers={selectedRetailers}
-                    minPrice={minPrice}
-                    maxPrice={maxPrice}
-                    sort={sort}
-                  />
-                </div>
+              <div className="w-full sm:w-auto">
+                <RetailerFilterPanel
+                  selectedRetailers={selectedRetailers}
+                  minPrice={minPrice}
+                  maxPrice={maxPrice}
+                  sort={sort}
+                />
               </div>
             )}
           </form>

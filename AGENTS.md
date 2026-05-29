@@ -1,7 +1,7 @@
 # Agent Instructions: Comparateur de Prix
 
 ## Tech Stack & Architecture
-- **Framework**: Next.js 14 App Router (`/src/app`)
+- **Framework**: Next.js 16 App Router (`/src/app`)
 - **DB**: Vercel Postgres (`@vercel/postgres`) with raw SQL via `pg` Client for batch writes
 - **Scrapers**: `/src/lib/scrapers/` — mix of Playwright (browser) and fetch/JSON scrapers
 

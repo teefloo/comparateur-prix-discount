@@ -2,9 +2,9 @@ import { sql } from '@vercel/postgres'
 import pg from 'pg'
 
 import { RETAILERS, SUPPORTED_CATEGORIES, type Retailer, type SupportedCategory } from './catalog'
-import { ensureDatabaseUrlEnv } from './ensure-db-env'
+import { ensureDatabaseUrlEnv, hasDatabaseUrl } from './ensure-db-env'
 import { type PriceSortOption } from './result-filters'
-import { normalizeSearchQuery, toRetailerOfferCard } from './scraper-utils'
+import { normalizeRetailerSelection, normalizeSearchQuery, toRetailerOfferCard } from './scraper-utils'
 import type { RetailerOfferCard, ValidatedOffer } from './types'
 
 ensureDatabaseUrlEnv()
@@ -233,16 +233,6 @@ function buildEmptyDealCoverage(): DealCoverageByRetailer {
   )
 }
 
-function normalizeRetailerSelection(value: string | string[] | null | undefined) {
-  const rawValues = Array.isArray(value)
-    ? value
-    : typeof value === 'string'
-      ? value.split(',')
-      : []
-
-  return rawValues.map((entry) => entry.trim()).filter((entry): entry is Retailer => RETAILERS.includes(entry as Retailer))
-}
-
 function buildDealFilterClauses(options: {
   query?: string | null
   category?: SupportedCategory | null
@@ -338,6 +328,11 @@ async function queryOffers(options: {
 }) {
   const whereClauses: string[] = []
   const values: Array<string | number | string[]> = []
+  const connectionString = ensureDatabaseUrlEnv()
+
+  if (!connectionString) {
+    throw new Error('POSTGRES_URL or DATABASE_URL is required for DB queries')
+  }
 
   if (options.id) {
     values.push(options.id)
@@ -428,6 +423,10 @@ async function queryOffers(options: {
 }
 
 export async function searchOffersInDb(query: string, category?: SupportedCategory | null, retailer?: string | null) {
+  if (!hasDatabaseUrl()) {
+    return []
+  }
+
   try {
     return await queryOffers({ query, category, limit: 120, retailer })
   } catch (error) {
@@ -457,6 +456,10 @@ export async function getOffersByCategory(
   retailer?: string | null,
   sort?: PriceSortOption,
 ) {
+  if (!hasDatabaseUrl()) {
+    return []
+  }
+
   try {
     return await queryOffers({
       category,
@@ -485,6 +488,10 @@ export async function getOffersByCategoryStrict(
 }
 
 export async function getOfferById(id: string) {
+  if (!hasDatabaseUrl()) {
+    return null
+  }
+
   try {
     const rows = await queryOffers({ id, limit: 1 })
     return rows[0] || null
@@ -501,6 +508,10 @@ export async function getDealsInDb(
   query?: string | null,
   sort?: PriceSortOption,
 ) {
+  if (!hasDatabaseUrl()) {
+    return []
+  }
+
   try {
     return await queryOffers({
       query: query || undefined,
@@ -522,6 +533,10 @@ export async function getDealsCoverageInDb(
   retailer?: string | string[] | null,
   query?: string | null,
 ): Promise<DealCoverageByRetailer> {
+  if (!hasDatabaseUrl()) {
+    return buildEmptyDealCoverage()
+  }
+
   try {
     const { whereStatement, values } = buildDealFilterClauses({
       query: query || null,
@@ -559,6 +574,10 @@ export async function getBalancedDealsInDb(
   perRetailerLimit = 20,
   query?: string | null,
 ) {
+  if (!hasDatabaseUrl()) {
+    return []
+  }
+
   try {
     const { whereStatement, values } = buildDealFilterClauses({
       query: query || null,
@@ -615,6 +634,10 @@ export async function getBalancedDealsInDb(
 }
 
 export async function getProductSitemapEntries(limit = 5000) {
+  if (!hasDatabaseUrl()) {
+    return []
+  }
+
   try {
     const { rows } = await sql.query<{ id: string; updated_at: Date | string | null }>(
       `
@@ -643,6 +666,7 @@ export async function getProductSitemapEntries(limit = 5000) {
 
 export async function upsertOffersBatch(offers: ValidatedOffer[]) {
   if (offers.length === 0) return
+  if (!hasDatabaseUrl()) return
 
   const now = new Date().toISOString()
   const client = createDbClient()
@@ -710,6 +734,7 @@ export async function upsertOffersBatch(offers: ValidatedOffer[]) {
 
 export async function upsertOfferPricesBatch(offers: ValidatedOffer[]) {
   if (offers.length === 0) return
+  if (!hasDatabaseUrl()) return
 
   const now = new Date().toISOString()
   const client = createDbClient()
@@ -762,6 +787,7 @@ export async function pruneStaleOffersByRetailer(retailer: Retailer, activeOffer
   if (activeOfferIds.length === 0) {
     throw new Error(`Cannot prune offers for retailer "${retailer}" with an empty active offer set`)
   }
+  if (!hasDatabaseUrl()) return
 
   const client = createDbClient()
 

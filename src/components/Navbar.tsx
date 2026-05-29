@@ -36,7 +36,7 @@ export default function Navbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 py-3 sm:h-[4.5rem] sm:px-6">
         <Logo withText className="shrink-0" />
 
-        <div className="flex items-center gap-2">
+        <nav className="flex items-center gap-2" aria-label="Navigation principale">
           <Link href="/deals" className={`nav-pill ${isActive('/deals') ? 'nav-pill-active' : ''}`}>
             <Tag size={14} />
             <span className="hidden sm:inline">Bons plans</span>
@@ -49,7 +49,7 @@ export default function Navbar() {
           >
             {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
           </button>
-        </div>
+        </nav>
       </div>
     </header>
   )

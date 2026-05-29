@@ -4,11 +4,12 @@ import CategoryBar from '@/components/CategoryBar'
 import Navbar from '@/components/Navbar'
 import ProductGrid from '@/components/ProductGrid'
 import SearchWorkspace from '@/components/SearchWorkspace'
-import { isSupportedCategory, CATEGORY_LABELS } from '@/lib/catalog'
+import { isSupportedCategory, CATEGORY_LABELS, type SupportedCategory } from '@/lib/catalog'
+import { filterDemoOffers } from '@/lib/demo-offers'
+import { hasDatabaseUrl } from '@/lib/ensure-db-env'
 import { normalizePriceRange, normalizePriceSort } from '@/lib/result-filters'
 import { runSearch } from '@/lib/search-service'
 import { absoluteUrl } from '@/lib/site'
-import type { SupportedCategory } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -104,7 +105,18 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
   const resolvedSearchParams = await searchParams
   const { query, category, retailer, minPrice, maxPrice, sort } = parseSearchParams(resolvedSearchParams)
   const hasSearched = Boolean(query || category)
-  const { products, source, lastUpdate, error } = await runSearch({ query, category, retailer, minPrice, maxPrice, sort })
+  const hasDatabase = hasDatabaseUrl()
+
+  const { products, source, lastUpdate, error } = hasSearched
+    ? await runSearch({ query, category, retailer, minPrice, maxPrice, sort })
+    : hasDatabase
+      ? { products: [], source: null, lastUpdate: null, error: undefined }
+      : {
+          products: filterDemoOffers({ sort }),
+          source: 'demo-fallback' as const,
+          lastUpdate: null,
+          error: undefined,
+        }
 
   return (
     <>
@@ -118,22 +130,30 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
         maxPrice={maxPrice}
         sort={sort}
         source={source}
-        lastUpdate={lastUpdate}
         error={error}
       />
 
-      {hasSearched && (
+      {(hasSearched || products.length > 0) && (
         <main className="mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6">
-          <CategoryBar
-            search={query}
-            selectedCategory={category}
-            selectedRetailers={retailer}
-            minPrice={minPrice}
-            maxPrice={maxPrice}
-            sort={sort}
-          />
+          {hasSearched && (
+            <CategoryBar
+              search={query}
+              selectedCategory={category}
+              selectedRetailers={retailer}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              sort={sort}
+            />
+          )}
           <div className="space-y-4">
-            <ProductGrid products={products} loading={false} hasSearched={hasSearched} search={query} error={error} sort={sort} />
+            <ProductGrid
+              products={products}
+              loading={false}
+              hasSearched={hasSearched}
+              search={query}
+              error={error}
+              sort={sort}
+            />
           </div>
         </main>
       )}
