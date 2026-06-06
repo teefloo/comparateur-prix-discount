@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowLeft, ExternalLink, RefreshCw, ShieldCheck, ShoppingBag, TrendingDown } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, RefreshCw, ShieldCheck, ShoppingBag, TrendingDown } from 'lucide-react'
 
 import Navbar from '@/components/Navbar'
 import { RETAILERS, RETAILER_INFO } from '@/lib/catalog'
@@ -10,14 +10,14 @@ const retailerNames = RETAILERS.map((retailer) => RETAILER_INFO[retailer].name)
 const retailerLabel = retailerNames.join(', ')
 
 export const metadata: Metadata = {
-  title: 'À propos',
-  description: `En savoir plus sur ComparPrix, le comparateur de prix discount dédié à ${retailerLabel}.`,
+  title: 'Manifeste',
+  description: `Le manifeste de ComparPrix, le comparateur de prix discount dédié à ${retailerLabel}.`,
   alternates: {
     canonical: '/a-propos',
   },
   openGraph: {
-    title: 'À propos | ComparPrix',
-    description: `En savoir plus sur ComparPrix, le comparateur de prix discount dédié à ${retailerLabel}.`,
+    title: 'Manifeste | ComparPrix',
+    description: `Le manifeste de ComparPrix, le comparateur de prix discount dédié à ${retailerLabel}.`,
     url: absoluteUrl('/a-propos'),
     type: 'website',
     images: [
@@ -34,29 +34,33 @@ export const metadata: Metadata = {
 const stats = [
   { label: 'Enseignes comparées', value: String(RETAILERS.length) },
   { label: 'Catégories suivies', value: '13' },
-  { label: 'Mise à jour', value: 'Hebdomadaire' },
+  { label: 'Mise à jour', value: 'Hebdo' },
 ]
 
 const values = [
   {
     icon: TrendingDown,
-    title: 'Économies maximales',
-    desc: 'Chaque interface pousse vers le prix le plus utile à lire, sans détour ni surcharge visuelle.',
+    number: '01',
+    title: 'Économies réelles',
+    desc: "Le prix utile, sans détour. Pas d'astérisque, pas d'algorithme caché : la ligne de caisse, rien que la ligne de caisse.",
   },
   {
     icon: ShieldCheck,
-    title: 'Transparence totale',
-    desc: 'Les prix restent lisibles, sourcés et détachés du discours marketing de chaque enseigne.',
+    number: '02',
+    title: 'Transparence radicale',
+    desc: 'Le code source, les scrapers et la cadence des relevés sont publics. Le journalisme de prix mérite un journalisme de méthode.',
   },
   {
     icon: RefreshCw,
+    number: '03',
     title: 'Données fraîches',
-    desc: 'La base se met à jour régulièrement pour refléter les offres réellement relevées.',
+    desc: 'La base est reconstruite chaque semaine. Les chiffres du jour ne sont jamais ceux d’hier — et c’est tant mieux.',
   },
   {
     icon: ShoppingBag,
+    number: '04',
     title: 'Toutes les enseignes',
-    desc: `${retailerLabel} réunies dans un même espace de recherche et de comparaison.`,
+    desc: `${retailerLabel} réunies dans un même espace, sans hiérarchie de mise en avant.`,
   },
 ]
 
@@ -65,102 +69,167 @@ export default function AboutPage() {
     <>
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-4 pt-24 pb-20 sm:px-6 lg:pt-28">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted transition-colors hover:text-accent dark:text-slate-400"
-        >
-          <ArrowLeft size={16} />
-          Retour à l&apos;accueil
-        </Link>
+      <section className="relative border-b-2 border-ink bg-cream pt-32 pb-16">
+        <div className="absolute inset-0 -z-10 grain" aria-hidden />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-ink-soft transition-colors hover:text-navy"
+          >
+            <ArrowLeft size={15} strokeWidth={2.5} />
+            Retour à l&apos;accueil
+          </Link>
 
-        <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(340px,0.9fr)]">
-          <div className="space-y-8">
-            <div className="max-w-2xl">
-              <p className="section-label">À propos</p>
-              <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight text-foreground text-balance sm:text-5xl dark:text-slate-50">
-                Un comparateur pensé comme un outil de décision.
+          <div className="mt-8 grid items-end gap-8 md:grid-cols-[1.6fr_1fr]">
+            <div className="space-y-5">
+              <div className="flex items-center gap-3">
+                <span className="eyebrow text-ink-faint">№ 03 — Le manifeste</span>
+                <span className="dotline h-px w-12 bg-ink/30" />
+              </div>
+              <h1 className="display-huge text-fluid-display text-ink text-balance">
+                Le juste
+                <span className="block text-navy stamp-rotate-1">prix.</span>
               </h1>
-              <p className="support-copy mt-5 text-base sm:text-lg">
-                ComparPrix centralise les prix de plusieurs enseignes discount pour vous aider à repérer rapidement la bonne offre,
-                au bon endroit, avec moins de friction.
+              <p className="editorial text-2xl leading-snug text-ink-soft max-w-2xl text-pretty">
+                ComparPrix centralise les prix de plusieurs enseignes discount pour vous aider à repérer
+                rapidement <span className="editorial-italic text-navy">la bonne affaire, au bon endroit</span>, avec moins de friction.
               </p>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-3 gap-2.5">
               {stats.map((stat) => (
-                <div key={stat.label} className="surface px-5 py-5">
-                  <p className="font-display text-3xl font-semibold tracking-tight text-accent tabular-nums">{stat.value}</p>
-                  <p className="mt-2 text-xs font-medium uppercase tracking-[0.24em] text-subtle dark:text-slate-500">
-                    {stat.label}
-                  </p>
+                <div
+                  key={stat.label}
+                  className="border-2 border-ink bg-cream p-3 shadow-[3px_3px_0_var(--ink)]"
+                >
+                  <p className="display-md text-2xl text-navy tabular-nums">{stat.value}</p>
+                  <p className="mt-1.5 eyebrow text-ink-faint leading-tight">{stat.label}</p>
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
 
-            <section className="surface p-6 sm:p-7">
-              <p className="section-label">Logique UX</p>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                {values.map((value) => (
-                  <div key={value.title} className="rounded-lg border border-line bg-white p-5 dark:border-slate-800 dark:bg-slate-950">
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-xl border border-line bg-accent-subtle p-2 text-accent dark:border-slate-700 dark:bg-accent/15">
-                        <value.icon size={18} />
-                      </div>
-                      <h2 className="font-display text-lg font-semibold tracking-tight text-foreground dark:text-slate-100">
-                        {value.title}
-                      </h2>
-                    </div>
-                    <p className="mt-3 text-sm leading-relaxed text-muted dark:text-slate-400">{value.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
+      <main className="border-b-2 border-ink bg-paper py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="mb-10 flex flex-wrap items-end justify-between gap-3 border-b-2 border-ink pb-5">
+            <h2 className="display-xl text-5xl text-ink sm:text-6xl">Nos quatre principes.</h2>
+            <p className="editorial text-lg text-ink-soft max-w-md text-pretty">
+              Quatre convictions qui structurent chaque ligne de code et chaque étiquette de prix du Bulletin.
+            </p>
           </div>
 
-          <aside className="space-y-5">
-            <section className="surface p-6">
-              <p className="section-label">Enseignes suivies</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {retailerNames.map((name, index) => (
-                  <span
-                    key={name}
-                    className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-2 text-sm font-semibold text-foreground dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
-                  >
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: RETAILER_INFO[RETAILERS[index]].color }} />
-                    {name}
-                  </span>
-                ))}
-              </div>
-            </section>
-
-            <section className="surface p-6">
-              <p className="section-label">Ressources</p>
-              <div className="mt-4 space-y-3 text-sm text-muted dark:text-slate-300">
-                <p>Prix relevés sur les plateformes des enseignes, puis normalisés pour rester lisibles dans une vue unique.</p>
-                <p>Les pages produit gardent le contexte utile, les liens d&apos;origine et les métadonnées de partage.</p>
-              </div>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <a
-                  href="https://github.com/teefloo/comparateur-prix-discount"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-[12px] bg-foreground px-4 py-3 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
-                >
-                  <ExternalLink size={14} />
-                  GitHub
-                </a>
-                <Link
-                  href="/"
-                  className="inline-flex items-center gap-2 rounded-[12px] border border-line bg-white px-4 py-3 text-sm font-semibold text-foreground dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
-                >
-                  Rechercher
-                </Link>
-              </div>
-            </section>
-          </aside>
+          <div className="grid gap-5 sm:grid-cols-2">
+            {values.map((value) => (
+              <article
+                key={value.title}
+                className="group border-2 border-ink bg-cream p-6 shadow-[4px_4px_0_var(--ink)] transition-all hover:-translate-x-[3px] hover:-translate-y-[3px] hover:shadow-[7px_7px_0_var(--ink)]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="grid h-12 w-12 place-items-center border-2 border-ink bg-navy text-cream shadow-[3px_3px_0_var(--ink)]">
+                    <value.icon size={20} strokeWidth={2.5} />
+                  </div>
+                  <span className="display-md text-5xl text-ink-faint/40 leading-none">{value.number}</span>
+                </div>
+                <h3 className="editorial mt-5 text-2xl font-medium leading-tight text-ink">{value.title}</h3>
+                <p className="mt-2.5 text-sm leading-relaxed text-ink-soft text-pretty">{value.desc}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </main>
+
+      <section className="border-b-2 border-ink bg-cream py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-3 border-b-2 border-ink pb-5">
+            <div>
+              <p className="eyebrow text-ink-faint">Le carnet d&apos;adresses</p>
+              <h2 className="display-xl mt-2 text-4xl text-ink sm:text-5xl">Enseignes distribuées.</h2>
+            </div>
+            <p className="editorial text-base text-ink-soft max-w-md text-pretty">
+              Dix acteurs discount français, lus en parallèle, sans hiérarchie de mise en avant.
+            </p>
+          </div>
+
+          <div className="grid gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+            {RETAILERS.map((retailerId) => {
+              const retailer = RETAILER_INFO[retailerId]
+              return (
+                <div
+                  key={retailerId}
+                  className="border-2 border-ink/70 bg-cream p-4 shadow-[3px_3px_0_var(--ink)]"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className="grid h-8 w-8 shrink-0 place-items-center border-2 border-ink"
+                      style={{ backgroundColor: retailer.color + '33' }}
+                    >
+                      <span className="mono text-[10px] font-bold" style={{ color: retailer.color }}>
+                        {retailer.name.slice(0, 2).toUpperCase()}
+                      </span>
+                    </span>
+                    <div className="min-w-0">
+                      <p className="editorial text-base font-medium text-ink truncate">{retailer.name}</p>
+                      <p className="mono text-[9px] text-ink-faint uppercase tracking-wider">{retailerId}</p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-paper py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 text-center">
+          <p className="eyebrow text-ink-faint">En continu</p>
+          <h2 className="display-xl mt-2 text-4xl text-ink sm:text-5xl text-balance">
+            La suite vous appartient.
+          </h2>
+          <p className="editorial mt-4 text-lg text-ink-soft text-pretty">
+            Cherchez un produit, parcourez les bons plans, ou rejoignez l&apos;aventure sur le dépôt public.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link href="/" className="btn-ink inline-flex min-h-12 items-center gap-2 px-6 text-sm">
+              <span className="display-md leading-none">Lancer une recherche</span>
+            </Link>
+            <a
+              href="https://github.com/teefloo/comparateur-prix-discount"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-paper inline-flex min-h-12 items-center gap-2 px-5 text-sm"
+            >
+              <ArrowUpRight size={15} strokeWidth={2.5} />
+              <span>Voir le dépôt GitHub</span>
+            </a>
+          </div>
+
+          <p className="editorial mt-10 text-sm text-ink-faint">
+            Les prix affichés sur ComparPrix sont relevés à titre indicatif. Avant tout achat,
+            vérifiez le prix final sur le site de l&apos;enseigne concernée.{' '}
+            <Link href="/mentions-legales" className="text-ink underline decoration-ink/30 underline-offset-2 hover:decoration-navy hover:text-navy">
+              Mentions légales
+            </Link>
+            {' · '}
+            <Link href="/cgu" className="text-ink underline decoration-ink/30 underline-offset-2 hover:decoration-navy hover:text-navy">
+              CGU
+            </Link>
+            {' · '}
+            <Link
+              href="/politique-confidentialite"
+              className="text-ink underline decoration-ink/30 underline-offset-2 hover:decoration-navy hover:text-navy"
+            >
+              Confidentialité
+            </Link>
+            {' · '}
+            <Link href="/cookies" className="text-ink underline decoration-ink/30 underline-offset-2 hover:decoration-navy hover:text-navy">
+              Cookies
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
     </>
   )
 }

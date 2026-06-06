@@ -54,3 +54,9 @@
 - **Consistency**: Maintain strict TS types across scrapers, DB helpers, API responses, and UI offer cards
 - **Supervision outputs**: `supervision-results.json`, `supervision-report.txt`, `supervision-history.log`
 - **Weekly scrape outputs**: `scrape-results.json`, `scrape-history.log`
+
+<!-- BEGIN:nextjs-agent-rules -->
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->

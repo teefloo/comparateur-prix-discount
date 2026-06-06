@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-labelledby="cp3i-title cp3i-desc">
+  <title id="cp3i-title">ComparPrix — Le Monocle</title>
+  <desc id="cp3i-desc">Médaillon éditorial : double cercle, € monumental en serif navy, mention COMPAR PRIX.</desc>
+  <defs>
+    <style>
+      .ink3 { fill: #0F1623; }
+      .navy3 { fill: #0F2C52; }
+      .cream3 { fill: #FCFDFE; }
+      .stroke-ink3 { stroke: #0F1623; fill: none; }
+      .serif3 { font-family: Fraunces, Georgia, 'Times New Roman', serif; font-weight: 700; }
+      .eyebrow3 { font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 700; letter-spacing: 0.35em; }
+    </style>
+    <!-- Curved path for top text -->
+    <path id="cp3-arc-top" d="M 30 100 A 70 70 0 0 1 170 100" />
+    <!-- Curved path for bottom text -->
+    <path id="cp3-arc-bottom" d="M 28 100 A 72 72 0 0 0 172 100" />
+  </defs>
+
+  <!-- Outer ring -->
+  <circle cx="100" cy="100" r="92" class="cream3" stroke="#0F1623" stroke-width="6"/>
+  <!-- Inner ring -->
+  <circle cx="100" cy="100" r="82" class="stroke-ink3" stroke-width="2"/>
+  <!-- Curved text top -->
+  <text class="eyebrow3 ink3" font-size="12">
+    <textPath href="#cp3-arc-top" startOffset="50%" text-anchor="middle">COMPAR · PRIX · 2026</textPath>
+  </text>
+  <!-- Curved text bottom -->
+  <text class="eyebrow3 ink3" font-size="12">
+    <textPath href="#cp3-arc-bottom" startOffset="50%" text-anchor="middle">№ 01 · HEBDO</textPath>
+  </text>
+
+  <!-- € monumental -->
+  <text x="100" y="138" text-anchor="middle" class="serif3 navy3" font-size="130">€</text>
+
+  <!-- Small decorative dots flanking the € (4 o'clock and 8 o'clock) -->
+  <circle cx="42" cy="148" r="3" class="ink3"/>
+  <circle cx="158" cy="148" r="3" class="ink3"/>
+</svg>

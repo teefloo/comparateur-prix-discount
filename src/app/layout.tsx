@@ -1,42 +1,60 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { Inter, Space_Grotesk } from 'next/font/google'
+import { Bricolage_Grotesque, Big_Shoulders, Fraunces, JetBrains_Mono } from 'next/font/google'
 import { ArrowUpRight } from 'lucide-react'
 
 import AgentationDev from '@/components/AgentationDev'
+import CookieConsent from '@/components/CookieConsent'
 import Logo from '@/components/Logo'
+import ReopenCookieBannerButton from '@/components/ReopenCookieBannerButton'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { LEGAL_PAGES, LEGAL_INFO } from '@/lib/legal'
 import { absoluteUrl, getSiteUrl } from '@/lib/site'
 
 import './globals.css'
 
-const inter = Inter({
+const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
 })
 
-const spaceGrotesk = Space_Grotesk({
+const bigShoulders = Big_Shoulders({
   subsets: ['latin'],
+  weight: ['700', '800', '900'],
   variable: '--font-display',
+  display: 'swap',
+})
+
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  style: ['normal', 'italic'],
+  variable: '--font-editorial',
+  display: 'swap',
+})
+
+const jetbrains = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-mono',
   display: 'swap',
 })
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: 'ComparPrix',
+    default: 'ComparPrix — Le Bulletin des Prix Discount',
     template: '%s | ComparPrix',
   },
   description:
-    "Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
+    "Le bulletin de chasse aux bonnes affaires : comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'ComparPrix',
+    title: 'ComparPrix — Le Bulletin des Prix Discount',
     description:
-      "Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
+      "Le bulletin de chasse aux bonnes affaires : comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
     type: 'website',
     locale: 'fr_FR',
     url: absoluteUrl('/'),
@@ -52,94 +70,128 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ComparPrix',
+    title: 'ComparPrix — Le Bulletin des Prix Discount',
     description:
-      "Comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
+      "Le bulletin de chasse aux bonnes affaires : comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
     images: ['/logo.png'],
   },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${inter.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
+    <html
+      lang="fr"
+      className={`${bricolage.variable} ${bigShoulders.variable} ${fraunces.variable} ${jetbrains.variable}`}
+      suppressHydrationWarning
+    >
       <head>
-        <link rel="icon" href="/logo.png" type="image/png" />
+        <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
       </head>
-      <body>
+      <body className="body-sans">
         <ThemeProvider>
           <div className="flex min-h-screen flex-col overflow-x-clip">
-            <div className="flex-1 min-w-0 pb-28 md:pb-0">{children}</div>
+            <div className="flex-1 min-w-0 pb-20 md:pb-0">{children}</div>
             <AgentationDev />
-            <footer className="bg-paper/90 dark:bg-slate-950/70">
-              <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-12">
-                <div className="rounded-2xl bg-white/80 p-5 shadow-card backdrop-blur-sm dark:bg-slate-900/80 sm:p-6">
-                  <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="max-w-lg space-y-4">
-                      <Logo />
-                      <p className="text-sm leading-relaxed text-muted dark:text-slate-300">
-                        Comparez plus vite les prix discount et gardez l&apos;essentiel sous les yeux, sans bruit ni détour.
-                      </p>
-                      <div className="flex flex-wrap gap-2 text-xs font-medium text-muted dark:text-slate-400">
-                        <span className="rounded-full bg-paper px-3 py-1.5 dark:bg-slate-950/70">
-                          10 enseignes suivies
-                        </span>
-                        <span className="rounded-full bg-paper px-3 py-1.5 dark:bg-slate-950/70">
-                          Recherche produit
-                        </span>
-                        <span className="rounded-full bg-paper px-3 py-1.5 dark:bg-slate-950/70">
-                          Bons plans centralises
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-8 sm:grid-cols-[minmax(0,12rem)_minmax(0,15rem)]">
-                      <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-subtle dark:text-slate-500">
-                          Navigation
-                        </p>
-                        <div className="mt-4 flex flex-col gap-3 text-sm text-muted dark:text-slate-300">
-                          <Link href="/" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
-                            Accueil
-                          </Link>
-                          <Link href="/deals" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
-                            Bons plans
-                          </Link>
-                          <Link href="/a-propos" className="transition-colors hover:text-foreground dark:hover:text-slate-100">
-                            A propos
-                          </Link>
-                        </div>
-                      </div>
-
-                      <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-subtle dark:text-slate-500">
-                          Projet
-                        </p>
-                        <a
-                          href="https://github.com/teefloo/comparateur-prix-discount"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-paper px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-white dark:bg-slate-950/70 dark:text-slate-100 dark:hover:bg-slate-900"
-                        >
-                          <span>GitHub</span>
-                          <ArrowUpRight size={16} className="text-subtle dark:text-slate-500" />
-                        </a>
-                        <p className="mt-3 text-sm leading-relaxed text-muted dark:text-slate-400">
-                          Le code source et le suivi du projet sont disponibles sur le depot public.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-8 flex flex-col gap-3 pt-4 text-xs text-subtle dark:text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-                    <span>Les prix affiches dependent du stock, des enseignes et du moment de releve.</span>
-                    <span>ComparPrix</span>
-                  </div>
-                </div>
-              </div>
-            </footer>
+            <Footer />
           </div>
         </ThemeProvider>
+        <CookieConsent />
       </body>
     </html>
+  )
+}
+
+function Footer() {
+  return (
+    <footer className="border-t-2 border-ink/85 bg-cream">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="rule-double" />
+        <div className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+          <div className="space-y-5">
+            <Logo />
+            <p className="editorial text-base leading-relaxed text-ink-soft max-w-md text-pretty">
+              Le journal de celles et ceux qui traquent la bonne affaire. Une seule liste, dix enseignes, et toujours le prix le plus juste à portée de main.
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="eyebrow text-ink-faint">№ 01 — Hebdo</span>
+              <span className="dotline h-px w-12 bg-ink/30" />
+              <span className="eyebrow text-ink-faint">10 enseignes</span>
+            </div>
+          </div>
+
+          <div>
+            <p className="eyebrow text-ink-faint">Le Bulletin</p>
+            <div className="mt-4 flex flex-col gap-2.5">
+              <FooterLink href="/">Recherche produits</FooterLink>
+              <FooterLink href="/deals">Bons plans du moment</FooterLink>
+              <FooterLink href="/a-propos">Manifeste</FooterLink>
+              <FooterLink href="/faq">FAQ</FooterLink>
+            </div>
+          </div>
+
+          <div>
+            <p className="eyebrow text-ink-faint">Légal & RGPD</p>
+            <div className="mt-4 flex flex-col gap-2.5">
+              {LEGAL_PAGES.map((page) => (
+                <FooterLink key={page.slug} href={`/${page.slug}`}>
+                  {page.title}
+                </FooterLink>
+              ))}
+              <div className="pt-1">
+                <ReopenCookieBannerButton className="text-xs" />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p className="eyebrow text-ink-faint">Sources</p>
+            <a
+              href="https://github.com/teefloo/comparateur-prix-discount"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 group flex items-center justify-between gap-3 border-2 border-ink bg-cream p-4 shadow-[4px_4px_0_var(--ink)] transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[6px_6px_0_var(--ink)]"
+            >
+              <div>
+                <p className="display-md text-xl text-ink">Dépôt public</p>
+                <p className="eyebrow text-ink-faint mt-1">teefloo / github</p>
+              </div>
+              <ArrowUpRight size={18} className="text-ink transition-transform group-hover:rotate-45" />
+            </a>
+            <p className="mt-3 text-xs text-ink-faint leading-relaxed">
+              Le code source, les scrapers et le planning hebdomadaire sont publics.
+            </p>
+          </div>
+        </div>
+
+        <div className="rule-double" />
+        <div className="flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="eyebrow text-ink-faint">Les prix varient selon les stocks et les relevés.</p>
+          <p className="eyebrow text-ink-faint">
+            © {new Date().getFullYear()} {LEGAL_INFO.serviceName} ·{' '}
+            <a href="/mentions-legales" className="underline decoration-ink/30 underline-offset-2 hover:decoration-ink">
+              Mentions légales
+            </a>
+            {' · '}
+            <a
+              href={`mailto:${LEGAL_INFO.publisher.contactEmail}`}
+              className="underline decoration-ink/30 underline-offset-2 hover:decoration-ink"
+            >
+              Contact
+            </a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      className="editorial text-lg text-ink underline decoration-ink/30 decoration-1 underline-offset-4 transition-colors hover:decoration-navy hover:text-navy"
+    >
+      {children}
+    </a>
   )
 }

@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 
 interface LogoProps {
@@ -7,22 +6,31 @@ interface LogoProps {
   size?: number
 }
 
-export default function Logo({ className = '', withText = true, size = 40 }: LogoProps) {
+const HORIZONTAL_RATIO = 740 / 180
+const ICON_RATIO = 1
+const BASE_PATH = '/brand/concept-2-etiquette'
+
+export default function Logo({ className = '', withText = true, size = 44 }: LogoProps) {
+  const variant = withText ? 'horizontal' : 'icon'
+  const ratio = withText ? HORIZONTAL_RATIO : ICON_RATIO
+  const width = Math.round(size * ratio)
+
   return (
-    <Link href="/" className={`group inline-flex items-center gap-3 ${className}`}>
-      <div className="relative overflow-hidden rounded-2xl border border-line bg-white p-1.5 shadow-card transition-transform duration-300 group-hover:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-900">
-        <Image src="/logo.png" alt="ComparPrix" width={size} height={size} className="rounded-xl object-cover" />
-      </div>
-      {withText && (
-        <div className="flex flex-col leading-none">
-          <span className="font-display text-[1.05rem] font-semibold tracking-tight text-foreground dark:text-slate-100">
-            Compar<span className="text-accent">Prix</span>
-          </span>
-          <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.32em] text-subtle dark:text-slate-500">
-            Discount intelligence
-          </span>
-        </div>
-      )}
+    <Link
+      href="/"
+      className={`group inline-block ${className}`}
+      aria-label="ComparPrix — Accueil"
+    >
+      {/* SVG is already vector and <3KB — next/image optimization is a no-op here */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`${BASE_PATH}/${variant}.svg`}
+        alt="ComparPrix — Le Bulletin des Prix Discount"
+        width={width}
+        height={size}
+        className="block transition-transform duration-200 ease-out group-hover:-translate-x-[2px] group-hover:-translate-y-[2px] dark:invert"
+        draggable={false}
+      />
     </Link>
   )
 }

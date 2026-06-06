@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 480" width="360" height="480" role="img" aria-labelledby="cp2v-title cp2v-desc">
+  <title id="cp2v-title">ComparPrix — Le Bulletin des Prix Discount</title>
+  <desc id="cp2v-desc">Logo ComparPrix vertical : étiquette suspendue avec € monumental, stamp № 01, wordmark centré.</desc>
+  <defs>
+    <style>
+      .ink2 { fill: #0F1623; }
+      .navy2 { fill: #0F2C52; }
+      .cream2 { fill: #FCFDFE; }
+      .display2 { font-family: 'Big Shoulders Display', Impact, 'Arial Black', sans-serif; font-weight: 800; letter-spacing: -0.01em; }
+      .serif2 { font-family: Fraunces, Georgia, 'Times New Roman', serif; font-weight: 700; }
+      .eyebrow2 { font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 700; letter-spacing: 0.22em; }
+      .stamp2 { font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 700; letter-spacing: 0.18em; }
+    </style>
+  </defs>
+
+  <!-- ICON : étiquette (scale 1.15, centrée) -->
+  <g transform="translate(50, 20) scale(1.15)">
+    <line x1="20" y1="6" x2="40" y2="65" stroke="#0F1623" stroke-width="4" stroke-linecap="round"/>
+    <line x1="72" y1="6" x2="40" y2="65" stroke="#0F1623" stroke-width="4" stroke-linecap="round"/>
+
+    <path d="M 196 54 L 196 196 L 12 196 L 12 84 L 62 54 Z" fill="#0F1623"/>
+    <path d="M 192 50 L 192 192 L 8 192 L 8 80 L 58 50 Z"
+          fill="#FCFDFE" stroke="#0F1623" stroke-width="5" stroke-linejoin="miter"/>
+
+    <circle cx="40" cy="65" r="8" fill="#FCFDFE" stroke="#0F1623" stroke-width="4"/>
+
+    <text x="100" y="162" text-anchor="middle" class="serif2 navy2" font-size="124">€</text>
+
+    <g transform="translate(100, 182)">
+      <rect x="-22" y="-7" width="44" height="14" fill="#0F1623"/>
+      <text x="0" y="3" text-anchor="middle" class="stamp2" font-size="9" fill="#FCFDFE">№ 01</text>
+    </g>
+
+    <g>
+      <circle cx="160" cy="160" r="20" fill="#FCFDFE" stroke="#0F1623" stroke-width="5"/>
+      <circle cx="160" cy="160" r="14" fill="none" stroke="#0F1623" stroke-width="1.5"/>
+      <line x1="175" y1="175" x2="189" y2="189" stroke="#0F1623" stroke-width="7" stroke-linecap="square"/>
+      <line x1="175" y1="175" x2="189" y2="189" stroke="#0F2C52" stroke-width="2.2" stroke-linecap="square"/>
+    </g>
+  </g>
+
+  <!-- WORDMARK centré -->
+  <g>
+    <text x="180" y="312" text-anchor="middle" class="display2 ink2" font-size="80">Compar<tspan class="navy2">Prix</tspan></text>
+    <line x1="60" y1="328" x2="300" y2="328" stroke="#0F1623" stroke-width="3"/>
+    <line x1="60" y1="335" x2="300" y2="335" stroke="#0F1623" stroke-width="1"/>
+    <text x="180" y="362" text-anchor="middle" class="eyebrow2" font-size="13" fill="#374150">LE BULLETIN DES PRIX DISCOUNT</text>
+    <text x="180" y="408" text-anchor="middle" class="eyebrow2" font-size="11" fill="#647382">№ 01 — 10 ENSEIGNES — HEBDO</text>
+  </g>
+</svg>

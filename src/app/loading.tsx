@@ -1,18 +1,21 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-paper px-4 py-24 dark:bg-slate-950">
-      <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-line bg-white shadow-card dark:border-slate-800 dark:bg-slate-900">
-          <div className="h-7 w-7 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+    <div className="min-h-screen bg-paper pt-32">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
+        <div className="mb-3 flex items-center gap-3">
+          <span className="eyebrow text-ink-faint">№ 01 — Sous presse</span>
+          <span className="dotline h-px flex-1 bg-ink/30" />
         </div>
-        <div className="space-y-3">
-          <p className="section-label">Chargement</p>
-          <p className="font-display text-2xl font-semibold tracking-tight text-foreground dark:text-slate-100">
-            Préparation de l&apos;espace de comparaison
-          </p>
-          <p className="support-copy">
-            Les résultats et les filtres se remettent en place pendant que la recherche se charge.
-          </p>
+        <div className="display-huge text-ink">
+          <span className="block">Composition</span>
+          <span className="block text-navy stamp-rotate-1">en cours.</span>
+        </div>
+        <p className="editorial mt-5 text-2xl text-ink-soft">
+          Le Bulletin met en page les pages que vous avez demandées. Encore un instant.
+        </p>
+        <div className="mt-10 flex items-center gap-4">
+          <div className="h-2 w-2 animate-pulse-navy rounded-full bg-navy" />
+          <span className="eyebrow text-ink-faint">Encrage en cours</span>
         </div>
       </div>
     </div>

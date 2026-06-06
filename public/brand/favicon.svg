@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="cp-fav-title">
+  <title id="cp-fav-title">ComparPrix</title>
+  <defs>
+    <style>
+      .fav-ink { fill: #0F1623; }
+      .fav-navy { fill: #0F2C52; }
+      .fav-cream { fill: #FCFDFE; }
+    </style>
+  </defs>
+
+  <!-- Étiquette simplifiée : silhouette + trou + € -->
+  <path d="M 60 16 L 60 58 L 4 58 L 4 26 L 20 16 Z"
+        fill="#FCFDFE" stroke="#0F1623" stroke-width="4" stroke-linejoin="miter"/>
+
+  <!-- Hole punch -->
+  <circle cx="14" cy="24" r="2.5" fill="#FCFDFE" stroke="#0F1623" stroke-width="1.8"/>
+
+  <!-- € -->
+  <text x="33" y="50" text-anchor="middle" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-weight="700" font-size="36" fill="#0F2C52">€</text>
+</svg>

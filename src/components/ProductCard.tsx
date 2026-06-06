@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ExternalLink, Package } from 'lucide-react'
+import { ArrowUpRight, Package, Sparkles } from 'lucide-react'
 
 import { RETAILER_INFO } from '@/lib/catalog'
 import type { RetailerOfferCard } from '@/lib/types'
@@ -9,6 +9,8 @@ function formatPrice(value: number) {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(value)
 }
 
@@ -27,82 +29,109 @@ export default function ProductCard({
   product,
   isBest = false,
   showQuantity = true,
+  index = 0,
 }: {
   product: RetailerOfferCard
   isBest?: boolean
   showQuantity?: boolean
+  index?: number
 }) {
   const retailer = getRetailerInfo(product.retailer)
+  const number = String((index % 99) + 1).padStart(2, '0')
+  const hasDiscount = typeof product.discount === 'number' && product.discount > 0
+  const rotationClass = index % 3 === 0 ? 'stamp-rotate-1' : index % 3 === 1 ? 'stamp-rotate-2' : 'stamp-rotate-3'
 
   return (
     <article
-      className={`group relative min-w-0 rounded-lg border bg-white p-3 transition-colors hover:border-subtle dark:bg-slate-900 ${
-        isBest ? 'border-accent/35 dark:border-accent/45' : 'border-line/70 dark:border-slate-800'
+      className={`group relative min-w-0 border-2 border-ink bg-cream p-3 transition-all duration-200 hover:-translate-x-[3px] hover:-translate-y-[3px] hover:shadow-[6px_6px_0_var(--ink)] ${
+        isBest ? 'shadow-[5px_5px_0_var(--navy)]' : 'shadow-[4px_4px_0_var(--ink)]'
       }`}
     >
-      <Link href={`/produit/${product.id}`} className="flex min-w-0 gap-3" aria-label={`Voir le détail de ${product.name}`}>
-        <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-md bg-slate-50 dark:bg-slate-950 sm:h-32 sm:w-32">
+      <div className="absolute -top-3 -left-2 mono text-[10px] font-bold text-ink-faint">№ {number}</div>
+
+      {isBest && (
+        <div className="absolute -top-3 -right-2 z-10">
+          <div className="yellow-stamp mono text-[10px] uppercase">
+            <Sparkles size={10} strokeWidth={2.5} />
+            Meilleur prix
+          </div>
+        </div>
+      )}
+
+      {hasDiscount && !isBest && (
+        <div className="absolute -top-2.5 -right-2 z-10 price-stamp mono text-[11px]">
+          -{product.discount}%
+        </div>
+      )}
+
+      <Link
+        href={`/produit/${product.id}`}
+        className="flex min-w-0 gap-3"
+        aria-label={`Voir le détail de ${product.name}`}
+      >
+        <div className="relative h-32 w-32 shrink-0 overflow-hidden border-2 border-ink bg-paper-2 sm:h-36 sm:w-36">
           {product.image ? (
             <Image
               src={product.image}
               alt={product.name}
               fill
-              sizes="(max-width: 640px) 112px, 128px"
+              sizes="(max-width: 640px) 128px, 144px"
               priority={isBest}
               className="object-contain p-2"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-slate-300 dark:text-slate-700">
-              <Package size={32} />
+            <div className="flex h-full w-full flex-col items-center justify-center gap-1.5">
+              <Package size={28} className="text-ink-faint" strokeWidth={1.5} />
+              <span className="mono text-[9px] uppercase tracking-wider text-ink-faint">Visuel</span>
+              <span className="mono text-[9px] uppercase tracking-wider text-ink-faint">à venir</span>
             </div>
           )}
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 pr-11">
+        <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 pr-9">
           <div className="min-w-0 space-y-1.5">
-            <div className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted dark:text-slate-400">
-              <Image
-                src={retailer.logo}
-                alt={retailer.name}
-                width={14}
-                height={14}
-                className="h-3.5 w-3.5 shrink-0 object-contain"
-                unoptimized
-              />
-              <span className="truncate">{retailer.name}</span>
-              {isBest && <span className="shrink-0 text-accent">Meilleur prix</span>}
+            <div className="flex min-w-0 items-center gap-1.5">
+              <span
+                className="inline-flex h-5 w-5 shrink-0 items-center justify-center border border-ink/70 bg-cream"
+                style={{ backgroundColor: retailer.color + '22' }}
+              >
+                <Image
+                  src={retailer.logo}
+                  alt={retailer.name}
+                  width={12}
+                  height={12}
+                  className="h-3 w-3 object-contain"
+                  unoptimized
+                />
+              </span>
+              <span className="eyebrow text-ink-faint truncate">{retailer.name}</span>
             </div>
 
-            <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-accent dark:text-slate-50 sm:text-base">
+            <h3 className="editorial line-clamp-2 text-lg font-medium leading-tight text-ink transition-colors group-hover:text-navy text-pretty">
               {product.name}
             </h3>
 
             {showQuantity && product.quantity && (
-              <p className="line-clamp-1 text-xs text-muted dark:text-slate-400 sm:text-sm">
+              <p className="mono text-xs text-ink-faint line-clamp-1">
                 {product.quantity}
-                {product.unitPrice && (
-                  <span className="ml-1 opacity-70">
-                    ({formatPrice(product.unitPrice)}
-                    {product.unitPriceLabel})
+                {product.unitPrice !== undefined && product.unitPriceLabel && (
+                  <span className="ml-1.5 opacity-80">
+                    · {formatPrice(product.unitPrice)}
+                    {product.unitPriceLabel}
                   </span>
                 )}
               </p>
             )}
           </div>
 
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-              <span className={`text-xl font-bold tracking-tight sm:text-2xl ${isBest ? 'text-accent' : 'text-foreground dark:text-slate-50'}`}>
-                {formatPrice(product.price)}
+          <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1 pt-1">
+            <span className={`price-stamp mono text-2xl ${rotationClass}`}>
+              {formatPrice(product.price)}
+            </span>
+            {product.originalPrice && product.originalPrice > product.price && (
+              <span className="mono text-xs font-medium text-ink-faint line-through">
+                {formatPrice(product.originalPrice)}
               </span>
-              {product.originalPrice && product.originalPrice > product.price && (
-                <span className="text-xs font-medium text-subtle line-through dark:text-slate-500">
-                  {formatPrice(product.originalPrice)}
-                </span>
-              )}
-            </div>
-            {typeof product.discount === 'number' && product.discount > 0 && (
-              <span className="mt-0.5 block text-xs font-semibold text-danger">-{product.discount}% de réduction</span>
             )}
           </div>
         </div>
@@ -113,10 +142,10 @@ export default function ProductCard({
           href={product.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute bottom-3 right-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line/70 text-muted transition-colors hover:border-foreground hover:text-foreground dark:border-slate-700 dark:hover:border-slate-400 dark:hover:text-slate-100"
+          className="absolute bottom-3 right-3 grid h-9 w-9 shrink-0 place-items-center border-2 border-ink bg-cream text-ink shadow-[2px_2px_0_var(--ink)] transition-all hover:-translate-x-[1px] hover:-translate-y-[1px] hover:bg-ink hover:text-cream hover:shadow-[3px_3px_0_var(--ink)]"
           aria-label={`Voir ${product.name} sur le site ${retailer.name}`}
         >
-          <ExternalLink size={15} />
+          <ArrowUpRight size={14} strokeWidth={2.5} />
         </a>
       )}
     </article>

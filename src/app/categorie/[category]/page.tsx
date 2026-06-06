@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Sparkles } from 'lucide-react'
 
 import Navbar from '@/components/Navbar'
 import ProductCard from '@/components/ProductCard'
@@ -119,37 +119,85 @@ export default async function CategoryPage({
     <>
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-4 pb-20 pt-24 sm:px-6 lg:pt-28">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted transition-colors hover:text-accent dark:text-slate-400">
-          <ArrowLeft size={16} />
-          Retour à la recherche
-        </Link>
+      <section className="relative border-b-2 border-ink bg-cream pt-32 pb-12">
+        <div className="absolute inset-0 -z-10 grain" aria-hidden />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-ink-soft transition-colors hover:text-navy"
+          >
+            <ArrowLeft size={15} strokeWidth={2.5} />
+            Retour à la recherche
+          </Link>
 
-        <div className="mt-8">
-          <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground dark:text-slate-50">{categoryLabel}</h1>
-          <p className="mt-2 text-sm font-medium text-muted dark:text-slate-400">
-            {formatCount(offers.length)} offre{offers.length > 1 ? 's' : ''}
-          </p>
+          <div className="mt-8 flex items-end justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="eyebrow text-ink-faint">Rayon</span>
+                <span className="dotline h-px w-12 bg-ink/30" />
+              </div>
+              <h1 className="display-huge mt-2 text-fluid-display text-ink">
+                {categoryLabel}.
+              </h1>
+              <p className="editorial mt-4 text-xl text-ink-soft max-w-2xl text-pretty">
+                Toutes les offres de la catégorie, classées par meilleur prix, mises à jour chaque semaine.
+              </p>
+            </div>
+            <div className="hidden border-2 border-ink bg-cream p-4 shadow-[4px_4px_0_var(--ink)] sm:block">
+              <p className="eyebrow text-ink-faint">Total</p>
+              <p className="display-md mt-1 text-4xl text-navy tabular-nums">{formatCount(offers.length)}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6">
+        <div className="mb-6 sm:hidden">
+          <div className="flex items-center gap-3 border-2 border-ink bg-cream p-3 shadow-[3px_3px_0_var(--ink)]">
+            <Sparkles size={14} className="text-yellow" strokeWidth={2.5} />
+            <span className="eyebrow text-ink-faint">
+              {formatCount(offers.length)} offre{offers.length > 1 ? 's' : ''}
+            </span>
+          </div>
         </div>
 
-        <div className="mt-6 space-y-4">
+        <div className="space-y-5">
           <RetailerFilterPanel selectedRetailers={retailer} minPrice={minPrice} maxPrice={maxPrice} sort={sort} />
 
           {offers.length === 0 ? (
-            <div className="mx-auto max-w-xl rounded-lg border border-line/70 bg-white px-4 py-6 text-center dark:border-slate-800 dark:bg-slate-900">
-              <h2 className="text-lg font-semibold text-foreground dark:text-slate-100">Aucune offre trouvée</h2>
+            <div className="mx-auto max-w-xl border-2 border-ink bg-cream p-8 text-center shadow-[5px_5px_0_var(--ink)]">
+              <p className="eyebrow text-ink-faint">Page blanche</p>
+              <h2 className="display-md mt-2 text-3xl text-ink">Aucune offre trouvée</h2>
+              <p className="mt-3 text-sm text-ink-soft leading-relaxed">
+                Aucun résultat ne correspond à votre recherche dans cette catégorie.
+              </p>
               <Link
                 href="/"
-                className="mt-4 inline-flex min-h-10 items-center rounded-lg bg-foreground px-4 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
+                className="btn-ink mt-6 inline-flex min-h-11 items-center gap-2 px-5 text-sm"
               >
                 Retour à l&apos;accueil
               </Link>
             </div>
           ) : (
-            <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 28rem), 1fr))' }}>
-              {offers.map((offer, index) => (
-                <ProductCard key={offer.id} product={offer} isBest={index === 0 && sort !== 'price-desc'} />
-              ))}
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-ink pb-4">
+                <div className="flex items-baseline gap-3">
+                  <span className="display-md text-5xl text-ink tabular-nums">{offers.length}</span>
+                  <div className="leading-tight">
+                    <p className="eyebrow text-ink-faint">offres</p>
+                    <p className="editorial text-lg text-ink-soft">catégorie {categoryLabel.toLowerCase()}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Sparkles size={14} className="text-yellow" strokeWidth={2.5} />
+                  <span className="eyebrow text-ink-faint">Tri par meilleur prix</span>
+                </div>
+              </div>
+              <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 22rem), 1fr))' }}>
+                {offers.map((offer, index) => (
+                  <ProductCard key={offer.id} product={offer} isBest={index === 0 && sort !== 'price-desc'} index={index} />
+                ))}
+              </div>
             </div>
           )}
         </div>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 480" width="360" height="480" role="img" aria-labelledby="cp1v-title cp1v-desc">
+  <title id="cp1v-title">ComparPrix — Le Bulletin des Prix Discount</title>
+  <desc id="cp1v-desc">Logo ComparPrix vertical : icône loupe/cartouche € au-dessus du wordmark et tagline.</desc>
+  <defs>
+    <style>
+      .ink1 { fill: #0F1623; }
+      .navy1 { fill: #0F2C52; }
+      .cream1 { fill: #FCFDFE; }
+      .stroke-ink1 { stroke: #0F1623; fill: none; }
+      .display1 { font-family: 'Big Shoulders Display', Impact, 'Arial Black', sans-serif; font-weight: 800; letter-spacing: -0.01em; }
+      .serif1 { font-family: Fraunces, Georgia, 'Times New Roman', serif; font-weight: 700; }
+      .eyebrow1 { font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 700; letter-spacing: 0.22em; }
+    </style>
+  </defs>
+
+  <!-- ICON centered at top -->
+  <g transform="translate(80, 20)">
+    <rect x="40" y="20" width="120" height="120" class="cream1" stroke="#0F1623" stroke-width="5"/>
+    <rect x="50" y="30" width="100" height="100" class="stroke-ink1" stroke-width="2"/>
+    <text x="100" y="108" text-anchor="middle" class="serif1 ink1" font-size="110">€</text>
+
+    <circle cx="100" cy="72" r="58" class="cream1" stroke="#0F1623" stroke-width="9"/>
+    <circle cx="100" cy="72" r="50" class="stroke-ink1" stroke-width="2.5"/>
+    <text x="100" y="100" text-anchor="middle" class="serif1 navy1" font-size="86">€</text>
+
+    <line x1="143" y1="115" x2="184" y2="156" stroke="#0F1623" stroke-width="14" stroke-linecap="square"/>
+    <line x1="143" y1="115" x2="184" y2="156" stroke="#0F2C52" stroke-width="5" stroke-linecap="square"/>
+  </g>
+
+  <!-- WORDMARK centered below -->
+  <g>
+    <text x="180" y="296" text-anchor="middle" class="display1 ink1" font-size="80">Compar<tspan class="navy1">Prix</tspan></text>
+    <line x1="60" y1="312" x2="300" y2="312" stroke="#0F1623" stroke-width="3"/>
+    <line x1="60" y1="319" x2="300" y2="319" stroke="#0F1623" stroke-width="1"/>
+    <text x="180" y="346" text-anchor="middle" class="eyebrow1" font-size="13" fill="#374150">LE BULLETIN DES PRIX DISCOUNT</text>
+    <text x="180" y="392" text-anchor="middle" class="eyebrow1" font-size="11" fill="#647382">№ 01 — 10 ENSEIGNES — HEBDO</text>
+  </g>
+</svg>

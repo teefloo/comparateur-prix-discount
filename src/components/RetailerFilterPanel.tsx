@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { useId, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { ArrowDown, ArrowUp, ArrowUpDown, Check, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Check, ChevronDown, ChevronUp, RotateCcw, SlidersHorizontal } from 'lucide-react'
 
 import { RETAILERS, RETAILER_INFO } from '@/lib/catalog'
 import { normalizePriceRange, type PriceSortOption } from '@/lib/result-filters'
@@ -114,53 +114,54 @@ function RetailerFilterPanelForm({
   }
 
   const sortButtonClass = (active: boolean) =>
-    `inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-md border px-3 text-xs font-medium transition-colors ${
+    `inline-flex min-h-11 flex-1 items-center justify-center gap-2 border-2 px-3 text-xs font-semibold transition-all ${
       active
-        ? 'border-foreground bg-foreground text-background dark:border-white dark:bg-white dark:text-slate-950'
-        : 'border-line bg-white text-muted hover:border-accent hover:text-foreground dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
+        ? 'border-ink bg-ink text-cream shadow-[3px_3px_0_var(--navy)]'
+        : 'border-ink/60 bg-cream text-ink-soft shadow-[3px_3px_0_var(--ink)] hover:-translate-x-[1.5px] hover:-translate-y-[1.5px] hover:border-ink hover:bg-cream hover:text-ink hover:shadow-[4.5px_4.5px_0_var(--ink)]'
     }`
 
   return (
-    <div className="rounded-xl border border-line/70 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="border-2 border-ink bg-cream shadow-[4px_4px_0_var(--ink)]">
       <button
         type="button"
         onClick={() => setIsAdvancedOpen((value) => !value)}
-        className="flex w-full items-center justify-between gap-3 rounded-lg text-left transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-paper-2"
         aria-expanded={isAdvancedOpen}
         aria-controls={advancedPanelId}
       >
-        <div>
-          <h2 className="text-sm font-semibold text-foreground dark:text-slate-100">Avancé</h2>
-          <p className="mt-0.5 text-xs text-muted dark:text-slate-400">Enseignes, prix et tri</p>
+        <div className="flex items-center gap-3">
+          <SlidersHorizontal size={16} className="text-navy" strokeWidth={2.5} />
+          <div>
+            <h2 className="display-md text-lg text-ink leading-none">Filtres avancés</h2>
+            <p className="mt-0.5 eyebrow text-ink-faint">Enseignes · prix · tri</p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
           {activeFilterCount > 0 && (
-            <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-accent-subtle px-2 text-xs font-semibold text-accent dark:bg-accent/15 dark:text-slate-100">
-              {activeFilterCount}
-            </span>
+            <span className="price-stamp mono text-[10px]">{activeFilterCount}</span>
           )}
-          {isAdvancedOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          {isAdvancedOpen ? <ChevronUp size={16} className="text-ink" /> : <ChevronDown size={16} className="text-ink" />}
         </div>
       </button>
 
       {isAdvancedOpen && (
-        <div id={advancedPanelId} className="mt-4 space-y-4 border-t border-line/70 pt-4 dark:border-slate-800">
+        <div id={advancedPanelId} className="border-t-2 border-ink p-4 space-y-5">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold text-foreground dark:text-slate-100">Filtres avancés</h3>
+            <p className="eyebrow text-ink-faint">Configuration</p>
             <button
               type="button"
               onClick={resetFilters}
-              className="inline-flex min-h-9 items-center gap-2 rounded-md px-2 text-xs font-medium text-muted transition-colors hover:text-foreground dark:text-slate-400 dark:hover:text-slate-100"
+              className="inline-flex min-h-9 items-center gap-1.5 px-2 text-xs font-semibold text-ink-soft transition-colors hover:text-navy"
             >
-              <RotateCcw size={14} />
-              Réinitialiser
+              <RotateCcw size={13} strokeWidth={2.5} />
+              Tout effacer
             </button>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted dark:text-slate-400">Enseignes</p>
+          <div className="space-y-5">
+            <div className="space-y-2.5">
+              <p className="eyebrow text-ink-faint">Enseignes suivies</p>
               <div className="flex flex-wrap gap-2">
                 {RETAILERS.map((retailerId) => {
                   const retailer = RETAILER_INFO[retailerId]
@@ -171,14 +172,19 @@ function RetailerFilterPanelForm({
                       key={retailerId}
                       type="button"
                       onClick={() => toggleRetailer(retailerId)}
-                      className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors ${
+                      className={`inline-flex min-h-10 items-center gap-1.5 border-2 px-3 text-xs font-semibold transition-all ${
                         isSelected
-                          ? 'border-accent/30 bg-accent-subtle text-accent dark:bg-accent/15 dark:text-slate-100'
-                          : 'border-line text-muted hover:text-foreground dark:border-slate-700 dark:text-slate-300'
+                          ? 'border-ink bg-ink text-cream shadow-[2px_2px_0_var(--navy)]'
+                          : 'border-ink/60 bg-cream text-ink-soft shadow-[2px_2px_0_var(--ink)] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:border-ink hover:bg-cream hover:text-ink hover:shadow-[3px_3px_0_var(--ink)]'
                       }`}
                       aria-pressed={isSelected}
                     >
-                      <Image src={retailer.logo} alt={retailer.name} width={16} height={16} className="h-4 w-4 object-contain" unoptimized />
+                      <span
+                        className="grid h-4 w-4 shrink-0 place-items-center border border-ink/60"
+                        style={{ backgroundColor: retailer.color + '33' }}
+                      >
+                        <Image src={retailer.logo} alt={retailer.name} width={12} height={12} className="h-2.5 w-2.5 object-contain" unoptimized />
+                      </span>
                       <span>{retailer.name}</span>
                     </button>
                   )
@@ -187,37 +193,43 @@ function RetailerFilterPanelForm({
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="space-y-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted dark:text-slate-400">Prix min</span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  step="0.01"
-                  value={draftMinPrice}
-                  onChange={(event) => setDraftMinPrice(event.target.value)}
-                  placeholder="0"
-                  className="h-11 w-full rounded-md border border-line bg-white px-3 text-sm outline-none placeholder:text-subtle focus:border-accent dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
-                />
+              <label className="space-y-1.5">
+                <span className="eyebrow text-ink-faint">Prix minimum</span>
+                <div className="flex items-center border-2 border-ink/70 bg-cream shadow-[2px_2px_0_var(--ink)] focus-within:border-ink focus-within:shadow-[3px_3px_0_var(--ink)]">
+                  <span className="mono px-3 text-ink-faint">€</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.01"
+                    value={draftMinPrice}
+                    onChange={(event) => setDraftMinPrice(event.target.value)}
+                    placeholder="0,00"
+                    className="h-11 w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-mute body-sans"
+                  />
+                </div>
               </label>
 
-              <label className="space-y-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted dark:text-slate-400">Prix max</span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  step="0.01"
-                  value={draftMaxPrice}
-                  onChange={(event) => setDraftMaxPrice(event.target.value)}
-                  placeholder="0"
-                  className="h-11 w-full rounded-md border border-line bg-white px-3 text-sm outline-none placeholder:text-subtle focus:border-accent dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
-                />
+              <label className="space-y-1.5">
+                <span className="eyebrow text-ink-faint">Prix maximum</span>
+                <div className="flex items-center border-2 border-ink/70 bg-cream shadow-[2px_2px_0_var(--ink)] focus-within:border-ink focus-within:shadow-[3px_3px_0_var(--ink)]">
+                  <span className="mono px-3 text-ink-faint">€</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.01"
+                    value={draftMaxPrice}
+                    onChange={(event) => setDraftMaxPrice(event.target.value)}
+                    placeholder="99,00"
+                    className="h-11 w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-mute body-sans"
+                  />
+                </div>
               </label>
             </div>
 
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted dark:text-slate-400">Tri</p>
+            <div className="space-y-2.5">
+              <p className="eyebrow text-ink-faint">Tri des résultats</p>
               <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Tri des résultats">
                 <button
                   type="button"
@@ -225,8 +237,8 @@ function RetailerFilterPanelForm({
                   className={sortButtonClass(draftSort === 'default')}
                   aria-pressed={draftSort === 'default'}
                 >
-                  <ArrowUpDown size={14} />
-                  <span>Par défaut</span>
+                  <ArrowUpDown size={14} strokeWidth={2.5} />
+                  <span>Défaut</span>
                 </button>
                 <button
                   type="button"
@@ -234,7 +246,7 @@ function RetailerFilterPanelForm({
                   className={sortButtonClass(draftSort === 'price-asc')}
                   aria-pressed={draftSort === 'price-asc'}
                 >
-                  <ArrowUp size={14} />
+                  <ArrowUp size={14} strokeWidth={2.5} />
                   <span>Croissant</span>
                 </button>
                 <button
@@ -243,27 +255,19 @@ function RetailerFilterPanelForm({
                   className={sortButtonClass(draftSort === 'price-desc')}
                   aria-pressed={draftSort === 'price-desc'}
                 >
-                  <ArrowDown size={14} />
+                  <ArrowDown size={14} strokeWidth={2.5} />
                   <span>Décroissant</span>
                 </button>
               </div>
             </div>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <button
-                type="button"
-                onClick={applyFilters}
-                className="inline-flex min-h-10 items-center gap-2 rounded-md bg-foreground px-4 text-sm font-semibold text-white transition-colors hover:opacity-90 dark:bg-white dark:text-slate-950"
-              >
-                <Check size={14} />
-                Appliquer
+              <button type="button" onClick={applyFilters} className="btn-ink inline-flex min-h-11 items-center gap-2 px-5 text-sm">
+                <Check size={14} strokeWidth={2.5} />
+                Appliquer les filtres
               </button>
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="inline-flex min-h-10 items-center gap-2 rounded-md border border-line bg-white px-4 text-sm font-medium text-muted transition-colors hover:border-accent hover:text-foreground dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-              >
-                <RotateCcw size={14} />
+              <button type="button" onClick={resetFilters} className="btn-paper inline-flex min-h-11 items-center gap-2 px-4 text-sm">
+                <RotateCcw size={14} strokeWidth={2.5} />
                 Réinitialiser
               </button>
             </div>
