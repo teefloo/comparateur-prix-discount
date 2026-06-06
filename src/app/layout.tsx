@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Bricolage_Grotesque, Big_Shoulders, Fraunces, JetBrains_Mono } from 'next/font/google'
 import { ArrowUpRight } from 'lucide-react'
 
-import AgentationDev from '@/components/AgentationDev'
 import CookieConsent from '@/components/CookieConsent'
 import Logo from '@/components/Logo'
 import ReopenCookieBannerButton from '@/components/ReopenCookieBannerButton'
@@ -91,7 +90,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <div className="flex min-h-screen flex-col overflow-x-clip">
             <div className="flex-1 min-w-0 pb-20 md:pb-0">{children}</div>
-            <AgentationDev />
             <Footer />
           </div>
         </ThemeProvider>

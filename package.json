@@ -28,8 +28,7 @@
     "supervise:lafoirfouille": "npx tsx scripts/supervise-scrapers.ts lafoirfouille",
     "supervise:lidl": "npx tsx scripts/supervise-scrapers.ts lidl",
     "supervise:maxibazar": "npx tsx scripts/supervise-scrapers.ts maxibazar",
-    "supervise:noz": "npx tsx scripts/supervise-scrapers.ts noz",
-    "test:categories": "node --test --import tsx scripts/tests/category-resolution.test.ts scripts/tests/scraper-category-contract.test.ts scripts/tests/deals-discovery.test.ts scripts/tests/deals-api.test.ts scripts/tests/gifi-scraper.test.ts scripts/tests/lafoirfouille-scraper.test.ts scripts/tests/lidl-scraper.test.ts scripts/tests/maxibazar-scraper.test.ts scripts/tests/noz-scraper.test.ts scripts/tests/stokomani-scraper.test.ts"
+    "supervise:noz": "npx tsx scripts/supervise-scrapers.ts noz"
   },
   "dependencies": {
     "@vercel/postgres": "^0.10.0",
@@ -50,11 +49,11 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
+    "@next/bundle-analyzer": "^16.2.7",
     "@sparticuz/chromium": "^147.0.2",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "agentation": "^3.0.2",
     "autoprefixer": "^10.5.0",
     "dotenv": "^16.6.1",
     "eslint": "^9.0.0",
