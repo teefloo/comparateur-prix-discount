@@ -27,6 +27,12 @@
   <a href="#-d%C3%A9ploiement">Déploiement</a>
 </p>
 
+<!-- README-I18N:START -->
+
+**[Français](./README.md)** | [English](./README.en.md) | [Español](./README.es.md) | [Deutsch](./README.de.md) | [Italiano](./README.it.md)
+
+<!-- README-I18N:END -->
+
 ---
 
 > [!NOTE]
