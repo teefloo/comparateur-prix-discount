@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, Package, Sparkles } from 'lucide-react'
 
@@ -71,13 +70,14 @@ export default function ProductCard({
       >
         <div className="relative h-32 w-32 shrink-0 overflow-hidden border-2 border-ink bg-paper-2 sm:h-36 sm:w-36">
           {product.image ? (
-            <Image
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
               src={product.image}
               alt={product.name}
-              fill
-              sizes="(max-width: 640px) 128px, 144px"
-              priority={isBest}
-              className="object-contain p-2"
+              loading={isBest ? 'eager' : 'lazy'}
+              decoding="async"
+              fetchPriority={isBest ? 'high' : 'auto'}
+              className="absolute inset-0 h-full w-full object-contain p-2"
             />
           ) : (
             <div className="flex h-full w-full flex-col items-center justify-center gap-1.5">
@@ -95,13 +95,15 @@ export default function ProductCard({
                 className="inline-flex h-5 w-5 shrink-0 items-center justify-center border border-ink/70 bg-cream"
                 style={{ backgroundColor: retailer.color + '22' }}
               >
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={retailer.logo}
                   alt={retailer.name}
                   width={12}
                   height={12}
+                  loading="lazy"
+                  decoding="async"
                   className="h-3 w-3 object-contain"
-                  unoptimized
                 />
               </span>
               <span className="eyebrow text-ink-faint truncate">{retailer.name}</span>

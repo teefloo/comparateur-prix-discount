@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { useId, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowDown, ArrowUp, ArrowUpDown, Check, ChevronDown, ChevronUp, RotateCcw, SlidersHorizontal } from 'lucide-react'
@@ -183,7 +182,8 @@ function RetailerFilterPanelForm({
                         className="grid h-4 w-4 shrink-0 place-items-center border border-ink/60"
                         style={{ backgroundColor: retailer.color + '33' }}
                       >
-                        <Image src={retailer.logo} alt={retailer.name} width={12} height={12} className="h-2.5 w-2.5 object-contain" unoptimized />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={retailer.logo} alt={retailer.name} width={12} height={12} loading="lazy" decoding="async" className="h-2.5 w-2.5 object-contain" />
                       </span>
                       <span>{retailer.name}</span>
                     </button>

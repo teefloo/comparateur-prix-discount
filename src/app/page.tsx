@@ -12,7 +12,7 @@ import { normalizePriceRange, normalizePriceSort } from '@/lib/result-filters'
 import { runSearch } from '@/lib/search-service'
 import { absoluteUrl } from '@/lib/site'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
 type SearchParams = {
   query?: string | string[]

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, Calendar, Package, Tag } from 'lucide-react'
@@ -189,13 +188,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <div className="paper-fold pointer-events-none absolute top-0 right-0 z-10 h-10 w-10 border-b-2 border-l-2 border-ink bg-paper" />
             <div className="relative aspect-square border-b-2 border-ink bg-paper">
               {offer.image ? (
-                <Image
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                   src={offer.image}
                   alt={offer.name}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 45vw"
-                  priority
-                  className="object-contain p-8"
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                  className="absolute inset-0 h-full w-full object-contain p-8"
                 />
               ) : (
                 <div className="flex h-full items-center justify-center text-ink-faint">
@@ -261,13 +261,15 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                   )}
                 </div>
                 <div className="grid h-16 w-16 place-items-center border-2 border-ink bg-cream shadow-[3px_3px_0_var(--ink)]">
-                  <Image
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src={retailer.logo}
                     alt={retailer.name}
                     width={48}
                     height={48}
+                    loading="lazy"
+                    decoding="async"
                     className="h-10 w-10 object-contain p-1.5"
-                    unoptimized
                   />
                 </div>
               </div>

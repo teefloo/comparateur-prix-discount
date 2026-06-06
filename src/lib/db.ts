@@ -1,4 +1,5 @@
 import { sql } from '@vercel/postgres'
+import { unstable_cache } from 'next/cache'
 import pg from 'pg'
 
 import { RETAILERS, SUPPORTED_CATEGORIES, type Retailer, type SupportedCategory } from './catalog'
@@ -450,6 +451,33 @@ export async function searchOffersInDbStrict(
   })
 }
 
+const categoryOfferCache = new Map<
+  SupportedCategory,
+  (limit: number, retailer: string | undefined, sort: PriceSortOption | undefined) => Promise<RetailerOfferCard[]>
+>()
+
+function getCachedCategoryOffers(category: SupportedCategory) {
+  const existing = categoryOfferCache.get(category)
+  if (existing) {
+    return existing
+  }
+
+  const cached = unstable_cache(
+    (limit: number, retailer: string | undefined, sort: PriceSortOption | undefined) =>
+      queryOffers({
+        category,
+        limit,
+        retailer: retailer ?? null,
+        sort: sort === 'price-asc' || sort === 'price-desc' ? sort : undefined,
+      }),
+    ['offers-by-category-v1', category],
+    { revalidate: 600, tags: ['products', `cat:${category}`] },
+  )
+
+  categoryOfferCache.set(category, cached)
+  return cached
+}
+
 export async function getOffersByCategory(
   category: SupportedCategory,
   limit = 5000,
@@ -461,12 +489,8 @@ export async function getOffersByCategory(
   }
 
   try {
-    return await queryOffers({
-      category,
-      limit,
-      retailer,
-      sort: sort === 'price-asc' || sort === 'price-desc' ? sort : undefined,
-    })
+    const cached = getCachedCategoryOffers(category)
+    return await cached(limit, retailer ?? undefined, sort ?? undefined)
   } catch (error) {
     console.error('DB Error in getOffersByCategory:', error)
     return []
@@ -479,12 +503,8 @@ export async function getOffersByCategoryStrict(
   retailer?: string | null,
   sort?: PriceSortOption,
 ) {
-  return queryOffers({
-    category,
-    limit,
-    retailer,
-    sort: sort === 'price-asc' || sort === 'price-desc' ? sort : undefined,
-  })
+  const cached = getCachedCategoryOffers(category)
+  return cached(limit, retailer ?? undefined, sort ?? undefined)
 }
 
 export async function getOfferById(id: string) {

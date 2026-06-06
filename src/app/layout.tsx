@@ -27,7 +27,7 @@ const bigShoulders = Big_Shoulders({
 const fraunces = Fraunces({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
-  style: ['normal', 'italic'],
+  style: ['normal'],
   variable: '--font-editorial',
   display: 'swap',
 })
