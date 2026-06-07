@@ -1,16 +1,20 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowUpRight, Package, Sparkles } from 'lucide-react'
 
 import { RETAILER_INFO } from '@/lib/catalog'
+import BLUR_DATA_URL from '@/lib/blur-placeholder'
 import type { RetailerOfferCard } from '@/lib/types'
 
+const priceFormatter = new Intl.NumberFormat('fr-FR', {
+  style: 'currency',
+  currency: 'EUR',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
 function formatPrice(value: number) {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value)
+  return priceFormatter.format(value)
 }
 
 function getRetailerInfo(retailerId: string) {
@@ -70,14 +74,18 @@ export default function ProductCard({
       >
         <div className="relative h-32 w-32 shrink-0 overflow-hidden border-2 border-ink bg-paper-2 sm:h-36 sm:w-36">
           {product.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={product.image}
               alt={product.name}
-              loading={isBest ? 'eager' : 'lazy'}
-              decoding="async"
-              fetchPriority={isBest ? 'high' : 'auto'}
-              className="absolute inset-0 h-full w-full object-contain p-2"
+              width={144}
+              height={144}
+              sizes="(max-width:640px) 128px, 144px"
+              priority={isBest}
+              loading={!isBest ? 'lazy' : undefined}
+              fetchPriority={isBest ? 'high' : 'low'}
+              placeholder="blur"
+              blurDataURL={BLUR_DATA_URL}
+              className="h-full w-full object-contain p-2"
             />
           ) : (
             <div className="flex h-full w-full flex-col items-center justify-center gap-1.5">

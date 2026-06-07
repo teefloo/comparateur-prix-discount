@@ -1,0 +1,4 @@
+const BLUR_DATA_URL =
+  'data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4IDgiPjxmaWx0ZXIgaWQ9ImIiPjxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjAuNiIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiNlOGUyZDQiIGZpbHRlcj0idXJsKCNiKSIvPjwvc3ZnPg=='
+
+export default BLUR_DATA_URL

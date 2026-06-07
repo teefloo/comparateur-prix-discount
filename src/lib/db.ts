@@ -1,5 +1,5 @@
 import { sql } from '@vercel/postgres'
-import { unstable_cache } from 'next/cache'
+import { revalidateTag, unstable_cache } from 'next/cache'
 import pg from 'pg'
 
 import { RETAILERS, SUPPORTED_CATEGORIES, type Retailer, type SupportedCategory } from './catalog'
@@ -743,6 +743,7 @@ export async function upsertOffersBatch(offers: ValidatedOffer[]) {
     }
 
     await client.query('COMMIT')
+    revalidateTag('products', 'max')
   } catch (error) {
     await client.query('ROLLBACK').catch(() => undefined)
     console.error('DB Error in upsertOffersBatch:', error)
@@ -794,6 +795,7 @@ export async function upsertOfferPricesBatch(offers: ValidatedOffer[]) {
     }
 
     await client.query('COMMIT')
+    revalidateTag('products', 'max')
   } catch (error) {
     await client.query('ROLLBACK').catch(() => undefined)
     console.error('DB Error in upsertOfferPricesBatch:', error)

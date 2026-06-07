@@ -1,6 +1,8 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
+import { unstable_cache } from 'next/cache'
+
 import {
   CATEGORY_LABELS,
   RETAILERS,
@@ -288,11 +290,13 @@ function finalizeOffers(context: SearchContext, databaseOffers: RetailerOfferCar
 }
 
 export async function runSearch(filters: SearchFilters, deps: Partial<SearchDeps> = {}): Promise<SearchResponse> {
-  const resolvedDeps: SearchDeps = {
-    ...createDefaultDeps(),
-    ...deps,
+  if (Object.keys(deps).length > 0) {
+    return runSearchCore(filters, { ...createDefaultDeps(), ...deps })
   }
+  return cachedRunSearch(filters)
+}
 
+async function runSearchCore(filters: SearchFilters, resolvedDeps: SearchDeps): Promise<SearchResponse> {
   const query = (filters.query || '').trim()
   const category = parseCategory(filters.category)
   const selectedRetailers = normalizeRetailerSelection(filters.retailer)
@@ -351,6 +355,12 @@ export async function runSearch(filters: SearchFilters, deps: Partial<SearchDeps
     lastUpdate,
   })
 }
+
+const cachedRunSearch = unstable_cache(
+  async (filters: SearchFilters) => runSearchCore(filters, createDefaultDeps()),
+  ['run-search-v1'],
+  { revalidate: 300, tags: ['products', 'search'] },
+)
 
 export function readSearchLastUpdateTimestamp() {
   return readLastUpdateTimestamp()

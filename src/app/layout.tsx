@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import { Bricolage_Grotesque, Big_Shoulders, Fraunces, JetBrains_Mono } from 'next/font/google'
 import { ArrowUpRight } from 'lucide-react'
 
-import CookieConsent from '@/components/CookieConsent'
 import Logo from '@/components/Logo'
 import ReopenCookieBannerButton from '@/components/ReopenCookieBannerButton'
+import CookieConsentLazy from '@/components/CookieConsentLazy'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { LEGAL_PAGES, LEGAL_INFO } from '@/lib/legal'
 import { absoluteUrl, getSiteUrl } from '@/lib/site'
@@ -22,6 +22,8 @@ const bigShoulders = Big_Shoulders({
   weight: ['700', '800', '900'],
   variable: '--font-display',
   display: 'swap',
+  fallback: ['Arial Black', 'Impact', 'system-ui'],
+  adjustFontFallback: true,
 })
 
 const fraunces = Fraunces({
@@ -85,6 +87,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
+        <link rel="preconnect" href="https://cdn.shopify.com" crossOrigin="" />
+        <link rel="preconnect" href="https://asset.action.com" crossOrigin="" />
+        <link rel="preconnect" href="https://s7g10.scene7.com" crossOrigin="" />
+        <link rel="preconnect" href="https://imgproxy-retcat.assets.schwarz" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://www.gifi.fr" />
+        <link rel="dns-prefetch" href="https://www.centrakor.com" />
+        <link rel="dns-prefetch" href="https://www.lidl.fr" />
+        <link rel="dns-prefetch" href="https://www.aldi.fr" />
+        <link rel="dns-prefetch" href="https://bmstores.fr" />
+        <link rel="dns-prefetch" href="https://www.noz.fr" />
+        <link rel="dns-prefetch" href="https://www.lafoirfouille.fr" />
       </head>
       <body className="body-sans">
         <ThemeProvider>
@@ -93,7 +106,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Footer />
           </div>
         </ThemeProvider>
-        <CookieConsent />
+        <CookieConsentLazy />
       </body>
     </html>
   )

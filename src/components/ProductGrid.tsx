@@ -49,7 +49,7 @@ export default function ProductGrid({ products, loading, hasSearched, search, so
   if (loading) {
     return (
       <div className="grid gap-5" style={cardGridStyle}>
-        {[...Array(6)].map((_, index) => (
+        {[...Array(3)].map((_, index) => (
           <div key={index} className="border-2 border-ink/30 bg-cream p-3 shadow-[4px_4px_0_var(--ink)]">
             <div className="flex gap-3">
               <div className="h-32 w-32 shrink-0 animate-pulse border-2 border-ink/40 bg-paper-2 sm:h-36 sm:w-36" />

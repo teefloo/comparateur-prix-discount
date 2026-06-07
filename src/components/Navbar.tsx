@@ -28,10 +28,19 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 12)
-    handleScroll()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    const sentinel = document.createElement('div')
+    sentinel.setAttribute('aria-hidden', 'true')
+    sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:12px;pointer-events:none;visibility:hidden'
+    document.body.prepend(sentinel)
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsScrolled(!entry.isIntersecting),
+      { threshold: 0 },
+    )
+    observer.observe(sentinel)
+    return () => {
+      observer.disconnect()
+      sentinel.remove()
+    }
   }, [])
 
   return (

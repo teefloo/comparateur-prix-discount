@@ -86,6 +86,7 @@ export default function CategoryBar({
                     : 'border-ink/60 bg-cream text-ink shadow-[3px_3px_0_var(--ink)] hover:-translate-x-[2px] hover:-translate-y-[2px] hover:border-ink hover:shadow-[5px_5px_0_var(--ink)]'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
+                aria-label={`${isActive ? 'Catégorie active : ' : 'Filtrer par catégorie : '}${CATEGORY_LABELS[category]}`}
               >
                 <span
                   className={`mono text-[10px] font-bold ${
