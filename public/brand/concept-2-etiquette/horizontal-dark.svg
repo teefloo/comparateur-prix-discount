@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 180" width="740" height="180" role="img" aria-labelledby="cp2h-title cp2h-desc">
+  <title id="cp2h-title">ComparPrix — Le Bulletin des Prix Discount</title>
+  <desc id="cp2h-desc">Logo ComparPrix horizontal : étiquette de prix suspendue, € monumental, stamp № 01, wordmark éditorial.</desc>
+  <defs>
+    <style>
+      .ink2 { fill: #E8EDF3; }
+      .navy2 { fill: #7091DC; }
+      .cream2 { fill: #141820; }
+      .display2 { font-family: 'Big Shoulders Display', Impact, 'Arial Black', sans-serif; font-weight: 800; letter-spacing: -0.01em; }
+      .serif2 { font-family: Fraunces, Georgia, 'Times New Roman', serif; font-weight: 700; }
+      .eyebrow2 { font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 700; letter-spacing: 0.22em; }
+      .stamp2 { font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 700; letter-spacing: 0.18em; }
+    </style>
+  </defs>
+
+  <!-- ICON : étiquette (scale 0.88, positionnée à gauche) -->
+  <g transform="translate(15, 0) scale(0.88)">
+    <line x1="20" y1="6" x2="40" y2="65" stroke="#E8EDF3" stroke-width="4" stroke-linecap="round"/>
+    <line x1="72" y1="6" x2="40" y2="65" stroke="#E8EDF3" stroke-width="4" stroke-linecap="round"/>
+
+    <path d="M 196 54 L 196 196 L 12 196 L 12 84 L 62 54 Z" fill="#E8EDF3"/>
+    <path d="M 192 50 L 192 192 L 8 192 L 8 80 L 58 50 Z"
+          fill="#141820" stroke="#E8EDF3" stroke-width="5" stroke-linejoin="miter"/>
+
+    <circle cx="40" cy="65" r="8" fill="#141820" stroke="#E8EDF3" stroke-width="4"/>
+
+    <text x="100" y="162" text-anchor="middle" class="serif2 navy2" font-size="124">€</text>
+
+    <!-- Stamp № 01 (cartouche clair, texte sombre) -->
+    <g transform="translate(100, 182)">
+      <rect x="-22" y="-7" width="44" height="14" fill="#E8EDF3"/>
+      <text x="0" y="3" text-anchor="middle" class="stamp2" font-size="9" fill="#141820">№ 01</text>
+    </g>
+
+    <g>
+      <circle cx="160" cy="160" r="20" fill="#141820" stroke="#E8EDF3" stroke-width="5"/>
+      <circle cx="160" cy="160" r="14" fill="none" stroke="#E8EDF3" stroke-width="1.5"/>
+      <line x1="175" y1="175" x2="189" y2="189" stroke="#E8EDF3" stroke-width="7" stroke-linecap="square"/>
+      <line x1="175" y1="175" x2="189" y2="189" stroke="#7091DC" stroke-width="2.2" stroke-linecap="square"/>
+    </g>
+  </g>
+
+  <!-- WORDMARK -->
+  <g transform="translate(220, 0)">
+    <text x="0" y="106" class="display2 ink2" font-size="76">Compar<tspan class="navy2">Prix</tspan></text>
+    <line x1="0" y1="120" x2="500" y2="120" stroke="#E8EDF3" stroke-width="3"/>
+    <line x1="0" y1="127" x2="500" y2="127" stroke="#E8EDF3" stroke-width="1"/>
+    <text x="0" y="152" class="eyebrow2" font-size="12" fill="#9CA3AF">LE BULLETIN DES PRIX DISCOUNT · № 01</text>
+  </g>
+</svg>

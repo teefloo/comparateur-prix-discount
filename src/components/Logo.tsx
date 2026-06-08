@@ -28,7 +28,15 @@ export default function Logo({ className = '', withText = true, size = 44 }: Log
         alt="ComparPrix — Le Bulletin des Prix Discount"
         width={width}
         height={size}
-        className="block transition-transform duration-200 ease-out group-hover:-translate-x-[2px] group-hover:-translate-y-[2px] dark:invert"
+        className="block transition-transform duration-200 ease-out group-hover:-translate-x-[2px] group-hover:-translate-y-[2px] dark:hidden"
+        draggable={false}
+      />
+      <img
+        src={`${BASE_PATH}/${variant}-dark.svg`}
+        alt="ComparPrix — Le Bulletin des Prix Discount"
+        width={width}
+        height={size}
+        className="hidden dark:block transition-transform duration-200 ease-out group-hover:-translate-x-[2px] group-hover:-translate-y-[2px]"
         draggable={false}
       />
     </Link>
