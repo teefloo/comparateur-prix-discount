@@ -49,7 +49,7 @@ export default function SearchWorkspace({
           <div className="grid items-end gap-8 md:grid-cols-[1fr_auto]">
             <div className="space-y-6">
               <div className="flex items-center gap-3">
-                <span className="eyebrow text-ink-faint">№ 01 — Bulletin des prix discount</span>
+                <span className="eyebrow text-ink-faint">№ 01 — Bulletin discount</span>
                 <span className="dotline h-px w-12 bg-ink/40" />
                 <span className="eyebrow text-navy">10 enseignes</span>
               </div>
@@ -59,7 +59,7 @@ export default function SearchWorkspace({
                 <span className="block text-navy stamp-rotate-1">le bon prix.</span>
               </h1>
 
-              <p className="editorial text-2xl leading-snug text-ink-soft max-w-2xl text-pretty sm:text-3xl">
+              <p className="editorial text-2xl leading-snug text-ink-soft max-w-2xl text-pretty sm:text-3xl sm:leading-snug">
                 Dix enseignes discount lues en parallèle,{' '}
                 <span className="editorial-italic text-navy">une seule réponse claire</span> : le juste prix,
                 là où il se trouve, cette semaine.
@@ -164,7 +164,7 @@ function SearchForm({
           defaultValue={search}
           placeholder="Recherchez…"
           aria-label="Rechercher un produit"
-          className={`min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-ink-mute body-sans ${
+          className={`min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-ink-faint body-sans ${
             hasSearchContext ? 'py-2 text-lg' : 'py-2 text-base sm:text-2xl'
           }`}
           autoFocus={!hasSearchContext}

@@ -209,7 +209,7 @@ function SommaireSection() {
         </div>
 
         <div className="mt-12 border-t-2 border-ink pt-8">
-          <p className="eyebrow text-ink-faint mb-5">Enseignes distribuées cette semaine</p>
+          <p className="eyebrow text-ink-faint mb-5">Enseignes · cette semaine</p>
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-5">
             {RETAILERS.map((retailerId) => {
               const retailer = RETAILER_INFO[retailerId]
@@ -223,15 +223,12 @@ function SommaireSection() {
                     className="grid h-7 w-7 shrink-0 place-items-center border border-ink/70"
                     style={{ backgroundColor: retailer.color + '33' }}
                   >
-                    <span
-                      className="mono text-[10px] font-bold"
-                      style={{ color: retailer.color }}
-                    >
+                    <span className="mono text-[10px] font-bold text-ink">
                       {retailer.name.slice(0, 2).toUpperCase()}
                     </span>
                   </span>
                   <div className="min-w-0">
-                    <p className="editorial text-sm font-medium text-ink truncate group-hover:text-navy transition-colors">
+                    <p className="body-sans text-sm font-medium text-ink truncate group-hover:text-navy transition-colors">
                       {retailer.name}
                     </p>
                     <p className="mono text-[9px] text-ink-faint uppercase">scrapé chaque semaine</p>
@@ -264,6 +261,8 @@ function SommaireCard({
   accent: 'navy' | 'yellow' | 'ink'
 }) {
   const accentColor = accent === 'navy' ? 'var(--navy)' : accent === 'yellow' ? 'var(--yellow)' : 'var(--ink)'
+  // Yellow is a light fill — keep the number ink-dark for contrast; cream only on the dark fills.
+  const accentTextClass = accent === 'yellow' ? 'text-ink' : 'text-cream'
 
   return (
     <Link
@@ -274,15 +273,15 @@ function SommaireCard({
         № {number}
       </div>
       <div className="flex items-start justify-between gap-3">
-        <p className="eyebrow text-ink-faint pt-1">{kicker}</p>
+        <p className="eyebrow text-ink-soft pt-1">{kicker}</p>
         <span
           className="grid h-8 w-8 shrink-0 place-items-center border-2 border-ink"
           style={{ backgroundColor: `rgb(${accentColor})` }}
         >
-          <span className="display-md text-base text-cream leading-none">{number}</span>
+          <span className={`display-md text-base leading-none ${accentTextClass}`}>{number}</span>
         </span>
       </div>
-      <h3 className="editorial mt-5 text-2xl font-medium leading-tight text-ink text-balance">{title}</h3>
+      <h3 className="body-sans mt-5 text-2xl font-semibold leading-tight text-ink text-balance">{title}</h3>
       <p className="mt-3 text-sm leading-relaxed text-ink-soft text-pretty">{description}</p>
       <div className="mt-6 flex items-center gap-2 pt-2">
         <span className="display-md text-sm text-navy">{cta}</span>

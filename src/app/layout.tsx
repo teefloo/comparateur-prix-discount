@@ -176,7 +176,7 @@ function Footer() {
 
         <div className="rule-double" />
         <div className="flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="eyebrow text-ink-faint">Les prix varient selon les stocks et les relevés.</p>
+          <p className="mono text-[11px] tracking-wide text-ink-faint">Les prix varient selon les stocks et les relevés.</p>
           <p className="eyebrow text-ink-faint">
             © {new Date().getFullYear()} {LEGAL_INFO.serviceName} ·{' '}
             <a href="/mentions-legales" className="underline decoration-ink/30 underline-offset-2 hover:decoration-ink">

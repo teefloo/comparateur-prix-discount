@@ -200,7 +200,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
                 defaultValue={query}
                 placeholder="Filtrer les bons plans par mot-clé…"
                 aria-label="Rechercher un bon plan"
-                className="min-w-0 flex-1 bg-transparent py-3.5 text-lg text-ink outline-none placeholder:text-ink-mute body-sans"
+                className="min-w-0 flex-1 bg-transparent py-3.5 text-lg text-ink outline-none placeholder:text-ink-faint body-sans"
               />
               <button
                 type="submit"

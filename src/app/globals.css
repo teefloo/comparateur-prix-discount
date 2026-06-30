@@ -584,13 +584,13 @@
   }
 
   .text-fluid-hero {
-    font-size: clamp(2.5rem, 12vw, 10rem);
-    line-height: 0.88;
+    font-size: clamp(2.5rem, 10vw, 6rem);
+    line-height: 0.9;
   }
 
   .text-fluid-display {
-    font-size: clamp(2rem, 8vw, 6.5rem);
-    line-height: 0.92;
+    font-size: clamp(1.9rem, 7vw, 5.25rem);
+    line-height: 0.94;
   }
 
   .text-fluid-section {

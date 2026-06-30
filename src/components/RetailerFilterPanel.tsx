@@ -205,7 +205,7 @@ function RetailerFilterPanelForm({
                     value={draftMinPrice}
                     onChange={(event) => setDraftMinPrice(event.target.value)}
                     placeholder="0,00"
-                    className="h-11 w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-mute body-sans"
+                    className="h-11 w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint body-sans"
                   />
                 </div>
               </label>
@@ -222,7 +222,7 @@ function RetailerFilterPanelForm({
                     value={draftMaxPrice}
                     onChange={(event) => setDraftMaxPrice(event.target.value)}
                     placeholder="99,00"
-                    className="h-11 w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-mute body-sans"
+                    className="h-11 w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint body-sans"
                   />
                 </div>
               </label>

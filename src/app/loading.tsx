@@ -6,7 +6,7 @@ export default function Loading() {
           <span className="eyebrow text-ink-faint">№ 01 — Sous presse</span>
           <span className="dotline h-px flex-1 bg-ink/30" />
         </div>
-        <div className="display-huge text-ink">
+        <div className="display-huge text-fluid-display text-ink">
           <span className="block">Composition</span>
           <span className="block text-navy stamp-rotate-1">en cours.</span>
         </div>

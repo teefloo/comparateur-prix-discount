@@ -165,12 +165,12 @@ export default function AboutPage() {
                       className="grid h-8 w-8 shrink-0 place-items-center border-2 border-ink"
                       style={{ backgroundColor: retailer.color + '33' }}
                     >
-                      <span className="mono text-[10px] font-bold" style={{ color: retailer.color }}>
+                      <span className="mono text-[10px] font-bold text-ink">
                         {retailer.name.slice(0, 2).toUpperCase()}
                       </span>
                     </span>
                     <div className="min-w-0">
-                      <p className="editorial text-base font-medium text-ink truncate">{retailer.name}</p>
+                      <p className="body-sans text-base font-medium text-ink truncate">{retailer.name}</p>
                       <p className="mono text-[9px] text-ink-faint uppercase tracking-wider">{retailerId}</p>
                     </div>
                   </div>
