@@ -63,13 +63,6 @@ function formatDuration(ms: number): string {
   return `${minutes}m ${remainingSeconds}s`
 }
 
-function createEmptyCategoryCounts(): Record<SupportedCategory, number> {
-  return SUPPORTED_CATEGORIES.reduce(
-    (acc, cat) => { acc[cat] = 0; return acc },
-    {} as Record<SupportedCategory, number>,
-  )
-}
-
 function hasCriticalIssue(issues: ScrapeIssue[]): boolean {
   return issues.some((issue) => issue.severity !== 'warning')
 }

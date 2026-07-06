@@ -1,4 +1,5 @@
 import { RETAILERS, type Retailer } from './catalog'
+import { pruneStaleOffersByRetailer, upsertOfferPricesBatch, upsertOffersBatch } from './db'
 import { validateOffersForRetailer } from './scraper-utils'
 import type {
   OfferValidationReport,
@@ -372,4 +373,55 @@ export async function scrapeDealRetailers(options: ScrapeRetailersOptions = {}):
   }
 
   return results
+}
+
+/**
+ * Runs a single retailer's detailed scraper in isolation: validates the offers,
+ * persists them when a database URL is configured, and throws on blocking
+ * issues or empty results. Shared by the standalone `scrape:<retailer>` CLI scripts.
+ */
+export async function runIsolatedRetailerScrape(
+  retailer: Retailer,
+  displayName: string,
+  scraper: ScraperFn,
+): Promise<void> {
+  console.log(`Starting isolated ${displayName} scrape...`)
+  console.log('DB URL:', process.env.POSTGRES_URL || process.env.DATABASE_URL ? 'SET' : 'NOT SET')
+
+  const result = await scraper()
+  const validated = validateOffersForRetailer(retailer, result.offers)
+
+  console.log(
+    `${displayName} summary: raw=${result.offers.length} validated=${validated.offers.length} rejected=${validated.report.rejectedCount} coverage=${result.coverage.collectionRate}%`,
+  )
+
+  if (result.issues.length > 0) {
+    console.log(
+      `${displayName} issues: ${result.issues.map((issue) => `${issue.severity || 'error'}:${issue.code}`).join(', ')}`,
+    )
+  }
+
+  if (hasBlockingIssues(result.issues) || validated.offers.length === 0) {
+    throw new Error(
+      `${displayName} scrape failed validation: validated=${validated.offers.length} blockingIssues=${
+        hasBlockingIssues(result.issues) ? 'yes' : 'no'
+      }`,
+    )
+  }
+
+  const hasDatabaseUrl = Boolean(process.env.POSTGRES_URL || process.env.DATABASE_URL)
+  if (hasDatabaseUrl) {
+    console.log(`Persisting ${validated.offers.length} validated offers to the database...`)
+    await upsertOffersBatch(validated.offers)
+    await upsertOfferPricesBatch(validated.offers)
+    await pruneStaleOffersByRetailer(
+      retailer,
+      validated.offers.map((offer) => offer.id),
+    )
+    console.log(`Successfully persisted ${displayName} offers to the database`)
+  } else {
+    console.log('POSTGRES_URL / DATABASE_URL not set, skipping DB save')
+  }
+
+  console.log(`${displayName} scrape completed successfully with ${validated.offers.length} validated offers`)
 }
