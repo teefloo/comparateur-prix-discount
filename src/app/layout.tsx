@@ -76,6 +76,9 @@ export const metadata: Metadata = {
       "Le bulletin de chasse aux bonnes affaires : comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
     images: ['/logo.png'],
   },
+    verification: {
+    google: 'v5m0to6YetyRtZUXoz1CQYhGU2hCaaOVTHj-d-npAYo',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
