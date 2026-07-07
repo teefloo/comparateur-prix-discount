@@ -36,6 +36,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'monthly',
         priority: 0.5,
       },
+      {
+        url: absoluteUrl('/faq'),
+        lastModified: now,
+        changeFrequency: 'monthly',
+        priority: 0.5,
+      },
       ...legalEntries,
       ...SUPPORTED_CATEGORIES.map((category) => ({
         url: absoluteUrl(`/categorie/${category}`),
@@ -95,6 +101,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: absoluteUrl('/a-propos'),
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
+      url: absoluteUrl('/faq'),
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.5,
