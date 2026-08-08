@@ -290,14 +290,19 @@ function finalizeOffers(context: SearchContext, databaseOffers: RetailerOfferCar
 }
 
 export async function runSearch(filters: SearchFilters, deps: Partial<SearchDeps> = {}): Promise<SearchResponse> {
-  if (Object.keys(deps).length > 0) {
-    return runSearchCore(filters, { ...createDefaultDeps(), ...deps })
+  const normalizedFilters = {
+    ...filters,
+    query: filters.query?.trim().toLowerCase(),
   }
-  return cachedRunSearch(filters)
+
+  if (Object.keys(deps).length > 0) {
+    return runSearchCore(normalizedFilters, { ...createDefaultDeps(), ...deps })
+  }
+  return cachedRunSearch(normalizedFilters)
 }
 
 async function runSearchCore(filters: SearchFilters, resolvedDeps: SearchDeps): Promise<SearchResponse> {
-  const query = (filters.query || '').trim()
+  const query = (filters.query || '').trim().toLowerCase()
   const category = parseCategory(filters.category)
   const selectedRetailers = normalizeRetailerSelection(filters.retailer)
   const validatedRetailer = selectedRetailers.length === 1 ? selectedRetailers[0] : null
