@@ -17,6 +17,7 @@ import { launchChromiumBrowser } from './chromium-launch'
 
 const BM_BASE_URL = 'https://bmstores.fr'
 const BM_MAX_PAGES = 60
+const BM_NAVIGATION_RETRIES = 2
 
 const BM_CATEGORIES: Array<{ name: SupportedCategory | null; url: string }> = [
   { name: 'maison-deco', url: `${BM_BASE_URL}/produits/2211-maison-deco` },
@@ -76,6 +77,24 @@ function createBmIssue(
     category: category || undefined,
     page,
   }
+}
+
+async function navigateBmPage(page: Page, url: string, timeout = 30000) {
+  let lastError: unknown
+
+  for (let attempt = 1; attempt <= BM_NAVIGATION_RETRIES; attempt += 1) {
+    try {
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout })
+      return
+    } catch (error) {
+      lastError = error
+      if (attempt < BM_NAVIGATION_RETRIES) {
+        await page.waitForTimeout(1000 * attempt)
+      }
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError))
 }
 
 async function extractProductsFromPage(
@@ -193,7 +212,7 @@ async function scrapeCategory(
     const url = pageNum === 1 ? categoryUrl : `${categoryUrl}?page=${pageNum}`
 
     try {
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
+      await navigateBmPage(page, url)
       const productsFound = await page.waitForSelector('article.product-miniature', { timeout: 10000 }).catch(() => null)
       if (!productsFound) {
         completed = true
@@ -299,7 +318,7 @@ export async function scrapeBMProductsDetailed(searchQuery?: string): Promise<Re
       }
     })
 
-    await page.goto(BM_BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    await navigateBmPage(page, BM_BASE_URL)
 
     try {
       const cookieBtn = await page.$('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll')
@@ -405,7 +424,7 @@ export async function scrapeBMDealsDetailed(): Promise<RetailerScrapeDetails> {
       }
     })
 
-    await page.goto(deals.url, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    await navigateBmPage(page, deals.url)
     const html = await page.content()
     const sourceUrls = discoverDealUrlsFromHtml('bm', html, BM_BASE_URL)
     discoveredListings = sourceUrls.length

@@ -88,7 +88,6 @@ function analyzeCategories(
       status = 'missing_expected'
     } else {
       status = 'unexpected'
-      if (found > 0) expectedPresent += 1
     }
 
     analysis.push({

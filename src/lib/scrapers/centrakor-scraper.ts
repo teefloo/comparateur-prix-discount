@@ -94,7 +94,7 @@ function createCentrakorIssue(
   }
 }
 
-async function discoverRootCategories(page: Page) {
+async function discoverRootCategories(page: Page, issues: ScrapeIssue[]) {
   const discovered = new Map<SupportedCategory, string>()
 
   try {
@@ -121,7 +121,13 @@ async function discoverRootCategories(page: Page) {
       }
     }
   } catch (error) {
-    console.error('Failed to discover Centrakor root categories:', error)
+    issues.push(
+      createCentrakorIssue(
+        'root_discovery_failed',
+        `Failed to discover Centrakor root categories: ${error instanceof Error ? error.message : String(error)}`,
+        CENTRAKOR_BASE_URL,
+      ),
+    )
   }
 
   for (const [category, fallbackUrl] of Object.entries(ROOT_FALLBACKS) as Array<[SupportedCategory, string]>) {
@@ -133,7 +139,7 @@ async function discoverRootCategories(page: Page) {
   return discovered
 }
 
-async function getSubcategoryUrls(page: Page, rootUrl: string) {
+async function getSubcategoryUrls(page: Page, rootUrl: string, issues: ScrapeIssue[], category?: SupportedCategory) {
   const subcategories = new Map<string, string>()
   const rootPath = rootPathFromUrl(rootUrl)
 
@@ -163,7 +169,14 @@ async function getSubcategoryUrls(page: Page, rootUrl: string) {
       subcategories.set(absolute, link.text || absolute)
     }
   } catch (error) {
-    console.error(`Failed to discover Centrakor subcategories for ${rootUrl}:`, error)
+    issues.push(
+      createCentrakorIssue(
+        'subcategory_discovery_failed',
+        `Failed to discover Centrakor subcategories for ${rootUrl}: ${error instanceof Error ? error.message : String(error)}`,
+        rootUrl,
+        category,
+      ),
+    )
   }
 
   if (subcategories.size === 0) {
@@ -370,10 +383,10 @@ async function scrapeRootCategoryDetailed(
 
   try {
     const page = await context.newPage()
-    const subcategories = await getSubcategoryUrls(page, rootUrl)
     const offers: ScrapedOffer[] = []
     const seenUrls = new Set<string>()
     const issues: ScrapeIssue[] = []
+    const subcategories = await getSubcategoryUrls(page, rootUrl, issues, categoryName)
     let discoveredListings = subcategories.length
     let completedListings = 0
 
@@ -436,7 +449,7 @@ export async function scrapeCentrakorProductsDetailed(searchQuery?: string): Pro
     })
 
     const discoveryPage = await discoveryContext.newPage()
-    const discoveredRoots = await discoverRootCategories(discoveryPage)
+    const discoveredRoots = await discoverRootCategories(discoveryPage, issues)
     await discoveryContext.close()
 
     const hintedCategory = normalizedQuery ? inferCategoryFromText(normalizedQuery) : null

@@ -67,6 +67,19 @@ const PRODUCT_CATEGORY_CHECK_VALUES = SUPPORTED_CATEGORIES.map((category) => `'$
 const PRODUCT_RETAILER_CONSTRAINT_NAME = 'products_store_check'
 const PRODUCT_RETAILER_CHECK_VALUES = RETAILERS.map((retailer) => `'${retailer}'`).join(', ')
 
+function revalidateProductsCache() {
+  try {
+    revalidateTag('products', 'max')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    if (!message.includes('static generation store missing')) {
+      throw error
+    }
+
+    console.warn('Skipping products cache revalidation outside a Next.js request context')
+  }
+}
+
 let hasEnsuredProductCategoryConstraint = false
 let hasEnsuredProductRetailerConstraint = false
 
@@ -743,7 +756,7 @@ export async function upsertOffersBatch(offers: ValidatedOffer[]) {
     }
 
     await client.query('COMMIT')
-    revalidateTag('products', 'max')
+    revalidateProductsCache()
   } catch (error) {
     await client.query('ROLLBACK').catch(() => undefined)
     console.error('DB Error in upsertOffersBatch:', error)
@@ -795,7 +808,7 @@ export async function upsertOfferPricesBatch(offers: ValidatedOffer[]) {
     }
 
     await client.query('COMMIT')
-    revalidateTag('products', 'max')
+    revalidateProductsCache()
   } catch (error) {
     await client.query('ROLLBACK').catch(() => undefined)
     console.error('DB Error in upsertOfferPricesBatch:', error)

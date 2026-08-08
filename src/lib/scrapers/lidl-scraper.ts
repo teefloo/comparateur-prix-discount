@@ -13,6 +13,7 @@ const LIDL_PAGE_SIZE = 36
 const LIDL_MAX_PAGES_PER_SOURCE = 9999
 const LIDL_MAX_RETRIES = 3
 const LIDL_BASE_RETRY_DELAY_MS = 900
+const LIDL_SOURCE_CONCURRENCY = 4
 
 type LidlNavigationLink = {
   text: string
@@ -498,10 +499,11 @@ function buildSearchApiUrl(query: string, offset = 0) {
 async function scrapeSourcePages(
   source: LidlCategorySource,
   pageBuilder: (offset: number) => string,
-): Promise<{ offers: ScrapedOffer[]; issues: ScrapeIssue[]; discoveredListings: number }> {
+): Promise<{ offers: ScrapedOffer[]; issues: ScrapeIssue[]; discoveredListings: number; completedListings: number }> {
   const offers: ScrapedOffer[] = []
   const issues: ScrapeIssue[] = []
   let discoveredListings = 0
+  let completedListings = 0
   let offset = 0
   let page = 0
   let totalAvailable = Number.POSITIVE_INFINITY
@@ -523,6 +525,7 @@ async function scrapeSourcePages(
       offers.push(...pageOffers)
 
       const itemsLength = result.items?.length || 0
+      completedListings += itemsLength
       if (itemsLength === 0 || itemsLength < (result.fetchsize || LIDL_PAGE_SIZE)) {
         break
       }
@@ -541,7 +544,7 @@ async function scrapeSourcePages(
     }
   }
 
-  return { offers, issues, discoveredListings }
+  return { offers, issues, discoveredListings, completedListings }
 }
 
 async function discoverLidlCategorySources(): Promise<LidlCategorySource[]> {
@@ -570,7 +573,7 @@ function buildCoverage(discoveredListings: number, completedListings: number): R
     discoveredListings: safeDiscovered,
     completedListings,
     collectionRate: safeDiscovered > 0 ? Math.round((completedListings / safeDiscovered) * 100) : 0,
-    isComplete: completedListings > 0,
+    isComplete: safeDiscovered > 0 && completedListings >= safeDiscovered,
   }
 }
 
@@ -579,6 +582,7 @@ export async function scrapeLidlProductsDetailed(searchQuery?: string): Promise<
   const allIssues: ScrapeIssue[] = []
   const allOffers: ScrapedOffer[] = []
   let discoveredListings = 0
+  let completedListings = 0
 
   try {
     if (normalizedQuery) {
@@ -588,25 +592,33 @@ export async function scrapeLidlProductsDetailed(searchQuery?: string): Promise<
         sourceCategoryPath: 'Recherche Lidl',
       }
 
-      const { offers, issues, discoveredListings: searchDiscovered } = await scrapeSourcePages(searchSource, (offset) =>
+      const { offers, issues, discoveredListings: searchDiscovered, completedListings: searchCompleted } = await scrapeSourcePages(searchSource, (offset) =>
         buildSearchApiUrl(normalizedQuery, offset),
       )
       allOffers.push(...offers)
       allIssues.push(...issues)
       discoveredListings = searchDiscovered
+      completedListings = searchCompleted
     } else {
       const sources = await discoverLidlCategorySources()
-      const results = await Promise.allSettled(
-        sources.map((source) =>
-          scrapeSourcePages(source, (offset) => buildCategoryApiUrl(source.sourceUrl, offset)),
-        ),
-      )
+      const results: Array<PromiseSettledResult<Awaited<ReturnType<typeof scrapeSourcePages>>>> = []
+      for (let index = 0; index < sources.length; index += LIDL_SOURCE_CONCURRENCY) {
+        const batch = sources.slice(index, index + LIDL_SOURCE_CONCURRENCY)
+        results.push(
+          ...(await Promise.allSettled(
+            batch.map((source) =>
+              scrapeSourcePages(source, (offset) => buildCategoryApiUrl(source.sourceUrl, offset)),
+            ),
+          )),
+        )
+      }
 
       for (const result of results) {
         if (result.status === 'fulfilled') {
           allOffers.push(...result.value.offers)
           allIssues.push(...result.value.issues)
           discoveredListings += result.value.discoveredListings
+          completedListings += result.value.completedListings
         } else {
           allIssues.push(
             createIssue('page_fetch_failed', `Lidl category scrape failed: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`),
@@ -621,7 +633,7 @@ export async function scrapeLidlProductsDetailed(searchQuery?: string): Promise<
   }
 
   const dedupedOffers = dedupeBySourceProductId(allOffers)
-  const coverage = buildCoverage(discoveredListings, dedupedOffers.length)
+  const coverage = buildCoverage(discoveredListings, completedListings)
 
   if (dedupedOffers.length === 0) {
     allIssues.push(createIssue('scraper_error', 'Lidl scraper returned no validated offers'))

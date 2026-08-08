@@ -146,11 +146,11 @@ async function clickLoadMoreUntilEnd(page: Page, maxClicks: number) {
   return false
 }
 
-async function discoverRootPaths(page: Page) {
+async function discoverRootPaths(page: Page, issues: ScrapeIssue[]) {
   const rootUrl = `${ALDI_BASE_URL}/produits.html`
 
   try {
-    await page.goto(rootUrl, { waitUntil: 'networkidle', timeout: 60000 })
+    await page.goto(rootUrl, { waitUntil: 'domcontentloaded', timeout: 60000 })
     await page.waitForTimeout(1000)
     await acceptCookies(page)
 
@@ -170,17 +170,23 @@ async function discoverRootPaths(page: Page) {
       return roots
     }
   } catch (error) {
-    console.error('Failed to discover Aldi root paths:', error)
+    issues.push(
+      createAldiIssue(
+        'root_discovery_failed',
+        `Failed to discover Aldi root paths: ${error instanceof Error ? error.message : String(error)}`,
+        rootUrl,
+      ),
+    )
   }
 
   return [...ALDI_FALLBACK_ROOT_PATHS]
 }
 
-async function getSubcategoryUrls(page: Page, rootPath: string) {
+async function getSubcategoryUrls(page: Page, rootPath: string, issues: ScrapeIssue[]) {
   const rootUrl = `${ALDI_BASE_URL}/produits/${rootPath}.html`
 
   try {
-    await page.goto(rootUrl, { waitUntil: 'networkidle', timeout: 60000 })
+    await page.goto(rootUrl, { waitUntil: 'domcontentloaded', timeout: 60000 })
     await page.waitForTimeout(1000)
     await acceptCookies(page)
 
@@ -207,7 +213,13 @@ async function getSubcategoryUrls(page: Page, rootPath: string) {
       return subcategories
     }
   } catch (error) {
-    console.error(`Failed to discover Aldi subcategories for ${rootPath}:`, error)
+    issues.push(
+      createAldiIssue(
+        'subcategory_discovery_failed',
+        `Failed to discover Aldi subcategories for ${rootPath}: ${error instanceof Error ? error.message : String(error)}`,
+        rootUrl,
+      ),
+    )
   }
 
   return [{ url: rootUrl, title: rootPath }]
@@ -321,9 +333,10 @@ async function scrapeListingPage(
   const seenUrls = new Set<string>()
 
   try {
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 })
-    await page.waitForTimeout(1000)
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 })
     await acceptCookies(page)
+    await page.locator('.product-tile').first().waitFor({ state: 'attached', timeout: 15000 }).catch(() => {})
+    await page.waitForTimeout(500)
     const loadedAll = await clickLoadMoreUntilEnd(page, ALDI_MAX_LOAD_MORE_CLICKS)
 
     const tiles = await extractTilesFromPage(page)
@@ -365,11 +378,12 @@ async function scrapeAldiSearch(
   try {
     const searchUrl = `${ALDI_SEARCH_URL}${encodeURIComponent(searchQuery)}`
     await page.goto(searchUrl, {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
       timeout: 45000,
     })
-    await page.waitForTimeout(1000)
     await acceptCookies(page)
+    await page.locator('.product-tile').first().waitFor({ state: 'attached', timeout: 15000 }).catch(() => {})
+    await page.waitForTimeout(500)
     const loadedAll = await clickLoadMoreUntilEnd(page, 40)
 
     const tiles = await extractTilesFromPage(page)
@@ -464,11 +478,11 @@ export async function scrapeAldiProductsDetailed(searchQuery?: string): Promise<
       }
     }
 
-    const rootPaths = await discoverRootPaths(page)
+    const rootPaths = await discoverRootPaths(page, issues)
     discoveredListings = 0
 
     for (const rootPath of rootPaths) {
-      const subcategories = await getSubcategoryUrls(page, rootPath)
+      const subcategories = await getSubcategoryUrls(page, rootPath, issues)
       discoveredListings += subcategories.length
 
       for (const subcategory of subcategories) {
@@ -567,8 +581,9 @@ export async function scrapeAldiDealsDetailed(): Promise<RetailerScrapeDetails> 
       }
     })
 
-    await page.goto(deals.url, { waitUntil: 'networkidle', timeout: 60000 })
-    await page.waitForTimeout(1000)
+    await page.goto(deals.url, { waitUntil: 'domcontentloaded', timeout: 60000 })
+    await page.locator('.product-tile').first().waitFor({ state: 'attached', timeout: 15000 }).catch(() => {})
+    await page.waitForTimeout(500)
     await acceptCookies(page)
 
     const html = await page.content()
