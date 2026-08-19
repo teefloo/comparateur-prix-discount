@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json",
+    "test": "node scripts/run-tests.mjs",
     "scrape": "npx tsx scripts/weekly-scrape.ts",
     "scrape:deals": "npx tsx scripts/scrape-deals.ts",
     "scrape:gifi": "npx tsx scripts/scrape-gifi.ts",

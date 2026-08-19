@@ -99,6 +99,17 @@ const nextConfig = {
           },
         ],
       },
+      {
+        // Product responses are public catalog data; keep this scoped so
+        // search and other API freshness policies remain unchanged.
+        source: '/api/produit/:id',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=600, stale-while-revalidate=3600',
+          },
+        ],
+      },
     ]
   },
 }

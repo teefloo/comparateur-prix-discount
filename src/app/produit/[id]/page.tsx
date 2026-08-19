@@ -9,7 +9,14 @@ import { getDemoOfferById } from '@/lib/demo-offers'
 import { getOfferById } from '@/lib/db'
 import { absoluteUrl } from '@/lib/site'
 
-export const dynamic = 'force-dynamic'
+// Product data is public and refreshed by the weekly scraper. ISR lets Vercel
+// serve the rendered HTML from its CDN for 10 minutes, then revalidate it in
+// the background without changing the existing product URLs or SEO output.
+export const dynamic = 'force-static'
+export const revalidate = 600
+
+// Keep newly discovered DB products and existing deep links generated on demand.
+export const dynamicParams = true
 
 function formatPrice(value: number) {
   return new Intl.NumberFormat('fr-FR', {

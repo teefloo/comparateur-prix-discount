@@ -1,8 +1,10 @@
 import { sql } from '@vercel/postgres'
 import { revalidateTag, unstable_cache } from 'next/cache'
 import pg from 'pg'
+import { cache } from 'react'
 
 import { RETAILERS, SUPPORTED_CATEGORIES, type Retailer, type SupportedCategory } from './catalog'
+import { PRODUCT_CACHE_REVALIDATE_SECONDS } from './cache-policy'
 import { ensureDatabaseUrlEnv, hasDatabaseUrl } from './ensure-db-env'
 import { type PriceSortOption } from './result-filters'
 import { normalizeRetailerSelection, normalizeSearchQuery, toRetailerOfferCard } from './scraper-utils'
@@ -436,6 +438,22 @@ async function queryOffers(options: {
   return (rows as OfferDbRow[]).map(mapOfferRow)
 }
 
+/**
+ * Product details are public catalog data. Cache the DB result across
+ * requests, and invalidate it with the existing `products` tag after a
+ * successful scraper write. The page also uses this function from
+ * `generateMetadata`, so React.cache() prevents a second DB query during the
+ * same server render.
+ */
+const getCachedOfferById = unstable_cache(
+  async (id: string) => {
+    const rows = await queryOffers({ id, limit: 1 })
+    return rows[0] || null
+  },
+  ['offer-by-id-v1'],
+  { revalidate: PRODUCT_CACHE_REVALIDATE_SECONDS, tags: ['products'] },
+)
+
 export async function searchOffersInDb(query: string, category?: SupportedCategory | null, retailer?: string | null) {
   if (!hasDatabaseUrl()) {
     return []
@@ -520,19 +538,18 @@ export async function getOffersByCategoryStrict(
   return cached(limit, retailer ?? undefined, sort ?? undefined)
 }
 
-export async function getOfferById(id: string) {
+export const getOfferById = cache(async (id: string) => {
   if (!hasDatabaseUrl()) {
     return null
   }
 
   try {
-    const rows = await queryOffers({ id, limit: 1 })
-    return rows[0] || null
+    return await getCachedOfferById(id)
   } catch (error) {
     console.error('DB Error in getOfferById:', error)
     return null
   }
-}
+})
 
 export async function getDealsInDb(
   category?: SupportedCategory | null,
