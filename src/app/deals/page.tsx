@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { AlertTriangle, ArrowLeft, ArrowUpRight, Search, Sparkles } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, ArrowRight, Search } from 'lucide-react'
 
 import Navbar from '@/components/Navbar'
 import ProductCard from '@/components/ProductCard'
@@ -35,10 +35,7 @@ function parseSearchParams(searchParams: SearchParams) {
   const categoryValue = firstParam(searchParams.category)
   const category = isSupportedCategory(categoryValue) ? categoryValue : null
   const limitValue = Number.parseInt(firstParam(searchParams.limit) || '', 10)
-  const { minPrice, maxPrice } = normalizePriceRange(
-    firstParam(searchParams.minPrice),
-    firstParam(searchParams.maxPrice),
-  )
+  const { minPrice, maxPrice } = normalizePriceRange(firstParam(searchParams.minPrice), firstParam(searchParams.maxPrice))
   const sort = normalizePriceSort(firstParam(searchParams.sort))
 
   return {
@@ -116,9 +113,9 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
       type: 'website',
       images: [
         {
-          url: '/logo.png',
-          width: 512,
-          height: 512,
+          url: '/brand/comparprix-social.svg',
+          width: 1200,
+          height: 630,
           alt: 'Bons plans | ComparPrix',
         },
       ],
@@ -127,7 +124,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
       card: 'summary_large_image',
       title,
       description,
-      images: ['/logo.png'],
+      images: ['/brand/comparprix-social.svg'],
     },
   }
 }
@@ -141,73 +138,51 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
     <>
       <Navbar />
 
-      <section className="relative border-b-2 border-ink bg-cream pt-32 pb-12">
-        <div className="absolute inset-0 -z-10 grain" aria-hidden />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-ink-soft transition-colors hover:text-navy"
-          >
-            <ArrowLeft size={15} strokeWidth={2.5} />
+      <section className="border-b bg-paper">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+          <Link href="/" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-ink-soft transition-colors hover:text-navy">
+            <ArrowLeft size={16} strokeWidth={1.8} aria-hidden="true" />
             Retour à l&apos;accueil
           </Link>
 
-          <div className="mt-8 grid items-end gap-6 md:grid-cols-[1.5fr_1fr]">
+          <div className="mt-10 grid gap-8 md:grid-cols-[minmax(0,1fr)_12rem] md:items-end md:gap-12">
             <div>
-              <div className="flex items-center gap-3">
-                <span className="eyebrow text-ink-faint">№ 02 — La une du Bulletin</span>
-                <span className="dotline h-px w-12 bg-ink/30" />
-                <span className="yellow-stamp mono text-[10px] uppercase">Promotions</span>
-              </div>
-              <h1 className="display-huge mt-3 text-fluid-display text-ink">
-                Les bons
-                <span className="block text-navy stamp-rotate-1">plans.</span>
-              </h1>
-              <p className="editorial mt-5 text-2xl leading-snug text-ink-soft max-w-2xl text-pretty">
-                Le trihebdomadaire des promotions repérées dans les linéaires.{' '}
-                <span className="editorial-italic text-navy">Moins cher cette semaine</span>, c&apos;est ici.
+              <p className="meta-label">Promotions</p>
+              <h1 className="display-huge mt-3 text-fluid-display text-balance">Les bons plans de la semaine</h1>
+              <p className="mt-5 max-w-2xl text-lg leading-7 text-ink-soft">
+                Retrouvez les offres promotionnelles relevées dans les catalogues des enseignes suivies.
               </p>
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="border-2 border-ink bg-cream p-4 shadow-[4px_4px_0_var(--ink)]">
-                <p className="eyebrow text-ink-faint">Offres</p>
-                <p className="display-md text-4xl text-ink tabular-nums mt-1">{formatCount(feed.count)}</p>
-              </div>
-              <div className="border-2 border-ink bg-cream p-4 shadow-[4px_4px_0_var(--navy)]">
-                <p className="eyebrow text-ink-faint">Édition</p>
-                <p className="display-md text-2xl text-navy mt-1">№ 02</p>
-              </div>
+            <div className="border-t pt-4 md:border-l md:border-t-0 md:pl-5">
+              <p className="meta-label">Offres disponibles</p>
+              <p className="mt-1 font-mono text-3xl font-semibold tabular-nums text-ink">{formatCount(feed.count)}</p>
             </div>
           </div>
         </div>
       </section>
 
-      <main className="mx-auto max-w-7xl px-4 pb-20 pt-10 sm:px-6">
+      <main className="mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
         <div className="space-y-4">
-          <form action="/deals" method="get" className="border-2 border-ink bg-cream p-4 shadow-[4px_4px_0_var(--ink)]">
+          <form action="/deals" method="get" className="surface-elevated p-3 sm:p-4">
             {retailer.length > 0 && <input type="hidden" name="retailer" value={retailer.join(',')} />}
             {Number.isFinite(limit) && limit > 0 && <input type="hidden" name="limit" value={limit} />}
             {category && <input type="hidden" name="category" value={category} />}
             {minPrice !== null && <input type="hidden" name="minPrice" value={String(minPrice)} />}
             {maxPrice !== null && <input type="hidden" name="maxPrice" value={String(maxPrice)} />}
             {sort !== 'default' && <input type="hidden" name="sort" value={sort} />}
-            <div className="flex items-center gap-2.5 border-2 border-ink bg-cream px-3 shadow-[2px_2px_0_var(--ink)] focus-within:shadow-[3px_3px_0_var(--ink)]">
-              <Search className="shrink-0 text-ink" size={20} strokeWidth={2.5} />
+            <div className="input-shell flex min-h-14 items-center gap-3 p-1.5">
+              <Search className="ml-2 shrink-0 text-ink-soft" size={20} strokeWidth={1.8} />
               <input
                 name="query"
                 type="text"
                 defaultValue={query}
-                placeholder="Filtrer les bons plans par mot-clé…"
+                placeholder="Filtrer les bons plans par mot-clé"
                 aria-label="Rechercher un bon plan"
-                className="min-w-0 flex-1 bg-transparent py-3.5 text-lg text-ink outline-none placeholder:text-ink-faint body-sans"
+                className="min-w-0 flex-1 bg-transparent px-1 py-2 text-base text-ink outline-none placeholder:text-ink-faint body-sans sm:text-lg"
               />
-              <button
-                type="submit"
-                className="btn-ink inline-flex h-11 shrink-0 items-center gap-2 px-4 text-sm"
-              >
-                <span className="display-md leading-none">Filtrer</span>
-                <ArrowUpRight size={14} strokeWidth={2.5} />
+              <button type="submit" className="btn-primary inline-flex min-h-11 shrink-0 items-center gap-2 px-4 text-sm sm:px-5">
+                Filtrer
+                <ArrowRight size={16} strokeWidth={1.8} aria-hidden="true" />
               </button>
             </div>
           </form>
@@ -215,61 +190,48 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
           <RetailerFilterPanel selectedRetailers={retailer} minPrice={minPrice} maxPrice={maxPrice} sort={sort} />
 
           {feed.warnings.length > 0 && (
-            <div className="flex gap-3 border-2 border-yellow bg-cream p-4 text-sm text-ink shadow-[4px_4px_0_var(--yellow)]">
-              <AlertTriangle size={18} className="mt-0.5 shrink-0 text-yellow" strokeWidth={2.5} />
-              <ul className="space-y-1.5">
+            <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm text-ink">
+              <AlertTriangle size={18} className="mt-0.5 shrink-0 text-warning" strokeWidth={1.8} aria-hidden="true" />
+              <ul className="space-y-1.5 text-ink-soft">
                 {feed.warnings.map((warning) => (
-                  <li key={warning} className="leading-relaxed">{describeWarning(warning)}</li>
+                  <li key={warning} className="leading-6">{describeWarning(warning)}</li>
                 ))}
               </ul>
             </div>
           )}
         </div>
 
-        <div className="mt-8">
+        <div className="mt-10">
           {feed.products.length > 0 ? (
             <div className="space-y-6">
-              <div className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-ink pb-4">
-                <div className="flex items-baseline gap-3">
-                  <span className="display-md text-5xl text-ink tabular-nums">{feed.products.length}</span>
-                  <div className="leading-tight">
-                    <p className="eyebrow text-ink-faint">bons plans</p>
-                    {query && (
-                      <p className="editorial text-lg text-ink-soft">
-                        pour <span className="italic text-navy">«&nbsp;{query}&nbsp;»</span>
-                      </p>
-                    )}
-                  </div>
+              <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-5">
+                <div>
+                  <p className="font-mono text-4xl font-semibold tracking-tight text-ink tabular-nums">{feed.products.length}</p>
+                  <p className="mt-1 text-sm text-ink-soft">
+                    bon{feed.products.length > 1 ? 's' : ''} plan{feed.products.length > 1 ? 's' : ''}
+                    {query ? <> pour <span className="font-semibold text-navy">« {query} »</span></> : null}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Sparkles size={14} className="text-yellow" strokeWidth={2.5} />
-                  <span className="eyebrow text-ink-faint">Tri par meilleur prix</span>
-                </div>
+                <p className="text-xs font-medium text-ink-faint">Triés par prix croissant</p>
               </div>
-              <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 22rem), 1fr))' }}>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {feed.products.map((product, index) => (
                   <ProductCard key={product.id} product={product} isBest={index === 0 && sort !== 'price-desc'} index={index} />
                 ))}
               </div>
             </div>
           ) : (
-            <div className="mx-auto max-w-xl border-2 border-ink bg-cream p-8 text-center shadow-[5px_5px_0_var(--ink)]">
-              <p className="eyebrow text-ink-faint">Page blanche</p>
-              <h2 className="display-md mt-2 text-3xl text-ink">Aucun bon plan trouvé</h2>
-              <p className="mt-3 text-sm text-ink-soft leading-relaxed">
+            <div className="surface-elevated mx-auto max-w-xl p-8 text-center">
+              <p className="meta-label">Aucune correspondance</p>
+              <h2 className="mt-3 text-2xl font-semibold text-ink">Aucun bon plan trouvé</h2>
+              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-ink-soft">
                 Aucun résultat ne correspond à votre recherche. Réinitialisez les filtres ou revenez à l&apos;accueil.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <Link
-                  href="/deals"
-                  className="btn-ink inline-flex min-h-11 items-center gap-2 px-5 text-sm"
-                >
+                <Link href="/deals" className="btn-primary inline-flex min-h-11 items-center gap-2 px-5 text-sm">
                   Réinitialiser
                 </Link>
-                <Link
-                  href="/"
-                  className="btn-paper inline-flex min-h-11 items-center gap-2 px-5 text-sm"
-                >
+                <Link href="/" className="btn-secondary inline-flex min-h-11 items-center gap-2 px-5 text-sm">
                   Retour à l&apos;accueil
                 </Link>
               </div>

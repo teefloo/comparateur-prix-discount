@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
+import { ArrowRight } from 'lucide-react'
 
 import CategoryBar from '@/components/CategoryBar'
 import Navbar from '@/components/Navbar'
@@ -63,10 +65,10 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
         type: 'website',
         images: [
           {
-            url: '/logo.png',
-            width: 512,
-            height: 512,
-            alt: 'ComparPrix',
+            url: '/brand/comparprix-social.svg',
+            width: 1200,
+            height: 630,
+            alt: 'ComparPrix, comparateur de prix discount',
           },
         ],
       },
@@ -87,10 +89,10 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
       siteName: 'ComparPrix',
       images: [
         {
-          url: '/logo.png',
-          width: 512,
-          height: 512,
-          alt: 'ComparPrix',
+          url: '/brand/comparprix-social.svg',
+          width: 1200,
+          height: 630,
+          alt: 'ComparPrix, comparateur de prix discount',
         },
       ],
     },
@@ -98,7 +100,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
       card: 'summary_large_image',
       title: 'ComparPrix — Le Bulletin des Prix Discount',
       description: "Le comparateur de prix discount nouvelle génération, pour 10 enseignes françaises.",
-      images: ['/logo.png'],
+      images: ['/brand/comparprix-social.svg'],
     },
   }
 }
@@ -136,7 +138,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
       />
 
       {(hasSearched || products.length > 0) && (
-        <main className="mx-auto max-w-7xl px-4 pb-20 pt-6 sm:px-6">
+        <main className="mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
           {hasSearched && (
             <CategoryBar
               search={query}
@@ -165,74 +167,54 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 
 function SommaireSection() {
   return (
-    <section className="border-y-2 border-ink bg-cream">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-4 border-b-2 border-ink pb-5">
-          <div>
-            <p className="eyebrow text-ink-faint">Sommaire de l&apos;édition</p>
-            <h2 className="display-xl mt-2 text-5xl text-ink sm:text-6xl">Trois choses à savoir.</h2>
-          </div>
-          <p className="editorial text-lg text-ink-soft max-w-md text-pretty">
-            Une seule page, trois portes d&apos;entrée.{' '}
-            <span className="italic text-navy">Choisissez votre angle</span> et laissez faire le comparateur.
+    <section className="border-b bg-cream">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <div className="max-w-2xl">
+          <p className="meta-label">Pour commencer</p>
+          <h2 className="display-xl mt-3 text-balance">Une recherche simple, des prix lisibles.</h2>
+          <p className="mt-5 text-base leading-7 text-ink-soft">
+            Choisissez votre point d&apos;entrée et laissez ComparPrix réunir les offres utiles au même endroit.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          <SommaireCard
-            number="01"
-            kicker="L'essentiel"
-            title="Une recherche, dix réponses."
-            description="Tapez un produit. La base croise Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz en un seul coup d'œil."
-            cta="Lancer une recherche"
+        <div className="mt-10 grid border-y md:grid-cols-3 md:divide-x">
+          <QuickLink
             href="/?query=lessive"
-            accent="navy"
+            label="Rechercher un produit"
+            description="Comparez une même référence entre plusieurs enseignes."
           />
-          <SommaireCard
-            number="02"
-            kicker="Le filon"
-            title="Les bons plans du moment."
-            description="Une page dédiée aux promotions repérées cette semaine, classées par enseigne et par catégorie, pour shopper malin."
-            cta="Voir les bons plans"
+          <QuickLink
             href="/deals"
-            accent="yellow"
+            label="Voir les bons plans"
+            description="Parcourez les promotions relevées cette semaine."
           />
-          <SommaireCard
-            number="03"
-            kicker="La logique"
-            title="Le manifeste du Bulletin."
-            description="Pourquoi un comparateur ouvert, transparent, et tenu à jour chaque semaine. Sans cookie, sans tracker, sans pub."
-            cta="Lire le manifeste"
+          <QuickLink
             href="/a-propos"
-            accent="ink"
+            label="Comprendre le projet"
+            description="Découvrez la méthode et les principes de ComparPrix."
           />
         </div>
 
-        <div className="mt-12 border-t-2 border-ink pt-8">
-          <p className="eyebrow text-ink-faint mb-5">Enseignes · cette semaine</p>
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-5">
+        <div className="mt-14">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-ink">Enseignes suivies</h2>
+            <span className="meta-label">Mise à jour chaque semaine</span>
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
             {RETAILERS.map((retailerId) => {
               const retailer = RETAILER_INFO[retailerId]
               return (
                 <Link
                   key={retailerId}
                   href={`/?retailer=${retailerId}`}
-                  className="group flex items-center gap-2.5 border-2 border-ink/60 bg-cream px-3 py-2.5 shadow-[3px_3px_0_var(--ink)] transition-all hover:-translate-x-[1.5px] hover:-translate-y-[1.5px] hover:border-ink hover:shadow-[4.5px_4.5px_0_var(--ink)]"
+                  className="group flex min-h-14 items-center gap-3 rounded-lg border bg-cream px-3 transition-colors hover:border-navy"
                 >
-                  <span
-                    className="grid h-7 w-7 shrink-0 place-items-center border border-ink/70"
-                    style={{ backgroundColor: retailer.color + '33' }}
-                  >
-                    <span className="mono text-[10px] font-bold text-ink">
-                      {retailer.name.slice(0, 2).toUpperCase()}
-                    </span>
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md border bg-paper-2">
+                    <Image src={retailer.logo} alt="" width={20} height={20} className="h-5 w-5 object-contain" />
                   </span>
-                  <div className="min-w-0">
-                    <p className="body-sans text-sm font-medium text-ink truncate group-hover:text-navy transition-colors">
-                      {retailer.name}
-                    </p>
-                    <p className="mono text-[9px] text-ink-faint uppercase">scrapé chaque semaine</p>
-                  </div>
+                  <span className="min-w-0 truncate text-sm font-medium text-ink transition-colors group-hover:text-navy">
+                    {retailer.name}
+                  </span>
                 </Link>
               )
             })}
@@ -243,50 +225,14 @@ function SommaireSection() {
   )
 }
 
-function SommaireCard({
-  number,
-  kicker,
-  title,
-  description,
-  cta,
-  href,
-  accent,
-}: {
-  number: string
-  kicker: string
-  title: string
-  description: string
-  cta: string
-  href: string
-  accent: 'navy' | 'yellow' | 'ink'
-}) {
-  const accentColor = accent === 'navy' ? 'var(--navy)' : accent === 'yellow' ? 'var(--yellow)' : 'var(--ink)'
-  // Yellow is a light fill — keep the number ink-dark for contrast; cream only on the dark fills.
-  const accentTextClass = accent === 'yellow' ? 'text-ink' : 'text-cream'
-
+function QuickLink({ href, label, description }: { href: string; label: string; description: string }) {
   return (
-    <Link
-      href={href}
-      className="group relative flex flex-col border-2 border-ink bg-cream p-6 shadow-[5px_5px_0_var(--ink)] transition-all duration-200 hover:-translate-x-[4px] hover:-translate-y-[4px] hover:shadow-[9px_9px_0_var(--ink)]"
-    >
-      <div className="absolute -top-3 left-5 grid h-7 min-w-12 place-items-center border-2 border-ink bg-ink px-2 mono text-xs font-bold text-cream">
-        № {number}
+    <Link href={href} className="group flex min-h-32 flex-col justify-between gap-4 px-0 py-6 transition-colors md:px-6 first:md:pl-0 last:md:pr-0 hover:text-navy">
+      <div>
+        <h3 className="text-base font-semibold text-ink group-hover:text-navy">{label}</h3>
+        <p className="mt-2 max-w-xs text-sm leading-6 text-ink-soft">{description}</p>
       </div>
-      <div className="flex items-start justify-between gap-3">
-        <p className="eyebrow text-ink-soft pt-1">{kicker}</p>
-        <span
-          className="grid h-8 w-8 shrink-0 place-items-center border-2 border-ink"
-          style={{ backgroundColor: `rgb(${accentColor})` }}
-        >
-          <span className={`display-md text-base leading-none ${accentTextClass}`}>{number}</span>
-        </span>
-      </div>
-      <h3 className="body-sans mt-5 text-2xl font-semibold leading-tight text-ink text-balance">{title}</h3>
-      <p className="mt-3 text-sm leading-relaxed text-ink-soft text-pretty">{description}</p>
-      <div className="mt-6 flex items-center gap-2 pt-2">
-        <span className="display-md text-sm text-navy">{cta}</span>
-        <span className="text-navy transition-transform group-hover:translate-x-1">→</span>
-      </div>
+      <ArrowRight size={17} strokeWidth={1.8} className="text-navy transition-transform group-hover:translate-x-1" aria-hidden="true" />
     </Link>
   )
 }

@@ -113,54 +113,54 @@ function RetailerFilterPanelForm({
   }
 
   const sortButtonClass = (active: boolean) =>
-    `inline-flex min-h-11 flex-1 items-center justify-center gap-2 border-2 px-3 text-xs font-semibold transition-all ${
+    `inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-semibold transition-colors ${
       active
-        ? 'border-ink bg-ink text-cream shadow-[3px_3px_0_var(--navy)]'
-        : 'border-ink/60 bg-cream text-ink-soft shadow-[3px_3px_0_var(--ink)] hover:-translate-x-[1.5px] hover:-translate-y-[1.5px] hover:border-ink hover:bg-cream hover:text-ink hover:shadow-[4.5px_4.5px_0_var(--ink)]'
+        ? 'border-navy bg-navy text-white'
+        : 'border-rule bg-cream text-ink-soft hover:border-navy hover:text-navy'
     }`
 
   return (
-    <div className="border-2 border-ink bg-cream shadow-[4px_4px_0_var(--ink)]">
+    <div className="surface-elevated">
       <button
         type="button"
         onClick={() => setIsAdvancedOpen((value) => !value)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-paper-2"
+        className="flex min-h-14 w-full items-center justify-between gap-3 rounded-xl px-4 py-3.5 text-left transition-colors hover:bg-paper-2"
         aria-expanded={isAdvancedOpen}
         aria-controls={advancedPanelId}
       >
         <div className="flex items-center gap-3">
-          <SlidersHorizontal size={16} className="text-navy" strokeWidth={2.5} />
+          <SlidersHorizontal size={17} className="text-navy" strokeWidth={1.8} />
           <div>
-            <h2 className="display-md text-lg text-ink leading-none">Filtres avancés</h2>
-            <p className="mt-0.5 eyebrow text-ink-faint">Enseignes · prix · tri</p>
+            <h2 className="text-sm font-semibold text-ink">Filtres avancés</h2>
+            <p className="mt-0.5 text-xs text-ink-faint">Enseignes, prix et tri</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {activeFilterCount > 0 && (
-            <span className="price-stamp mono text-[10px]">{activeFilterCount}</span>
+            <span className="rounded-full border border-navy/30 bg-navy/10 px-2 py-1 font-mono text-[10px] font-semibold text-navy">{activeFilterCount}</span>
           )}
-          {isAdvancedOpen ? <ChevronUp size={16} className="text-ink" /> : <ChevronDown size={16} className="text-ink" />}
+          {isAdvancedOpen ? <ChevronUp size={17} className="text-ink-soft" /> : <ChevronDown size={17} className="text-ink-soft" />}
         </div>
       </button>
 
       {isAdvancedOpen && (
-        <div id={advancedPanelId} className="border-t-2 border-ink p-4 space-y-5">
+        <div id={advancedPanelId} className="space-y-5 border-t p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
-            <p className="eyebrow text-ink-faint">Configuration</p>
+            <p className="text-sm font-semibold text-ink">Configuration</p>
             <button
               type="button"
               onClick={resetFilters}
-              className="inline-flex min-h-9 items-center gap-1.5 px-2 text-xs font-semibold text-ink-soft transition-colors hover:text-navy"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-md px-2 text-xs font-semibold text-ink-soft transition-colors hover:text-navy"
             >
-              <RotateCcw size={13} strokeWidth={2.5} />
+              <RotateCcw size={13} strokeWidth={1.8} />
               Tout effacer
             </button>
           </div>
 
           <div className="space-y-5">
             <div className="space-y-2.5">
-              <p className="eyebrow text-ink-faint">Enseignes suivies</p>
+              <p className="meta-label">Enseignes suivies</p>
               <div className="flex flex-wrap gap-2">
                 {RETAILERS.map((retailerId) => {
                   const retailer = RETAILER_INFO[retailerId]
@@ -171,16 +171,15 @@ function RetailerFilterPanelForm({
                       key={retailerId}
                       type="button"
                       onClick={() => toggleRetailer(retailerId)}
-                      className={`inline-flex min-h-10 items-center gap-1.5 border-2 px-3 text-xs font-semibold transition-all ${
+                      className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold transition-colors ${
                         isSelected
-                          ? 'border-ink bg-ink text-cream shadow-[2px_2px_0_var(--navy)]'
-                          : 'border-ink/60 bg-cream text-ink-soft shadow-[2px_2px_0_var(--ink)] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:border-ink hover:bg-cream hover:text-ink hover:shadow-[3px_3px_0_var(--ink)]'
+                          ? 'border-navy bg-navy text-white'
+                          : 'border-rule bg-cream text-ink-soft hover:border-navy hover:text-navy'
                       }`}
                       aria-pressed={isSelected}
                     >
                       <span
-                        className="grid h-4 w-4 shrink-0 place-items-center border border-ink/60"
-                        style={{ backgroundColor: retailer.color + '33' }}
+                        className="grid h-5 w-5 shrink-0 place-items-center rounded-md border bg-paper-2"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={retailer.logo} alt={retailer.name} width={12} height={12} loading="lazy" decoding="async" className="h-2.5 w-2.5 object-contain" />
@@ -194,8 +193,8 @@ function RetailerFilterPanelForm({
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="space-y-1.5">
-                <span className="eyebrow text-ink-faint">Prix minimum</span>
-                <div className="flex items-center border-2 border-ink/70 bg-cream shadow-[2px_2px_0_var(--ink)] focus-within:border-ink focus-within:shadow-[3px_3px_0_var(--ink)]">
+                <span className="meta-label">Prix minimum</span>
+                <div className="input-shell flex min-h-11 items-center">
                   <span className="mono px-3 text-ink-faint">€</span>
                   <input
                     type="number"
@@ -211,8 +210,8 @@ function RetailerFilterPanelForm({
               </label>
 
               <label className="space-y-1.5">
-                <span className="eyebrow text-ink-faint">Prix maximum</span>
-                <div className="flex items-center border-2 border-ink/70 bg-cream shadow-[2px_2px_0_var(--ink)] focus-within:border-ink focus-within:shadow-[3px_3px_0_var(--ink)]">
+                <span className="meta-label">Prix maximum</span>
+                <div className="input-shell flex min-h-11 items-center">
                   <span className="mono px-3 text-ink-faint">€</span>
                   <input
                     type="number"
@@ -229,7 +228,7 @@ function RetailerFilterPanelForm({
             </div>
 
             <div className="space-y-2.5">
-              <p className="eyebrow text-ink-faint">Tri des résultats</p>
+              <p className="meta-label">Tri des résultats</p>
               <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Tri des résultats">
                 <button
                   type="button"
@@ -262,12 +261,12 @@ function RetailerFilterPanelForm({
             </div>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <button type="button" onClick={applyFilters} className="btn-ink inline-flex min-h-11 items-center gap-2 px-5 text-sm">
-                <Check size={14} strokeWidth={2.5} />
+              <button type="button" onClick={applyFilters} className="btn-primary inline-flex min-h-11 items-center gap-2 px-5 text-sm">
+                <Check size={14} strokeWidth={1.8} />
                 Appliquer les filtres
               </button>
-              <button type="button" onClick={resetFilters} className="btn-paper inline-flex min-h-11 items-center gap-2 px-4 text-sm">
-                <RotateCcw size={14} strokeWidth={2.5} />
+              <button type="button" onClick={resetFilters} className="btn-secondary inline-flex min-h-11 items-center gap-2 px-4 text-sm">
+                <RotateCcw size={14} strokeWidth={1.8} />
                 Réinitialiser
               </button>
             </div>

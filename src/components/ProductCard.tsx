@@ -1,9 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowUpRight, Package, Sparkles } from 'lucide-react'
+import { ArrowUpRight, Package } from 'lucide-react'
 
 import { RETAILER_INFO } from '@/lib/catalog'
-import BLUR_DATA_URL from '@/lib/blur-placeholder'
 import type { RetailerOfferCard } from '@/lib/types'
 
 const priceFormatter = new Intl.NumberFormat('fr-FR', {
@@ -21,8 +20,8 @@ function getRetailerInfo(retailerId: string) {
   return (
     RETAILER_INFO[retailerId as keyof typeof RETAILER_INFO] || {
       name: retailerId,
-      color: '#666',
-      logo: '?',
+      color: '#566375',
+      logo: '',
       domains: [],
     }
   )
@@ -32,7 +31,6 @@ export default function ProductCard({
   product,
   isBest = false,
   showQuantity = true,
-  index = 0,
 }: {
   product: RetailerOfferCard
   isBest?: boolean
@@ -40,106 +38,84 @@ export default function ProductCard({
   index?: number
 }) {
   const retailer = getRetailerInfo(product.retailer)
-  const number = String((index % 99) + 1).padStart(2, '0')
   const hasDiscount = typeof product.discount === 'number' && product.discount > 0
-  const rotationClass = index % 3 === 0 ? 'stamp-rotate-1' : index % 3 === 1 ? 'stamp-rotate-2' : 'stamp-rotate-3'
 
   return (
     <article
-      className={`group relative min-w-0 border-2 border-ink bg-cream p-3 transition-all duration-200 hover:-translate-x-[3px] hover:-translate-y-[3px] hover:shadow-[6px_6px_0_var(--ink)] ${
-        isBest ? 'shadow-[5px_5px_0_var(--navy)]' : 'shadow-[4px_4px_0_var(--ink)]'
+      className={`surface-elevated group flex min-w-0 h-full flex-col p-4 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-navy/50 ${
+        isBest ? 'border-navy/60' : ''
       }`}
     >
-      <div className="absolute -top-3 -left-2 mono text-[10px] font-bold text-ink-faint">№ {number}</div>
+      <div className="flex min-h-7 items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md border bg-paper-2">
+            {retailer.logo ? (
+              <Image src={retailer.logo} alt="" width={18} height={18} loading="lazy" className="h-4 w-4 object-contain" />
+            ) : (
+              <span className="font-mono text-[0.6rem] font-semibold text-ink-faint">{retailer.name.slice(0, 2).toUpperCase()}</span>
+            )}
+          </span>
+          <span className="truncate text-xs font-semibold text-ink-soft">{retailer.name}</span>
+        </div>
 
-      {isBest && (
-        <div className="absolute -top-3 -right-2 z-10">
-          <div className="yellow-stamp mono text-[10px] uppercase">
-            <Sparkles size={10} strokeWidth={2.5} />
+        {isBest ? (
+          <span className="shrink-0 rounded-full border border-navy/30 bg-navy/10 px-2 py-1 font-mono text-[0.625rem] font-semibold uppercase tracking-wide text-navy">
             Meilleur prix
-          </div>
-        </div>
-      )}
-
-      {hasDiscount && !isBest && (
-        <div className="absolute -top-2.5 -right-2 z-10 price-stamp mono text-[11px]">
-          -{product.discount}%
-        </div>
-      )}
+          </span>
+        ) : hasDiscount ? (
+          <span className="shrink-0 rounded-full border border-navy/30 bg-navy/10 px-2 py-1 font-mono text-[0.625rem] font-semibold text-navy">
+            -{product.discount}%
+          </span>
+        ) : null}
+      </div>
 
       <Link
         href={`/produit/${product.id}`}
-        className="flex min-w-0 gap-3"
+        className="mt-4 flex min-w-0 flex-1 flex-col"
         aria-label={`Voir le détail de ${product.name}`}
       >
-        <div className="relative h-32 w-32 shrink-0 overflow-hidden border-2 border-ink bg-paper-2 sm:h-36 sm:w-36">
+        <div className="relative aspect-square overflow-hidden rounded-lg border bg-paper-2">
           {product.image ? (
-            <Image
+            // Product images come from retailer sources and may use a new host over time.
+            // Keep the existing remote-image behavior without restricting the catalog to a fixed allow-list.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
               src={product.image}
               alt={product.name}
-              width={144}
-              height={144}
-              sizes="(max-width:640px) 128px, 144px"
-              priority={isBest}
-              loading={!isBest ? 'lazy' : undefined}
-              fetchPriority={isBest ? 'high' : 'low'}
-              placeholder="blur"
-              blurDataURL={BLUR_DATA_URL}
-              className="h-full w-full object-contain p-2"
+              loading={isBest ? 'eager' : 'lazy'}
+              decoding="async"
+              className="h-full w-full object-contain p-5 transition-transform duration-200 group-hover:scale-[1.02]"
             />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-1.5">
-              <Package size={28} className="text-ink-faint" strokeWidth={1.5} />
-              <span className="mono text-[9px] uppercase tracking-wider text-ink-faint">Visuel</span>
-              <span className="mono text-[9px] uppercase tracking-wider text-ink-faint">à venir</span>
+            <div className="flex h-full flex-col items-center justify-center gap-2 text-ink-faint">
+              <Package size={30} strokeWidth={1.5} aria-hidden="true" />
+              <span className="text-xs">Visuel à venir</span>
             </div>
           )}
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 pr-9">
-          <div className="min-w-0 space-y-1.5">
-            <div className="flex min-w-0 items-center gap-1.5">
-              <span
-                className="inline-flex h-5 w-5 shrink-0 items-center justify-center border border-ink/70 bg-cream"
-                style={{ backgroundColor: retailer.color + '22' }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={retailer.logo}
-                  alt={retailer.name}
-                  width={12}
-                  height={12}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-3 w-3 object-contain"
-                />
-              </span>
-              <span className="eyebrow text-ink-faint truncate">{retailer.name}</span>
-            </div>
+        <div className="mt-4 flex flex-1 flex-col">
+          <h3 className="line-clamp-2 text-base font-semibold leading-6 text-ink transition-colors group-hover:text-navy text-pretty">
+            {product.name}
+          </h3>
 
-            <h3 className="editorial line-clamp-2 text-lg font-medium leading-tight text-ink transition-colors group-hover:text-navy text-pretty">
-              {product.name}
-            </h3>
+          {showQuantity && product.quantity && (
+            <p className="mt-2 line-clamp-1 text-xs text-ink-faint">
+              {product.quantity}
+              {product.unitPrice !== undefined && product.unitPriceLabel && (
+                <span className="ml-1.5 font-mono tabular-nums">
+                  {formatPrice(product.unitPrice)}{product.unitPriceLabel}
+                </span>
+              )}
+            </p>
+          )}
 
-            {showQuantity && product.quantity && (
-              <p className="mono text-xs text-ink-faint line-clamp-1">
-                {product.quantity}
-                {product.unitPrice !== undefined && product.unitPriceLabel && (
-                  <span className="ml-1.5 opacity-80">
-                    · {formatPrice(product.unitPrice)}
-                    {product.unitPriceLabel}
-                  </span>
-                )}
-              </p>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1 pt-1">
-            <span className={`price-stamp mono text-2xl ${rotationClass}`}>
+          <div className="mt-auto flex flex-wrap items-baseline gap-x-2.5 gap-y-1 pt-5">
+            <span className="font-mono text-2xl font-semibold tracking-tight text-ink tabular-nums">
               {formatPrice(product.price)}
             </span>
             {product.originalPrice && product.originalPrice > product.price && (
-              <span className="mono text-xs font-medium text-ink-faint line-through">
+              <span className="font-mono text-xs text-ink-faint line-through tabular-nums">
                 {formatPrice(product.originalPrice)}
               </span>
             )}
@@ -152,10 +128,11 @@ export default function ProductCard({
           href={product.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute bottom-3 right-3 grid h-9 w-9 shrink-0 place-items-center border-2 border-ink bg-cream text-ink shadow-[2px_2px_0_var(--ink)] transition-all hover:-translate-x-[1px] hover:-translate-y-[1px] hover:bg-ink hover:text-cream hover:shadow-[3px_3px_0_var(--ink)]"
+          className="mt-4 inline-flex min-h-10 items-center gap-1.5 self-start text-xs font-semibold text-ink-soft underline decoration-transparent underline-offset-4 transition-colors hover:text-navy hover:decoration-navy/40"
           aria-label={`Voir ${product.name} sur le site ${retailer.name}`}
         >
-          <ArrowUpRight size={14} strokeWidth={2.5} />
+          Voir chez {retailer.name}
+          <ArrowUpRight size={14} strokeWidth={1.8} aria-hidden="true" />
         </a>
       )}
     </article>

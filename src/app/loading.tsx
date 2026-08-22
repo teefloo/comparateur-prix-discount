@@ -1,23 +1,26 @@
+import Navbar from '@/components/Navbar'
+
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-paper pt-32">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <div className="mb-3 flex items-center gap-3">
-          <span className="eyebrow text-ink-faint">№ 01 — Sous presse</span>
-          <span className="dotline h-px flex-1 bg-ink/30" />
+    <>
+      <Navbar />
+      <main className="min-h-[calc(100dvh-4rem)] bg-canvas px-4 py-16 sm:px-6 sm:py-24" aria-busy="true">
+        <div className="mx-auto max-w-3xl">
+          <p className="meta-label">Chargement</p>
+          <h1 className="display-lg mt-3 max-w-xl text-balance">Préparation des résultats.</h1>
+          <p className="mt-4 max-w-xl text-base leading-7 text-ink-soft">
+            Les données arrivent. Cette page se met à jour automatiquement.
+          </p>
+          <div className="mt-10 space-y-3" aria-hidden="true">
+            <div className="h-3 w-32 rounded-full bg-surface-strong" />
+            <div className="h-10 max-w-xl rounded-lg border border-border bg-surface" />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="h-32 rounded-xl border border-border bg-surface" />
+              <div className="h-32 rounded-xl border border-border bg-surface" />
+            </div>
+          </div>
         </div>
-        <div className="display-huge text-fluid-display text-ink">
-          <span className="block">Composition</span>
-          <span className="block text-navy stamp-rotate-1">en cours.</span>
-        </div>
-        <p className="editorial mt-5 text-2xl text-ink-soft">
-          Le Bulletin met en page les pages que vous avez demandées. Encore un instant.
-        </p>
-        <div className="mt-10 flex items-center gap-4">
-          <div className="h-2 w-2 animate-pulse-navy rounded-full bg-navy" />
-          <span className="eyebrow text-ink-faint">Encrage en cours</span>
-        </div>
-      </div>
-    </div>
+      </main>
+    </>
   )
 }

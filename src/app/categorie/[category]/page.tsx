@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Sparkles } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
 import Navbar from '@/components/Navbar'
 import ProductCard from '@/components/ProductCard'
@@ -75,9 +75,9 @@ export async function generateMetadata({ params }: { params: Promise<CategoryPag
       type: 'website',
       images: [
         {
-          url: '/logo.png',
-          width: 512,
-          height: 512,
+          url: '/brand/comparprix-social.svg',
+          width: 1200,
+          height: 630,
           alt: `${categoryLabel} | ComparPrix`,
         },
       ],
@@ -119,81 +119,54 @@ export default async function CategoryPage({
     <>
       <Navbar />
 
-      <section className="relative border-b-2 border-ink bg-cream pt-32 pb-12">
-        <div className="absolute inset-0 -z-10 grain" aria-hidden />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-ink-soft transition-colors hover:text-navy"
-          >
-            <ArrowLeft size={15} strokeWidth={2.5} />
+      <section className="border-b bg-paper">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+          <Link href="/" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-ink-soft transition-colors hover:text-navy">
+            <ArrowLeft size={16} strokeWidth={1.8} aria-hidden="true" />
             Retour à la recherche
           </Link>
 
-          <div className="mt-8 flex items-end justify-between gap-6">
+          <div className="mt-10 grid gap-8 md:grid-cols-[minmax(0,1fr)_12rem] md:items-end md:gap-12">
             <div>
-              <div className="flex items-center gap-3">
-                <span className="eyebrow text-ink-faint">Rayon</span>
-                <span className="dotline h-px w-12 bg-ink/30" />
-              </div>
-              <h1 className="display-huge mt-2 text-fluid-display text-ink">
-                {categoryLabel}.
-              </h1>
-              <p className="editorial mt-4 text-xl text-ink-soft max-w-2xl text-pretty">
-                Toutes les offres de la catégorie, classées par meilleur prix, mises à jour chaque semaine.
+              <p className="meta-label">Catégorie</p>
+              <h1 className="display-huge mt-3 text-fluid-display text-balance">{categoryLabel}</h1>
+              <p className="mt-5 max-w-2xl text-lg leading-7 text-ink-soft">
+                Les offres de cette catégorie, classées par prix et mises à jour chaque semaine.
               </p>
             </div>
-            <div className="hidden border-2 border-ink bg-cream p-4 shadow-[4px_4px_0_var(--ink)] sm:block">
-              <p className="eyebrow text-ink-faint">Total</p>
-              <p className="display-md mt-1 text-4xl text-navy tabular-nums">{formatCount(offers.length)}</p>
+            <div className="border-t pt-4 md:border-l md:border-t-0 md:pl-5">
+              <p className="meta-label">Résultats</p>
+              <p className="mt-1 font-mono text-3xl font-semibold tabular-nums text-ink">{formatCount(offers.length)}</p>
             </div>
           </div>
         </div>
       </section>
 
-      <main className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6">
-        <div className="mb-6 sm:hidden">
-          <div className="flex items-center gap-3 border-2 border-ink bg-cream p-3 shadow-[3px_3px_0_var(--ink)]">
-            <Sparkles size={14} className="text-yellow" strokeWidth={2.5} />
-            <span className="eyebrow text-ink-faint">
-              {formatCount(offers.length)} offre{offers.length > 1 ? 's' : ''}
-            </span>
-          </div>
-        </div>
-
-        <div className="space-y-5">
+      <main className="mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
+        <div className="space-y-6">
           <RetailerFilterPanel selectedRetailers={retailer} minPrice={minPrice} maxPrice={maxPrice} sort={sort} />
 
           {offers.length === 0 ? (
-            <div className="mx-auto max-w-xl border-2 border-ink bg-cream p-8 text-center shadow-[5px_5px_0_var(--ink)]">
-              <p className="eyebrow text-ink-faint">Page blanche</p>
-              <h2 className="display-md mt-2 text-3xl text-ink">Aucune offre trouvée</h2>
-              <p className="mt-3 text-sm text-ink-soft leading-relaxed">
+            <div className="surface-elevated mx-auto max-w-xl p-8 text-center">
+              <p className="meta-label">Aucune correspondance</p>
+              <h2 className="mt-3 text-2xl font-semibold text-ink">Aucune offre trouvée</h2>
+              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-ink-soft">
                 Aucun résultat ne correspond à votre recherche dans cette catégorie.
               </p>
-              <Link
-                href="/"
-                className="btn-ink mt-6 inline-flex min-h-11 items-center gap-2 px-5 text-sm"
-              >
+              <Link href="/" className="btn-primary mt-6 inline-flex min-h-11 items-center gap-2 px-5 text-sm">
                 Retour à l&apos;accueil
               </Link>
             </div>
           ) : (
             <div className="space-y-6">
-              <div className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-ink pb-4">
-                <div className="flex items-baseline gap-3">
-                  <span className="display-md text-5xl text-ink tabular-nums">{offers.length}</span>
-                  <div className="leading-tight">
-                    <p className="eyebrow text-ink-faint">offres</p>
-                    <p className="editorial text-lg text-ink-soft">catégorie {categoryLabel.toLowerCase()}</p>
-                  </div>
+              <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-5">
+                <div>
+                  <p className="font-mono text-4xl font-semibold tracking-tight text-ink tabular-nums">{offers.length}</p>
+                  <p className="mt-1 text-sm text-ink-soft">offre{offers.length > 1 ? 's' : ''} dans {categoryLabel.toLowerCase()}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Sparkles size={14} className="text-yellow" strokeWidth={2.5} />
-                  <span className="eyebrow text-ink-faint">Tri par meilleur prix</span>
-                </div>
+                <p className="text-xs font-medium text-ink-faint">Triées par prix croissant</p>
               </div>
-              <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 22rem), 1fr))' }}>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {offers.map((offer, index) => (
                   <ProductCard key={offer.id} product={offer} isBest={index === 0 && sort !== 'price-desc'} index={index} />
                 ))}

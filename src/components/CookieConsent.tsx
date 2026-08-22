@@ -87,19 +87,20 @@ export default function CookieConsent() {
     <div
       role="dialog"
       aria-live="polite"
+      aria-modal="false"
       aria-label="Information sur les cookies"
       className="fixed inset-x-3 bottom-3 z-[100] sm:inset-x-auto sm:right-4 sm:bottom-4 sm:max-w-md"
     >
-      <div className="border-2 border-ink bg-cream p-4 shadow-[5px_5px_0_var(--ink)]">
+      <div className="surface-elevated rounded-xl p-4">
         <div className="flex items-start gap-3">
           <div
-            className="grid h-10 w-10 shrink-0 place-items-center border-2 border-ink bg-navy text-cream shadow-[2px_2px_0_var(--ink)]"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-accent-soft text-navy"
             aria-hidden
           >
             <Cookie size={18} strokeWidth={2.5} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="display-md text-sm uppercase tracking-wider text-ink">Cookies — version courte</p>
+              <p className="text-sm font-semibold tracking-tight text-ink">Cookies — version courte</p>
             <p className="editorial mt-1.5 text-sm leading-relaxed text-ink-soft">
               ComparPrix utilise uniquement le stockage local de votre navigateur pour mémoriser
               votre thème (clair / sombre). Aucun cookie publicitaire, aucun tracker tiers, aucune
@@ -108,7 +109,7 @@ export default function CookieConsent() {
 
             {showDetails ? (
               <ul className="mt-3 space-y-1.5 border-t border-ink/15 pt-3 text-xs text-ink-soft">
-                <li className="flex justify-between gap-3">
+                <li className="flex justify-between gap-3 border-t border-border pt-1.5 first:border-0 first:pt-0">
                   <span>
                     <span className="mono font-bold text-ink">localStorage</span> · Thème
                     (fonctionnel)
@@ -129,14 +130,14 @@ export default function CookieConsent() {
               <button
                 type="button"
                 onClick={acknowledge}
-                className="inline-flex min-h-9 items-center gap-1.5 border-2 border-ink bg-ink px-3.5 text-xs font-semibold text-cream shadow-[2px_2px_0_var(--navy)] transition-all hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0_var(--navy)]"
+                className="btn-primary inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3.5 text-xs"
               >
                 Compris
               </button>
               <button
                 type="button"
                 onClick={() => setShowDetails((value) => !value)}
-                className="inline-flex min-h-9 items-center gap-1.5 border-2 border-ink bg-cream px-3 text-xs font-semibold text-ink shadow-[2px_2px_0_var(--ink)] transition-all hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0_var(--ink)]"
+                className="btn-secondary inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-xs"
               >
                 <Settings2 size={12} strokeWidth={2.5} />
                 {showDetails ? 'Masquer le détail' : 'Voir le détail'}
@@ -153,7 +154,7 @@ export default function CookieConsent() {
             type="button"
             onClick={acknowledge}
             aria-label="Fermer le bandeau cookies"
-            className="grid h-7 w-7 shrink-0 place-items-center text-ink-soft transition-colors hover:text-ink"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-ink-soft transition-colors hover:bg-surface-muted hover:text-ink"
           >
             <X size={14} strokeWidth={2.5} />
           </button>
@@ -162,7 +163,7 @@ export default function CookieConsent() {
         <button
           type="button"
           onClick={reset}
-          className="mt-3 block w-full text-left text-[10px] uppercase tracking-widest text-ink-faint hover:text-ink"
+          className="mt-3 block min-h-11 w-full text-left text-[10px] uppercase tracking-widest text-ink-faint transition-colors hover:text-ink"
         >
           Réinitialiser mes préférences cookies
         </button>

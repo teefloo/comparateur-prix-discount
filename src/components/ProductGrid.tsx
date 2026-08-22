@@ -1,9 +1,8 @@
 'use client'
 
-import type { CSSProperties } from 'react'
 import type { Variants } from 'framer-motion'
 import { motion } from 'framer-motion'
-import { AlertTriangle, SearchX, Sparkles } from 'lucide-react'
+import { AlertTriangle, SearchX } from 'lucide-react'
 
 import ProductCard from './ProductCard'
 import type { PriceSortOption } from '@/lib/result-filters'
@@ -23,24 +22,19 @@ const container: Variants = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.08,
+      staggerChildren: 0.04,
+      delayChildren: 0.04,
     },
   },
 }
 
 const item: Variants = {
-  hidden: { opacity: 0, y: 14, rotate: -1 },
+  hidden: { opacity: 0, y: 10 },
   show: {
     opacity: 1,
     y: 0,
-    rotate: 0,
-    transition: { duration: 0.4, ease: [0.2, 0.8, 0.2, 1] as [number, number, number, number] },
+    transition: { duration: 0.2, ease: [0.2, 0.8, 0.2, 1] as [number, number, number, number] },
   },
-}
-
-const cardGridStyle: CSSProperties = {
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 22rem), 1fr))',
 }
 
 export default function ProductGrid({ products, loading, hasSearched, search, sort, error }: ProductGridProps) {
@@ -48,20 +42,14 @@ export default function ProductGrid({ products, loading, hasSearched, search, so
 
   if (loading) {
     return (
-      <div className="grid gap-5" style={cardGridStyle}>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {[...Array(3)].map((_, index) => (
-          <div key={index} className="border-2 border-ink/30 bg-cream p-3 shadow-[4px_4px_0_var(--ink)]">
-            <div className="flex gap-3">
-              <div className="h-32 w-32 shrink-0 animate-pulse border-2 border-ink/40 bg-paper-2 sm:h-36 sm:w-36" />
-              <div className="flex flex-1 flex-col justify-between py-1 pr-9">
-                <div className="space-y-2.5">
-                  <div className="h-3 w-24 animate-pulse bg-ink/15" />
-                  <div className="h-5 w-4/5 animate-pulse bg-ink/15" />
-                  <div className="h-3 w-1/2 animate-pulse bg-ink/15" />
-                </div>
-                <div className="h-8 w-32 animate-pulse bg-navy/30" />
-              </div>
-            </div>
+          <div key={index} className="surface-elevated p-4">
+            <div className="h-7 w-28 rounded-md bg-paper-2" />
+            <div className="mt-4 aspect-square rounded-lg bg-paper-2" />
+            <div className="mt-4 h-5 w-4/5 rounded bg-paper-2" />
+            <div className="mt-3 h-4 w-2/5 rounded bg-paper-2" />
+            <div className="mt-6 h-7 w-28 rounded bg-paper-2" />
           </div>
         ))}
       </div>
@@ -70,35 +58,21 @@ export default function ProductGrid({ products, loading, hasSearched, search, so
 
   if (error && hasSearched && products.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mx-auto my-8 flex max-w-xl gap-3 border-2 border-ink bg-cream p-5 text-sm shadow-[5px_5px_0_var(--navy)]"
-      >
-        <AlertTriangle size={20} className="mt-0.5 shrink-0 text-navy" strokeWidth={2.5} />
-        <div>
-          <h3 className="display-md text-xl text-ink">Recherche indisponible</h3>
-          <p className="mt-1.5 text-ink-soft leading-relaxed">{error}</p>
-        </div>
-      </motion.div>
+      <StateMessage
+        icon={<AlertTriangle size={20} strokeWidth={1.8} aria-hidden="true" />}
+        title="Recherche indisponible"
+        description={error}
+      />
     )
   }
 
   if (hasSearched && products.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mx-auto my-8 flex max-w-xl gap-3 border-2 border-ink bg-cream p-5 text-sm shadow-[5px_5px_0_var(--ink)]"
-      >
-        <SearchX size={20} className="mt-0.5 shrink-0 text-navy" strokeWidth={2.5} />
-        <div>
-          <h3 className="display-md text-xl text-ink">Aucun résultat</h3>
-          <p className="mt-1.5 text-ink-soft leading-relaxed">
-            {search ? `Pas d'offre relevée pour "${search}".` : 'Aucune offre disponible pour le moment.'}
-          </p>
-        </div>
-      </motion.div>
+      <StateMessage
+        icon={<SearchX size={20} strokeWidth={1.8} aria-hidden="true" />}
+        title="Aucun résultat"
+        description={search ? `Pas d'offre relevée pour « ${search} ».` : 'Aucune offre disponible pour le moment.'}
+      />
     )
   }
 
@@ -107,26 +81,24 @@ export default function ProductGrid({ products, loading, hasSearched, search, so
   }
 
   return (
-    <section className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-ink pb-4">
-        <div className="flex items-baseline gap-3">
-          <span className="display-md text-5xl text-ink tabular-nums">{products.length}</span>
-          <div className="leading-tight">
-            <p className="eyebrow text-ink-faint">offres</p>
-            {search && (
-              <p className="editorial text-lg text-ink-soft">
-                pour <span className="text-navy italic">«&nbsp;{search}&nbsp;»</span>
-              </p>
-            )}
-          </div>
+    <section className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-5">
+        <div>
+          <p className="font-mono text-4xl font-semibold tracking-tight text-ink tabular-nums sm:text-5xl">{products.length}</p>
+          <p className="mt-1 text-sm text-ink-soft">
+            offre{products.length > 1 ? 's' : ''}
+            {search ? <> pour <span className="font-semibold text-navy">« {search} »</span></> : null}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Sparkles size={14} className="text-yellow" strokeWidth={2.5} />
-          <span className="eyebrow text-ink-faint">Tri par meilleur prix</span>
-        </div>
+        <p className="text-xs font-medium text-ink-faint">Triées par prix croissant</p>
       </div>
 
-      <motion.div variants={container} initial="hidden" animate="show" className="grid gap-5" style={cardGridStyle}>
+      <motion.div
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3"
+      >
         {products.map((product, index) => (
           <motion.div key={product.id} variants={item} className="min-w-0">
             <ProductCard product={product} isBest={index === 0 && highlightTopResult} index={index} />
@@ -134,5 +106,25 @@ export default function ProductGrid({ products, loading, hasSearched, search, so
         ))}
       </motion.div>
     </section>
+  )
+}
+
+function StateMessage({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode
+  title: string
+  description: string
+}) {
+  return (
+    <div className="surface-elevated mx-auto my-8 flex max-w-xl items-start gap-3 p-6">
+      <span className="mt-0.5 shrink-0 text-navy">{icon}</span>
+      <div>
+        <h3 className="text-lg font-semibold text-ink">{title}</h3>
+        <p className="mt-1.5 text-sm leading-6 text-ink-soft">{description}</p>
+      </div>
+    </div>
   )
 }

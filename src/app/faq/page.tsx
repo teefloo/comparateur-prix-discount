@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Navbar from '@/components/Navbar'
 import { absoluteUrl } from '@/lib/site'
 
 const FAQ_DESCRIPTION =
@@ -21,13 +22,13 @@ export const metadata: Metadata = {
     locale: 'fr_FR',
     url: absoluteUrl('/faq'),
     siteName: 'ComparPrix',
-    images: [{ url: '/logo.png', width: 512, height: 512, alt: 'ComparPrix' }],
+    images: [{ url: '/brand/comparprix-social.svg', width: 1200, height: 630, alt: 'ComparPrix' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'FAQ — ComparPrix',
     description: FAQ_OG_DESCRIPTION,
-    images: ['/logo.png'],
+    images: ['/brand/comparprix-social.svg'],
   },
   other: {
     robots: 'index, follow',
@@ -211,30 +212,30 @@ export default function FAQPage() {
     <>
       <FAQSchema />
       <BreadcrumbSchema />
-      <main className="mx-auto max-w-7xl px-4 pb-20 pt-16 sm:px-6">
-        <header className="mb-12 border-b-2 border-ink pb-10">
-          <p className="eyebrow text-ink-faint mb-3">Questions fréquentes</p>
-          <h1 className="display-xl text-5xl text-ink sm:text-6xl max-w-3xl">Tout comprendre sur ComparPrix.</h1>
-          <p className="editorial mt-5 text-lg text-ink-soft max-w-2xl text-pretty">
+      <Navbar />
+      <main className="mx-auto max-w-6xl px-4 pb-20 pt-10 sm:px-6 sm:pt-12 lg:px-8">
+        <header className="mb-10 max-w-3xl border-b pb-8">
+          <p className="meta-label">Questions fréquentes</p>
+          <h1 className="display-xl mt-3 text-balance">Tout comprendre sur ComparPrix.</h1>
+          <p className="mt-5 text-base leading-7 text-ink-soft text-pretty">
             Le Bulletin des Prix Discount répond à vos questions sur le fonctionnement, la fiabilité, les enseignes couvertes et l&apos;indépendance du comparateur.
           </p>
-          <p className="mt-6 mono text-xs text-ink-faint">
-            <span aria-hidden="true">№ </span>
+          <p className="mt-6 font-mono text-xs text-ink-faint">
             <time dateTime={FAQ_LAST_REVIEWED}>Mis à jour le {formattedDate}</time>
-            <span aria-hidden="true"> · </span>
-            15 questions · 5 catégories
+            <span aria-hidden="true"> | </span>
+            15 questions | 5 catégories
           </p>
         </header>
 
         <nav className="mb-10 overflow-x-auto pb-4" aria-label="Sommaire FAQ par catégorie">
-          <ol className="flex gap-3 min-w-max mono text-sm font-medium">
-            {faqs.map((cat, i) => (
+          <ol className="flex min-w-max gap-2 text-sm font-medium">
+            {faqs.map((cat) => (
               <li key={cat.id}>
                 <a
                   href={`#${cat.id}`}
-                  className="px-4 py-2 border-2 border-ink/60 bg-cream shadow-[2px_2px_0_var(--ink)] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0_var(--ink)] hover:border-ink transition-all"
+                  className="inline-flex min-h-10 items-center rounded-full border bg-cream px-4 py-2 transition-colors hover:border-navy hover:text-navy"
                 >
-                  <span className="text-ink-faint">{String(i + 1).padStart(2, '0')} —</span> {cat.category}
+                  <span>{cat.category}</span>
                 </a>
               </li>
             ))}
@@ -242,47 +243,41 @@ export default function FAQPage() {
         </nav>
 
         <div className="space-y-10">
-          {faqs.map((cat, catIndex) => (
+          {faqs.map((cat) => (
             <section
               key={cat.id}
               id={cat.id}
               aria-labelledby={`${cat.id}-title`}
-              className="border-y-2 border-ink bg-cream p-8 sm:p-10"
+              className="border-b py-10 first:border-t"
             >
-              <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
+              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
                 <h2
                   id={`${cat.id}-title`}
-                  className="editorial text-3xl font-medium text-ink flex items-center gap-3"
+                  className="text-2xl font-semibold tracking-tight text-ink"
                 >
-                  <span className="grid h-10 w-10 place-items-center border-2 border-ink bg-ink text-cream mono text-lg">
-                    № {String(catIndex + 1).padStart(2, '0')}
-                  </span>
                   {cat.category}
                 </h2>
-                <p className="mono text-xs text-ink-faint sm:max-w-xs sm:text-right">{cat.blurb}</p>
+                <p className="max-w-sm text-sm leading-6 text-ink-soft sm:text-right">{cat.blurb}</p>
               </div>
 
-              <dl className="space-y-4">
+              <dl className="divide-y">
                 {cat.questions.map(({ q, a, link }, qIndex) => (
-                  <div key={q} className="border-2 border-ink/60 bg-cream">
+                  <div key={q}>
                     <details className="group" open={qIndex === 0}>
-                      <summary className="flex items-start justify-between gap-4 p-6 cursor-pointer list-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-cream">
-                        <span className="mono text-[10px] font-bold text-ink-faint shrink-0 pt-1">
-                          Q{String(qIndex + 1).padStart(2, '0')}
-                        </span>
-                        <h3 className="editorial flex-1 text-xl font-medium text-ink leading-tight text-balance pr-4">
+                      <summary className="flex cursor-pointer list-none items-start justify-between gap-4 py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+                        <h3 className="flex-1 pr-4 text-lg font-semibold leading-tight text-ink text-balance">
                           {q}
                         </h3>
                         <span
-                          className="grid h-8 w-8 shrink-0 place-items-center border-2 border-ink bg-ink text-cream mono text-base transition-transform group-open:rotate-45"
+                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full border text-ink-soft transition-transform group-open:rotate-45"
                           aria-hidden="true"
                         >
                           +
                         </span>
                       </summary>
-                      <div className="px-6 pb-6 pt-2 border-t border-ink/30">
+                      <div className="pb-5 pr-12">
                         <p
-                          className="text-ink-soft leading-relaxed text-pretty"
+                          className="text-sm leading-6 text-ink-soft text-pretty"
                           dangerouslySetInnerHTML={{ __html: a }}
                         />
                         {link && (
@@ -302,17 +297,16 @@ export default function FAQPage() {
             </section>
           ))}
 
-          <section className="border-y-2 border-ink bg-cream p-8 sm:p-10 text-center">
-            <h2 className="editorial text-3xl font-medium text-ink mb-4">Une question sans réponse ?</h2>
-            <p className="text-ink-soft mb-6 max-w-xl mx-auto">
+          <section className="surface-elevated p-8 text-center sm:p-10">
+            <h2 className="text-2xl font-semibold tracking-tight text-ink">Une question sans réponse ?</h2>
+            <p className="mx-auto mb-6 mt-4 max-w-xl text-sm leading-6 text-ink-soft">
               Consultez les mentions légales ou écrivez-nous. Nous répondons sous 48 h ouvrées et enrichissons cette FAQ avec vos retours.
             </p>
             <Link
               href="/mentions-legales"
-              className="inline-flex items-center gap-2 border-2 border-ink bg-ink text-cream px-6 py-3 shadow-[4px_4px_0_var(--ink)] hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[6px_6px_0_var(--ink)] transition-all mono text-sm font-bold"
+              className="btn-primary inline-flex min-h-11 items-center gap-2 px-6 text-sm"
             >
               Nous contacter
-              <span aria-hidden="true">→</span>
             </Link>
           </section>
         </div>

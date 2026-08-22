@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Bricolage_Grotesque, Big_Shoulders, Fraunces, JetBrains_Mono } from 'next/font/google'
+import { Bricolage_Grotesque, JetBrains_Mono } from 'next/font/google'
 import { ArrowUpRight } from 'lucide-react'
 
 import Logo from '@/components/Logo'
@@ -17,23 +17,6 @@ const bricolage = Bricolage_Grotesque({
   display: 'swap',
 })
 
-const bigShoulders = Big_Shoulders({
-  subsets: ['latin'],
-  weight: ['700', '800', '900'],
-  variable: '--font-display',
-  display: 'swap',
-  fallback: ['Arial Black', 'Impact', 'system-ui'],
-  adjustFontFallback: true,
-})
-
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  style: ['normal'],
-  variable: '--font-editorial',
-  display: 'swap',
-})
-
 const jetbrains = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['500', '600', '700'],
@@ -41,53 +24,49 @@ const jetbrains = JetBrains_Mono({
   display: 'swap',
 })
 
+const socialImage = {
+  url: '/brand/comparprix-social.svg',
+  width: 1200,
+  height: 630,
+  alt: 'ComparPrix, comparateur de prix discount',
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: 'ComparPrix — Le Bulletin des Prix Discount',
+    default: 'ComparPrix | Le comparateur de prix discount',
     template: '%s | ComparPrix',
   },
   description:
-    "Le bulletin de chasse aux bonnes affaires : comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
+    "Le comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'ComparPrix — Le Bulletin des Prix Discount',
+    title: 'ComparPrix | Le comparateur de prix discount',
     description:
-      "Le bulletin de chasse aux bonnes affaires : comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
+      "Comparez les prix de 10 enseignes discount et repérez rapidement l'offre la plus intéressante.",
     type: 'website',
     locale: 'fr_FR',
     url: absoluteUrl('/'),
     siteName: 'ComparPrix',
-    images: [
-      {
-        url: '/logo.png',
-        width: 512,
-        height: 512,
-        alt: 'ComparPrix',
-      },
-    ],
+    images: [socialImage],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ComparPrix — Le Bulletin des Prix Discount',
+    title: 'ComparPrix | Le comparateur de prix discount',
     description:
-      "Le bulletin de chasse aux bonnes affaires : comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
-    images: ['/logo.png'],
+      "Comparez les prix de 10 enseignes discount et repérez rapidement l'offre la plus intéressante.",
+    images: ['/brand/comparprix-social.svg'],
   },
-    verification: {
+  verification: {
     google: 'v5m0to6YetyRtZUXoz1CQYhGU2hCaaOVTHj-d-npAYo',
   },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="fr"
-      className={`${bricolage.variable} ${bigShoulders.variable} ${fraunces.variable} ${jetbrains.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang="fr" className={`${bricolage.variable} ${jetbrains.variable}`} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
         <link rel="preconnect" href="https://cdn.shopify.com" crossOrigin="" />
@@ -104,8 +83,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="body-sans">
         <ThemeProvider>
-          <div className="flex min-h-screen flex-col overflow-x-clip">
-            <div className="flex-1 min-w-0 pb-20 md:pb-0">{children}</div>
+          <div className="flex min-h-[100dvh] flex-col overflow-x-clip">
+            <div id="main-content" className="min-w-0 flex-1">
+              {children}
+            </div>
             <Footer />
           </div>
         </ThemeProvider>
@@ -117,82 +98,57 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 function Footer() {
   return (
-    <footer className="border-t-2 border-ink/85 bg-cream">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="rule-double" />
-        <div className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
-          <div className="space-y-5">
-            <Logo />
-            <p className="editorial text-base leading-relaxed text-ink-soft max-w-md text-pretty">
-              Le journal de celles et ceux qui traquent la bonne affaire. Une seule liste, dix enseignes, et toujours le prix le plus juste à portée de main.
+    <footer className="border-t bg-cream">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
+          <div className="max-w-sm">
+            <Logo size={36} />
+            <p className="mt-5 text-sm leading-6 text-ink-soft">
+              Comparez les prix de vos enseignes discount préférées et trouvez l&apos;offre la plus juste en quelques secondes.
             </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="eyebrow text-ink-faint">№ 01 — Hebdo</span>
-              <span className="dotline h-px w-12 bg-ink/30" />
-              <span className="eyebrow text-ink-faint">10 enseignes</span>
-            </div>
+            <p className="mt-5 meta-label">Données relevées chaque semaine</p>
           </div>
 
-          <div>
-            <p className="eyebrow text-ink-faint">Le Bulletin</p>
-            <div className="mt-4 flex flex-col gap-2.5">
+          <nav aria-label="Navigation secondaire">
+            <p className="meta-label">Navigation</p>
+            <div className="mt-4 flex flex-col items-start gap-3">
               <FooterLink href="/">Recherche produits</FooterLink>
-              <FooterLink href="/deals">Bons plans du moment</FooterLink>
-              <FooterLink href="/a-propos">Manifeste</FooterLink>
+              <FooterLink href="/deals">Bons plans</FooterLink>
+              <FooterLink href="/a-propos">À propos</FooterLink>
               <FooterLink href="/faq">FAQ</FooterLink>
             </div>
-          </div>
+          </nav>
 
-          <div>
-            <p className="eyebrow text-ink-faint">Légal & RGPD</p>
-            <div className="mt-4 flex flex-col gap-2.5">
+          <nav aria-label="Informations légales">
+            <p className="meta-label">Informations</p>
+            <div className="mt-4 flex flex-col items-start gap-3">
               {LEGAL_PAGES.map((page) => (
                 <FooterLink key={page.slug} href={`/${page.slug}`}>
                   {page.title}
                 </FooterLink>
               ))}
-              <div className="pt-1">
-                <ReopenCookieBannerButton className="text-xs" />
-              </div>
+              <ReopenCookieBannerButton className="text-sm" />
             </div>
-          </div>
+          </nav>
+        </div>
 
+        <div className="mt-12 grid gap-6 border-t pt-6 sm:grid-cols-[1fr_auto] sm:items-end">
           <div>
-            <p className="eyebrow text-ink-faint">Sources</p>
             <a
               href="https://github.com/teefloo/comparateur-prix-discount"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 group flex items-center justify-between gap-3 border-2 border-ink bg-cream p-4 shadow-[4px_4px_0_var(--ink)] transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[6px_6px_0_var(--ink)]"
+              className="group inline-flex items-center gap-2 text-sm font-semibold text-ink transition-colors hover:text-navy"
             >
-              <div>
-                <p className="display-md text-xl text-ink">Dépôt public</p>
-                <p className="eyebrow text-ink-faint mt-1">teefloo / github</p>
-              </div>
-              <ArrowUpRight size={18} className="text-ink transition-transform group-hover:rotate-45" />
+              Voir le dépôt public
+              <ArrowUpRight size={15} strokeWidth={2} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </a>
-            <p className="mt-3 text-xs text-ink-faint leading-relaxed">
-              Le code source, les scrapers et le planning hebdomadaire sont publics.
-            </p>
+            <p className="mt-2 text-xs text-ink-faint">Le code et les scrapers sont accessibles publiquement.</p>
           </div>
-        </div>
-
-        <div className="rule-double" />
-        <div className="flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="mono text-[11px] tracking-wide text-ink-faint">Les prix varient selon les stocks et les relevés.</p>
-          <p className="eyebrow text-ink-faint">
-            © {new Date().getFullYear()} {LEGAL_INFO.serviceName} ·{' '}
-            <a href="/mentions-legales" className="underline decoration-ink/30 underline-offset-2 hover:decoration-ink">
-              Mentions légales
-            </a>
-            {' · '}
-            <a
-              href={`mailto:${LEGAL_INFO.publisher.contactEmail}`}
-              className="underline decoration-ink/30 underline-offset-2 hover:decoration-ink"
-            >
-              Contact
-            </a>
-          </p>
+          <div className="text-left text-xs text-ink-faint sm:text-right">
+            <p>Les prix peuvent varier selon les stocks et les magasins.</p>
+            <p className="mt-1">© {new Date().getFullYear()} {LEGAL_INFO.serviceName}</p>
+          </div>
         </div>
       </div>
     </footer>
@@ -203,7 +159,7 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
   return (
     <a
       href={href}
-      className="editorial text-lg text-ink underline decoration-ink/30 decoration-1 underline-offset-4 transition-colors hover:decoration-navy hover:text-navy"
+      className="text-sm text-ink-soft underline decoration-transparent underline-offset-4 transition-colors hover:text-navy hover:decoration-navy/40"
     >
       {children}
     </a>

@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, ArrowDown, Search, Sparkles } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Search } from 'lucide-react'
 
 import RetailerFilterPanel from './RetailerFilterPanel'
 import type { SupportedCategory } from '@/lib/catalog'
@@ -18,8 +18,6 @@ interface SearchWorkspaceProps {
   error?: string
 }
 
-const STAMP_WORDS = ['moins cher', 'plus malin', 'mieux placé']
-
 export default function SearchWorkspace({
   search,
   selectedCategory,
@@ -34,43 +32,37 @@ export default function SearchWorkspace({
     search || selectedCategory || selectedRetailers.length > 0 || minPrice !== null || maxPrice !== null || sort !== 'default',
   )
   const showNotice = Boolean(error || source === 'demo-fallback')
-  const noticeLabel = error ? 'Recherche indisponible' : 'Mode démo local'
+  const noticeLabel = error ? 'La recherche rencontre un problème' : 'Résultats de démonstration'
 
   return (
-    <section
-      className={`relative border-b-2 border-ink ${
-        hasSearchContext ? 'pt-32 pb-8' : 'pt-32 pb-20 md:pt-40 md:pb-32'
-      }`}
-    >
-      <div className="absolute inset-0 -z-10 paper-fold grain" aria-hidden />
-
+    <section className="border-b bg-paper">
       {!hasSearchContext ? (
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="grid items-end gap-8 md:grid-cols-[1fr_auto]">
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <span className="eyebrow text-ink-faint">№ 01 — Bulletin discount</span>
-                <span className="dotline h-px w-12 bg-ink/40" />
-                <span className="eyebrow text-navy">10 enseignes</span>
-              </div>
-
-              <h1 className="display-huge text-fluid-hero text-ink">
-                Trouvez
-                <span className="block text-navy stamp-rotate-1">le bon prix.</span>
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_14rem] lg:items-end lg:gap-16">
+            <div className="max-w-3xl">
+              <p className="meta-label">ComparPrix</p>
+              <h1 className="display-huge mt-4 text-balance">
+                Trouvez <span className="text-navy">le bon prix.</span>
               </h1>
-
-              <p className="editorial text-2xl leading-snug text-ink-soft max-w-2xl text-pretty sm:text-3xl sm:leading-snug">
-                Dix enseignes discount lues en parallèle,{' '}
-                <span className="editorial-italic text-navy">une seule réponse claire</span> : le juste prix,
-                là où il se trouve, cette semaine.
+              <p className="mt-6 max-w-2xl text-lg leading-7 text-ink-soft sm:text-xl">
+                Comparez 10 enseignes discount au même endroit et repérez rapidement le prix le plus juste.
               </p>
             </div>
 
-            <div className="hidden md:flex flex-col items-end gap-2">
-              <span className="yellow-stamp mono uppercase tracking-widest text-xs">10 enseignes</span>
-              <span className="price-stamp-lg mono text-4xl">-78%</span>
-              <span className="eyebrow text-ink-faint mt-1">réduction max relevée</span>
-            </div>
+            <dl className="grid grid-cols-3 gap-4 border-t pt-5 lg:block lg:border-t-0 lg:border-l lg:pl-6">
+              <div>
+                <dt className="meta-label">Enseignes</dt>
+                <dd className="mt-1 font-mono text-lg font-semibold tabular-nums text-ink">10</dd>
+              </div>
+              <div className="lg:mt-5">
+                <dt className="meta-label">Catégories</dt>
+                <dd className="mt-1 font-mono text-lg font-semibold tabular-nums text-ink">13</dd>
+              </div>
+              <div className="lg:mt-5">
+                <dt className="meta-label">Mise à jour</dt>
+                <dd className="mt-1 font-mono text-sm font-semibold text-ink">Chaque semaine</dd>
+              </div>
+            </dl>
           </div>
 
           <div className="mt-10 max-w-4xl">
@@ -88,13 +80,13 @@ export default function SearchWorkspace({
             />
           </div>
 
-          <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
-            <span className="eyebrow text-ink-faint">Essayez</span>
+          <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+            <span className="meta-label">Essayez</span>
             {['Lessive', 'Brosse à dents', 'Café moulu', 'Puzzle'].map((example) => (
               <a
                 key={example}
                 href={`/?query=${encodeURIComponent(example)}`}
-                className="editorial text-lg text-ink underline decoration-ink/30 decoration-1 underline-offset-4 transition-colors hover:decoration-navy hover:text-navy"
+                className="font-medium text-ink underline decoration-border-strong underline-offset-4 transition-colors hover:text-navy hover:decoration-navy"
               >
                 {example}
               </a>
@@ -102,23 +94,22 @@ export default function SearchWorkspace({
           </div>
         </div>
       ) : (
-        <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="eyebrow text-ink-faint">Recherche en cours</span>
-            <span className="dotline h-px flex-1 bg-ink/30" />
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+          <p className="meta-label">Recherche</p>
+          <div className="mt-4 max-w-4xl">
+            <SearchForm
+              hasSearchContext={hasSearchContext}
+              search={search}
+              selectedCategory={selectedCategory}
+              selectedRetailers={selectedRetailers}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              sort={sort}
+              showNotice={showNotice}
+              noticeLabel={noticeLabel}
+              error={error}
+            />
           </div>
-          <SearchForm
-            hasSearchContext={hasSearchContext}
-            search={search}
-            selectedCategory={selectedCategory}
-            selectedRetailers={selectedRetailers}
-            minPrice={minPrice}
-            maxPrice={maxPrice}
-            sort={sort}
-            showNotice={showNotice}
-            noticeLabel={noticeLabel}
-            error={error}
-          />
         </div>
       )}
     </section>
@@ -156,46 +147,44 @@ function SearchForm({
       {maxPrice !== null && <input type="hidden" name="maxPrice" value={String(maxPrice)} />}
       {sort !== 'default' && <input type="hidden" name="sort" value={sort} />}
 
-      <div className="field-shell flex items-center gap-2.5 px-4 py-3 sm:px-5 sm:py-4">
-        <Search className="shrink-0 text-ink" size={hasSearchContext ? 20 : 24} strokeWidth={2.5} />
+      <div className="field-shell flex min-h-14 items-center gap-3 p-1.5 sm:p-2">
+        <Search className="ml-2 shrink-0 text-ink-soft" size={20} strokeWidth={1.8} />
         <input
           name="query"
           type="text"
           defaultValue={search}
-          placeholder="Recherchez…"
+          placeholder="Rechercher un produit"
           aria-label="Rechercher un produit"
-          className={`min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-ink-faint body-sans ${
-            hasSearchContext ? 'py-2 text-lg' : 'py-2 text-base sm:text-2xl'
+          className={`min-w-0 flex-1 bg-transparent px-1 text-ink outline-none placeholder:text-ink-faint body-sans ${
+            hasSearchContext ? 'py-2 text-base' : 'py-2 text-base sm:text-lg'
           }`}
           autoFocus={!hasSearchContext}
         />
         <button
           type="submit"
-          className={`btn-ink inline-flex shrink-0 items-center justify-center gap-2 ${
-            hasSearchContext ? 'h-11 px-4 text-sm' : 'h-12 px-4 text-sm sm:h-14 sm:px-7 sm:text-lg'
+          className={`btn-primary inline-flex min-h-11 shrink-0 items-center justify-center gap-2 px-4 text-sm sm:px-5 ${
+            hasSearchContext ? '' : 'sm:min-h-12'
           }`}
         >
-          <span className="display-md leading-none">Comparer</span>
-          {!hasSearchContext && <ArrowDown size={18} className="hidden sm:block" strokeWidth={2.5} />}
+          <span>Comparer</span>
+          <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
         </button>
       </div>
 
       {showNotice && (
-        <div className="flex items-center gap-2 px-1 text-sm">
-          {error ? <AlertTriangle size={15} className="text-navy" /> : <Sparkles size={15} className="text-yellow" />}
-          <span className="eyebrow text-ink-faint">{noticeLabel}</span>
+        <div className="flex items-start gap-2 rounded-lg border border-rule bg-paper-2 px-3 py-2.5 text-sm text-ink-soft">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-navy" strokeWidth={1.8} aria-hidden="true" />
+          <span>{error || noticeLabel}</span>
         </div>
       )}
 
       {hasSearchContext && (
-        <div className="pt-1">
-          <RetailerFilterPanel
-            selectedRetailers={selectedRetailers}
-            minPrice={minPrice}
-            maxPrice={maxPrice}
-            sort={sort}
-          />
-        </div>
+        <RetailerFilterPanel
+          selectedRetailers={selectedRetailers}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          sort={sort}
+        />
       )}
     </form>
   )

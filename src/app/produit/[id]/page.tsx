@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, Calendar, Package, Tag } from 'lucide-react'
 
@@ -9,13 +10,8 @@ import { getDemoOfferById } from '@/lib/demo-offers'
 import { getOfferById } from '@/lib/db'
 import { absoluteUrl } from '@/lib/site'
 
-// Product data is public and refreshed by the weekly scraper. ISR lets Vercel
-// serve the rendered HTML from its CDN for 10 minutes, then revalidate it in
-// the background without changing the existing product URLs or SEO output.
 export const dynamic = 'force-static'
 export const revalidate = 600
-
-// Keep newly discovered DB products and existing deep links generated on demand.
 export const dynamicParams = true
 
 function formatPrice(value: number) {
@@ -77,7 +73,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     .join(' - ')
 
   return {
-    title: `${offer.name}`,
+    title: offer.name,
     description:
       offer.description ||
       `${offer.name} chez ${retailer.name}. ${offer.price.toFixed(2)} EUR${offer.unitPrice ? `, ${offer.unitPrice}${offer.unitPriceLabel || ''}` : ''}.`,
@@ -91,9 +87,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       url: absoluteUrl(`/produit/${resolvedParams.id}`),
       images: [
         {
-          url: offer.image || '/logo.png',
-          width: 1200,
-          height: 630,
+          url: offer.image || '/brand/comparprix-social.svg',
+          width: offer.image ? 1200 : 1200,
+          height: offer.image ? 1200 : 630,
           alt: offer.name,
         },
       ],
@@ -102,7 +98,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       card: 'summary_large_image',
       title: offer.name,
       description,
-      images: [offer.image || '/logo.png'],
+      images: [offer.image || '/brand/comparprix-social.svg'],
     },
   }
 }
@@ -139,195 +135,143 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   }
 
   const savings = offer.originalPrice && offer.originalPrice > offer.price ? offer.originalPrice - offer.price : null
-  const savingsPercent =
-    savings && offer.originalPrice ? Math.round((savings / offer.originalPrice) * 100) : null
+  const savingsPercent = savings && offer.originalPrice ? Math.round((savings / offer.originalPrice) * 100) : null
   const isOnPromo = Boolean(offer.isOnPromotion && savings && savings > 0)
 
   return (
     <>
       <Navbar />
 
-      <section className="relative border-b-2 border-ink bg-cream pt-28 pb-12 sm:pt-32">
-        <div className="absolute inset-0 -z-10 grain" aria-hidden />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-ink-soft transition-colors hover:text-navy"
-          >
-            <ArrowLeft size={15} strokeWidth={2.5} />
+      <section className="border-b bg-paper">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+          <Link href="/" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-ink-soft transition-colors hover:text-navy">
+            <ArrowLeft size={16} strokeWidth={1.8} aria-hidden="true" />
             Retour à la recherche
           </Link>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2">
+          <div className="mt-7 flex flex-wrap items-center gap-2">
             <span className="chip">
-              <span className="mono text-ink-faint uppercase">cat.</span>
-              <span className="font-semibold text-ink">{categoryLabel}</span>
+              <span className="font-mono text-[0.65rem] uppercase text-ink-faint">Cat.</span>
+              <span className="font-semibold">{categoryLabel}</span>
             </span>
-            <span
-              className="chip"
-              style={{ backgroundColor: retailer.color + '26' }}
-            >
-              <span
-                className="grid h-5 w-5 place-items-center border-2 border-ink"
-                style={{ backgroundColor: retailer.color }}
-              >
-                <span className="mono text-[8px] font-bold text-cream">
-                  {retailer.name.slice(0, 2).toUpperCase()}
-                </span>
+            <span className="chip">
+              <span className="grid h-5 w-5 place-items-center rounded-md border bg-cream">
+                <Image src={retailer.logo} alt="" width={16} height={16} className="h-4 w-4 object-contain" />
               </span>
-              <span className="font-semibold text-ink">{retailer.name}</span>
+              <span className="font-semibold">{retailer.name}</span>
             </span>
             {offer.brand && (
               <span className="chip">
-                <Tag size={12} className="text-ink-faint" strokeWidth={2.5} />
-                <span className="font-semibold text-ink">{offer.brand}</span>
+                <Tag size={13} className="text-ink-faint" strokeWidth={1.8} aria-hidden="true" />
+                <span className="font-semibold">{offer.brand}</span>
               </span>
             )}
           </div>
         </div>
       </section>
 
-      <main className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6">
+      <main className="mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-          <article className="relative border-2 border-ink bg-cream shadow-[5px_5px_0_var(--ink)]">
-            <div className="paper-fold pointer-events-none absolute top-0 right-0 z-10 h-10 w-10 border-b-2 border-l-2 border-ink bg-paper" />
-            <div className="relative aspect-square border-b-2 border-ink bg-paper">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.92fr)] lg:gap-8">
+          <article className="surface-elevated overflow-hidden">
+            <div className="relative aspect-square bg-paper-2">
               {offer.image ? (
+                // Product images come from retailer sources and may use a new host over time.
+                // Keep the product page resilient when a retailer changes its CDN domain.
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={offer.image}
                   alt={offer.name}
                   loading="eager"
                   decoding="async"
-                  fetchPriority="high"
-                  className="absolute inset-0 h-full w-full object-contain p-8"
+                  className="h-full w-full object-contain p-8 sm:p-12"
                 />
               ) : (
                 <div className="flex h-full items-center justify-center text-ink-faint">
-                  <Tag size={80} strokeWidth={1.5} />
+                  <Tag size={72} strokeWidth={1.3} aria-hidden="true" />
                 </div>
               )}
               {isOnPromo && (
-                <div className="absolute bottom-4 left-4 -rotate-3 border-2 border-ink bg-yellow px-3 py-1.5 shadow-[3px_3px_0_var(--ink)]">
-                  <span className="mono text-xs font-bold uppercase tracking-wider text-ink">Promo −{savingsPercent}%</span>
+                <div className="absolute bottom-5 left-5 rounded-full border border-navy/30 bg-navy/10 px-3 py-1.5 font-mono text-xs font-semibold text-navy">
+                  Promo -{savingsPercent}%
                 </div>
               )}
             </div>
 
-            <div className="p-5 sm:p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="eyebrow text-ink-faint">№ Produit</span>
-                <span className="dotline h-px flex-1 bg-ink/30" />
-                <span className="mono text-[10px] text-ink-faint uppercase tracking-wider truncate max-w-[140px]">
-                  {offer.id}
-                </span>
-              </div>
-              <h1 className="display-md text-3xl leading-tight text-ink text-balance sm:text-4xl">
-                {offer.name}
-              </h1>
-
-              <div className="mt-5 flex items-start gap-3 border-2 border-ink/70 bg-paper p-3.5">
-                <Calendar size={16} className="mt-0.5 shrink-0 text-navy" strokeWidth={2.5} />
+            <div className="border-t p-5 sm:p-6">
+              <p className="meta-label">Produit</p>
+              <h1 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-ink text-balance sm:text-3xl">{offer.name}</h1>
+              <div className="mt-5 flex items-start gap-3 rounded-lg border bg-paper-2 p-3.5">
+                <Calendar size={16} className="mt-0.5 shrink-0 text-navy" strokeWidth={1.8} aria-hidden="true" />
                 <div className="leading-tight">
-                  <p className="eyebrow text-ink-faint">Dernier relevé</p>
-                  <p className="editorial text-base font-medium text-ink">{formatDate(offer.lastUpdated)}</p>
+                  <p className="meta-label">Dernier relevé</p>
+                  <p className="mt-1 text-sm font-medium text-ink">{formatDate(offer.lastUpdated)}</p>
                 </div>
               </div>
             </div>
           </article>
 
-          <div className="space-y-5">
-            <section className="relative border-2 border-ink bg-cream p-6 shadow-[5px_5px_0_var(--ink)]">
-              <div className="flex items-baseline justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="eyebrow text-ink-faint">Étiquette de prix</span>
-                  <span className="dotline h-px w-10 bg-ink/30" />
-                </div>
-                {isOnPromo && offer.originalPrice && (
-                  <div className="flex items-center gap-2">
-                    <span className="mono text-xs text-ink-faint line-through tabular-nums">
-                      {formatPrice(offer.originalPrice)}
-                    </span>
-                    <span className="mono text-[10px] font-bold uppercase text-navy">Économisez {formatPrice(savings!)}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-5 flex items-end justify-between gap-4">
+          <div className="space-y-6">
+            <section className="surface-elevated p-5 sm:p-6">
+              <p className="meta-label">Prix relevé</p>
+              <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
                 <div>
-                  <p className="display-huge text-[12vw] sm:text-[8rem] text-navy leading-[0.85] tabular-nums stamp-rotate-1">
-                    {formatPrice(offer.price)}
-                  </p>
+                  <p className="font-mono text-5xl font-semibold tracking-[-0.06em] text-ink tabular-nums sm:text-6xl">{formatPrice(offer.price)}</p>
                   {offer.unitPrice && offer.unitPriceLabel && (
-                    <p className="mt-3 mono text-sm text-ink-soft">
-                      soit {formatPrice(offer.unitPrice)}
-                      {offer.unitPriceLabel}
+                    <p className="mt-3 text-sm text-ink-soft">
+                      soit <span className="font-mono tabular-nums">{formatPrice(offer.unitPrice)}{offer.unitPriceLabel}</span>
                     </p>
                   )}
                 </div>
-                <div className="grid h-16 w-16 place-items-center border-2 border-ink bg-cream shadow-[3px_3px_0_var(--ink)]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={retailer.logo}
-                    alt={retailer.name}
-                    width={48}
-                    height={48}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-10 w-10 object-contain p-1.5"
-                  />
+                <div className="grid h-14 w-14 place-items-center rounded-lg border bg-paper-2">
+                  <Image src={retailer.logo} alt={retailer.name} width={34} height={34} className="h-8 w-8 object-contain" />
                 </div>
               </div>
 
+              {isOnPromo && offer.originalPrice && (
+                <div className="mt-5 flex flex-wrap items-center gap-2 border-t pt-4 text-sm">
+                  <span className="font-mono text-ink-faint line-through tabular-nums">{formatPrice(offer.originalPrice)}</span>
+                  <span className="font-semibold text-navy">Économie de {formatPrice(savings!)}</span>
+                </div>
+              )}
+
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 {offer.quantity && (
-                  <div className="border-2 border-ink/70 bg-paper p-3.5">
+                  <div className="surface-muted p-3.5">
                     <div className="flex items-center gap-2">
-                      <Package size={14} className="text-ink-faint" strokeWidth={2.5} />
-                      <p className="eyebrow text-ink-faint">Conditionnement</p>
+                      <Package size={15} className="text-ink-faint" strokeWidth={1.8} aria-hidden="true" />
+                      <p className="meta-label">Conditionnement</p>
                     </div>
-                    <p className="editorial mt-1.5 text-base font-medium text-ink">{offer.quantity}</p>
+                    <p className="mt-2 text-sm font-medium text-ink">{offer.quantity}</p>
                   </div>
                 )}
                 {offer.availability && (
-                  <div className="border-2 border-ink/70 bg-paper p-3.5">
+                  <div className="surface-muted p-3.5">
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-navy" aria-hidden />
-                      <p className="eyebrow text-ink-faint">Disponibilité</p>
+                      <span className="h-2 w-2 rounded-full bg-navy" aria-hidden="true" />
+                      <p className="meta-label">Disponibilité</p>
                     </div>
-                    <p className="editorial mt-1.5 text-base font-medium text-ink">{offer.availability}</p>
+                    <p className="mt-2 text-sm font-medium text-ink">{offer.availability}</p>
                   </div>
                 )}
               </div>
             </section>
 
-            <section className="border-2 border-ink bg-cream p-6 shadow-[4px_4px_0_var(--ink)]">
-              <div className="flex items-center gap-3">
-                <span className="eyebrow text-ink-faint">Description</span>
-                <span className="dotline h-px flex-1 bg-ink/30" />
-              </div>
-              <p className="editorial mt-3 text-base leading-relaxed text-ink-soft text-pretty">
+            <section className="surface-elevated p-5 sm:p-6">
+              <p className="meta-label">Description</p>
+              <p className="mt-3 text-base leading-7 text-ink-soft text-pretty">
                 {offer.description || 'Aucune description disponible pour cette offre.'}
               </p>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href={offer.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-ink inline-flex min-h-12 flex-1 items-center justify-center gap-2 px-5 text-sm"
-                >
-                  <span className="display-md leading-none">Voir la fiche enseigne</span>
-                  <ArrowUpRight size={15} strokeWidth={2.5} />
+                <a href={offer.url} target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex min-h-12 flex-1 items-center justify-center gap-2 px-5 text-sm">
+                  Voir la fiche enseigne
+                  <ArrowUpRight size={16} strokeWidth={1.8} aria-hidden="true" />
                 </a>
-                <Link
-                  href={`/categorie/${offer.category}`}
-                  className="btn-paper inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm"
-                >
-                  <Tag size={14} strokeWidth={2.5} />
-                  <span>Voir le rayon {categoryLabel.toLowerCase()}</span>
+                <Link href={`/categorie/${offer.category}`} className="btn-secondary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm">
+                  <Tag size={15} strokeWidth={1.8} aria-hidden="true" />
+                  Voir le rayon
                 </Link>
               </div>
             </section>
