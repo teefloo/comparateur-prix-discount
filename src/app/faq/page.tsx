@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   description: FAQ_DESCRIPTION,
   alternates: { canonical: '/faq' },
   openGraph: {
-    title: 'FAQ — ComparPrix',
+    title: 'FAQ | ComparPrix',
     description: FAQ_OG_DESCRIPTION,
     type: 'website',
     locale: 'fr_FR',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'FAQ — ComparPrix',
+    title: 'FAQ | ComparPrix',
     description: FAQ_OG_DESCRIPTION,
     images: ['/brand/comparprix-social.svg'],
   },

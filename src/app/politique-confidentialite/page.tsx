@@ -94,7 +94,7 @@ export default function PolitiqueConfidentialitePage() {
         <div>
           <dt>Délégué à la protection des données</dt>
           <dd>
-            {LEGAL_INFO.publisher.privacyEmail} — la désignation d’un DPO n’est pas obligatoire à
+            {LEGAL_INFO.publisher.privacyEmail}, la désignation d’un DPO n’est pas obligatoire à
             ce jour, ce contact tient lieu de référent données à contacter pour l’exercice de vos
             droits.
           </dd>
@@ -205,14 +205,14 @@ export default function PolitiqueConfidentialitePage() {
       </p>
       <ul>
         <li>
-          <strong>Vercel Inc.</strong> (hébergement, edge network, logs) —{' '}
+          <strong>Vercel Inc.</strong> (hébergement, edge network, logs),{' '}
           <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">
             politique de confidentialité
           </a>
           .
         </li>
         <li>
-          <strong>Vercel Postgres</strong> (base de données produits / prix) — aucune donnée
+          <strong>Vercel Postgres</strong> (base de données produits / prix), aucune donnée
           personnelle n’y est stockée ; seules les données publiques de catalogues y sont
           hébergées.
         </li>
@@ -231,7 +231,7 @@ export default function PolitiqueConfidentialitePage() {
       </h2>
       <p>
         L’hébergeur Vercel Inc. est situé aux États-Unis. Les transferts éventuels de données
-        vers les États-Unis sont encadrés par les <em>Data Privacy Framework</em> (DPF) UE–US et,
+        vers les États-Unis sont encadrés par les <em>Data Privacy Framework</em> (DPF) UE-US et,
         le cas échéant, par les clauses contractuelles types (CCT) de la Commission européenne
         complétées de mesures techniques et organisationnelles appropriées.
       </p>

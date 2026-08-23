@@ -44,6 +44,9 @@ function RetailerFilterPanelForm({
   const [draftMaxPrice, setDraftMaxPrice] = useState(formatPriceInput(maxPrice))
   const [draftSort, setDraftSort] = useState<PriceSortOption>(sort)
   const activeFilterCount = countActiveFilters(draftRetailers, draftMinPrice, draftMaxPrice, draftSort)
+  const filterSummary = draftRetailers.length > 0
+    ? `${draftRetailers.length} enseigne${draftRetailers.length > 1 ? 's' : ''} sélectionnée${draftRetailers.length > 1 ? 's' : ''}`
+    : 'Enseignes, prix et tri'
 
   function buildNextUrl(nextValues?: {
     retailers?: string[]
@@ -113,41 +116,45 @@ function RetailerFilterPanelForm({
   }
 
   const sortButtonClass = (active: boolean) =>
-    `inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-semibold transition-colors ${
+    `inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border px-3 text-xs font-semibold transition-colors ${
       active
         ? 'border-navy bg-navy text-white'
         : 'border-rule bg-cream text-ink-soft hover:border-navy hover:text-navy'
     }`
 
   return (
-    <div className="surface-elevated">
+    <div className="surface-elevated overflow-hidden">
       <button
         type="button"
         onClick={() => setIsAdvancedOpen((value) => !value)}
-        className="flex min-h-14 w-full items-center justify-between gap-3 rounded-xl px-4 py-3.5 text-left transition-colors hover:bg-paper-2"
+        className="group flex min-h-16 w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-paper-2 sm:px-5"
         aria-expanded={isAdvancedOpen}
         aria-controls={advancedPanelId}
       >
         <div className="flex items-center gap-3">
-          <SlidersHorizontal size={17} className="text-navy" strokeWidth={1.8} />
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border bg-navy/10 text-navy">
+            <SlidersHorizontal size={17} strokeWidth={1.8} />
+          </span>
           <div>
-            <h2 className="text-sm font-semibold text-ink">Filtres avancés</h2>
-            <p className="mt-0.5 text-xs text-ink-faint">Enseignes, prix et tri</p>
+            <h2 className="text-sm font-semibold text-ink">Affiner les résultats</h2>
+            <p className="mt-0.5 text-xs text-ink-faint">{filterSummary}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {activeFilterCount > 0 && (
-            <span className="rounded-full border border-navy/30 bg-navy/10 px-2 py-1 font-mono text-[10px] font-semibold text-navy">{activeFilterCount}</span>
+            <span className="rounded-full border border-navy/30 bg-navy/10 px-2 py-1 font-mono text-[10px] font-semibold text-navy" aria-label={`${activeFilterCount} filtre${activeFilterCount > 1 ? 's' : ''} actif${activeFilterCount > 1 ? 's' : ''}`}>
+              {activeFilterCount}
+            </span>
           )}
-          {isAdvancedOpen ? <ChevronUp size={17} className="text-ink-soft" /> : <ChevronDown size={17} className="text-ink-soft" />}
+          {isAdvancedOpen ? <ChevronUp size={17} className="text-ink-soft transition-transform group-hover:-translate-y-0.5" /> : <ChevronDown size={17} className="text-ink-soft transition-transform group-hover:translate-y-0.5" />}
         </div>
       </button>
 
       {isAdvancedOpen && (
-        <div id={advancedPanelId} className="space-y-5 border-t p-4 sm:p-5">
+        <div id={advancedPanelId} className="space-y-5 border-t bg-paper-2/45 p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-ink">Configuration</p>
+            <p className="text-sm font-semibold text-ink">Filtres disponibles</p>
             <button
               type="button"
               onClick={resetFilters}
@@ -160,7 +167,7 @@ function RetailerFilterPanelForm({
 
           <div className="space-y-5">
             <div className="space-y-2.5">
-              <p className="meta-label">Enseignes suivies</p>
+              <p className="meta-label">Enseignes</p>
               <div className="flex flex-wrap gap-2">
                 {RETAILERS.map((retailerId) => {
                   const retailer = RETAILER_INFO[retailerId]
@@ -171,7 +178,7 @@ function RetailerFilterPanelForm({
                       key={retailerId}
                       type="button"
                       onClick={() => toggleRetailer(retailerId)}
-                      className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold transition-colors ${
+                      className={`inline-flex min-h-11 items-center gap-1.5 rounded-xl border px-3 text-xs font-semibold transition-colors ${
                         isSelected
                           ? 'border-navy bg-navy text-white'
                           : 'border-rule bg-cream text-ink-soft hover:border-navy hover:text-navy'
@@ -194,7 +201,7 @@ function RetailerFilterPanelForm({
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="space-y-1.5">
                 <span className="meta-label">Prix minimum</span>
-                <div className="input-shell flex min-h-11 items-center">
+                <div className="input-shell flex min-h-12 items-center">
                   <span className="mono px-3 text-ink-faint">€</span>
                   <input
                     type="number"
@@ -204,14 +211,14 @@ function RetailerFilterPanelForm({
                     value={draftMinPrice}
                     onChange={(event) => setDraftMinPrice(event.target.value)}
                     placeholder="0,00"
-                    className="h-11 w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint body-sans"
+                    className="h-12 w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint body-sans"
                   />
                 </div>
               </label>
 
               <label className="space-y-1.5">
                 <span className="meta-label">Prix maximum</span>
-                <div className="input-shell flex min-h-11 items-center">
+                <div className="input-shell flex min-h-12 items-center">
                   <span className="mono px-3 text-ink-faint">€</span>
                   <input
                     type="number"
@@ -221,7 +228,7 @@ function RetailerFilterPanelForm({
                     value={draftMaxPrice}
                     onChange={(event) => setDraftMaxPrice(event.target.value)}
                     placeholder="99,00"
-                    className="h-11 w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint body-sans"
+                    className="h-12 w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint body-sans"
                   />
                 </div>
               </label>
@@ -229,7 +236,7 @@ function RetailerFilterPanelForm({
 
             <div className="space-y-2.5">
               <p className="meta-label">Tri des résultats</p>
-              <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Tri des résultats">
+              <div className="grid gap-2 sm:grid-cols-3" role="group" aria-label="Tri des résultats">
                 <button
                   type="button"
                   onClick={() => setDraftSort('default')}

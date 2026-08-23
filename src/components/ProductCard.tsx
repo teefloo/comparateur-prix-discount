@@ -42,13 +42,13 @@ export default function ProductCard({
 
   return (
     <article
-      className={`surface-elevated group flex min-w-0 h-full flex-col p-4 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-navy/50 ${
-        isBest ? 'border-navy/60' : ''
+      className={`surface-elevated group flex min-w-0 h-full flex-col p-3.5 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-navy/50 sm:p-4 ${
+        isBest ? 'border-navy/70 shadow-[0_20px_46px_-32px_rgb(var(--accent)/0.75)]' : ''
       }`}
     >
-      <div className="flex min-h-7 items-center justify-between gap-3">
+      <div className="flex min-h-8 items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md border bg-paper-2">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border bg-paper-2">
             {retailer.logo ? (
               <Image src={retailer.logo} alt="" width={18} height={18} loading="lazy" className="h-4 w-4 object-contain" />
             ) : (
@@ -59,11 +59,11 @@ export default function ProductCard({
         </div>
 
         {isBest ? (
-          <span className="shrink-0 rounded-full border border-navy/30 bg-navy/10 px-2 py-1 font-mono text-[0.625rem] font-semibold uppercase tracking-wide text-navy">
+          <span className="shrink-0 rounded-full border border-navy bg-navy px-2.5 py-1 font-mono text-[0.625rem] font-semibold uppercase tracking-[0.08em] text-white">
             Meilleur prix
           </span>
         ) : hasDiscount ? (
-          <span className="shrink-0 rounded-full border border-navy/30 bg-navy/10 px-2 py-1 font-mono text-[0.625rem] font-semibold text-navy">
+          <span className="shrink-0 rounded-full border border-navy/25 bg-navy/10 px-2.5 py-1 font-mono text-[0.625rem] font-semibold text-navy">
             -{product.discount}%
           </span>
         ) : null}
@@ -74,7 +74,7 @@ export default function ProductCard({
         className="mt-4 flex min-w-0 flex-1 flex-col"
         aria-label={`Voir le détail de ${product.name}`}
       >
-        <div className="relative aspect-square overflow-hidden rounded-lg border bg-paper-2">
+        <div className="relative aspect-square overflow-hidden rounded-xl border bg-paper-2">
           {product.image ? (
             // Product images come from retailer sources and may use a new host over time.
             // Keep the existing remote-image behavior without restricting the catalog to a fixed allow-list.
@@ -84,7 +84,7 @@ export default function ProductCard({
               alt={product.name}
               loading={isBest ? 'eager' : 'lazy'}
               decoding="async"
-              className="h-full w-full object-contain p-5 transition-transform duration-200 group-hover:scale-[1.02]"
+              className="h-full w-full object-contain p-5 transition-transform duration-300 group-hover:scale-[1.035] sm:p-6"
             />
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-ink-faint">
@@ -95,7 +95,7 @@ export default function ProductCard({
         </div>
 
         <div className="mt-4 flex flex-1 flex-col">
-          <h3 className="line-clamp-2 text-base font-semibold leading-6 text-ink transition-colors group-hover:text-navy text-pretty">
+          <h3 className="line-clamp-2 text-[1.02rem] font-semibold leading-6 text-ink transition-colors group-hover:text-navy text-pretty">
             {product.name}
           </h3>
 
@@ -111,7 +111,7 @@ export default function ProductCard({
           )}
 
           <div className="mt-auto flex flex-wrap items-baseline gap-x-2.5 gap-y-1 pt-5">
-            <span className="font-mono text-2xl font-semibold tracking-tight text-ink tabular-nums">
+            <span className="font-mono text-[1.7rem] font-semibold tracking-[-0.06em] text-ink tabular-nums">
               {formatPrice(product.price)}
             </span>
             {product.originalPrice && product.originalPrice > product.price && (
@@ -120,6 +120,9 @@ export default function ProductCard({
               </span>
             )}
           </div>
+          {hasDiscount && product.originalPrice && product.originalPrice > product.price && (
+            <p className="mt-1 text-xs font-semibold text-navy">Économie de {formatPrice(product.originalPrice - product.price)}</p>
+          )}
         </div>
       </Link>
 
@@ -128,7 +131,7 @@ export default function ProductCard({
           href={product.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 inline-flex min-h-10 items-center gap-1.5 self-start text-xs font-semibold text-ink-soft underline decoration-transparent underline-offset-4 transition-colors hover:text-navy hover:decoration-navy/40"
+          className="mt-4 inline-flex min-h-10 items-center justify-between gap-1.5 border-t pt-3 text-xs font-semibold text-ink-soft transition-colors hover:text-navy"
           aria-label={`Voir ${product.name} sur le site ${retailer.name}`}
         >
           Voir chez {retailer.name}

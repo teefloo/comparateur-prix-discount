@@ -76,12 +76,12 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   }
 
   return {
-    title: 'ComparPrix — Le Bulletin des Prix Discount',
+    title: 'ComparPrix | Le Bulletin des Prix Discount',
     description:
       "Le bulletin de chasse aux bonnes affaires : comparateur de prix discount pour Action, Stokomani, B&M, Centrakor, Aldi, GiFi, La Foir'Fouille, Lidl, Maxi Bazar et Noz.",
     alternates: { canonical: '/' },
     openGraph: {
-      title: 'ComparPrix — Le Bulletin des Prix Discount',
+      title: 'ComparPrix | Le Bulletin des Prix Discount',
       description: "Le bulletin de chasse aux bonnes affaires : comparateur de prix discount pour 10 enseignes.",
       type: 'website',
       locale: 'fr_FR',
@@ -98,7 +98,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'ComparPrix — Le Bulletin des Prix Discount',
+        title: 'ComparPrix | Le Bulletin des Prix Discount',
       description: "Le comparateur de prix discount nouvelle génération, pour 10 enseignes françaises.",
       images: ['/brand/comparprix-social.svg'],
     },
@@ -138,7 +138,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
       />
 
       {(hasSearched || products.length > 0) && (
-        <main className="mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 lg:px-8">
           {hasSearched && (
             <CategoryBar
               search={query}
@@ -168,7 +168,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 function SommaireSection() {
   return (
     <section className="border-b bg-cream">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
         <div className="max-w-2xl">
           <p className="meta-label">Pour commencer</p>
           <h2 className="display-xl mt-3 text-balance">Une recherche simple, des prix lisibles.</h2>
@@ -177,22 +177,25 @@ function SommaireSection() {
           </p>
         </div>
 
-        <div className="mt-10 grid border-y md:grid-cols-3 md:divide-x">
+        <div className="mt-10 grid gap-3 border-y py-3 md:grid-cols-[1.15fr_0.85fr]">
           <QuickLink
             href="/?query=lessive"
             label="Rechercher un produit"
             description="Comparez une même référence entre plusieurs enseignes."
+            featured
           />
-          <QuickLink
-            href="/deals"
-            label="Voir les bons plans"
-            description="Parcourez les promotions relevées cette semaine."
-          />
-          <QuickLink
-            href="/a-propos"
-            label="Comprendre le projet"
-            description="Découvrez la méthode et les principes de ComparPrix."
-          />
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1">
+            <QuickLink
+              href="/deals"
+              label="Voir les bons plans"
+              description="Parcourez les promotions relevées cette semaine."
+            />
+            <QuickLink
+              href="/a-propos"
+              label="Comprendre le projet"
+              description="Découvrez la méthode et les principes de ComparPrix."
+            />
+          </div>
         </div>
 
         <div className="mt-14">
@@ -225,11 +228,11 @@ function SommaireSection() {
   )
 }
 
-function QuickLink({ href, label, description }: { href: string; label: string; description: string }) {
+function QuickLink({ href, label, description, featured = false }: { href: string; label: string; description: string; featured?: boolean }) {
   return (
-    <Link href={href} className="group flex min-h-32 flex-col justify-between gap-4 px-0 py-6 transition-colors md:px-6 first:md:pl-0 last:md:pr-0 hover:text-navy">
+    <Link href={href} className={`group flex min-h-32 flex-col justify-between gap-4 rounded-xl px-4 py-5 transition-colors hover:text-navy ${featured ? 'bg-paper-2/70 md:min-h-64 md:p-6' : 'border bg-cream sm:p-5'}`}>
       <div>
-        <h3 className="text-base font-semibold text-ink group-hover:text-navy">{label}</h3>
+        <h3 className={`${featured ? 'text-xl sm:text-2xl' : 'text-base'} font-semibold tracking-tight text-ink group-hover:text-navy`}>{label}</h3>
         <p className="mt-2 max-w-xs text-sm leading-6 text-ink-soft">{description}</p>
       </div>
       <ArrowRight size={17} strokeWidth={1.8} className="text-navy transition-transform group-hover:translate-x-1" aria-hidden="true" />

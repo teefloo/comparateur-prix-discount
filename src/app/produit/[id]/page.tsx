@@ -143,34 +143,37 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       <Navbar />
 
       <section className="border-b bg-paper">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
           <Link href="/" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-ink-soft transition-colors hover:text-navy">
             <ArrowLeft size={16} strokeWidth={1.8} aria-hidden="true" />
             Retour à la recherche
           </Link>
 
-          <div className="mt-7 flex flex-wrap items-center gap-2">
-            <span className="chip">
-              <span className="font-mono text-[0.65rem] uppercase text-ink-faint">Cat.</span>
-              <span className="font-semibold">{categoryLabel}</span>
-            </span>
-            <span className="chip">
-              <span className="grid h-5 w-5 place-items-center rounded-md border bg-cream">
-                <Image src={retailer.logo} alt="" width={16} height={16} className="h-4 w-4 object-contain" />
-              </span>
-              <span className="font-semibold">{retailer.name}</span>
-            </span>
-            {offer.brand && (
+          <div className="mt-7">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="chip">
-                <Tag size={13} className="text-ink-faint" strokeWidth={1.8} aria-hidden="true" />
-                <span className="font-semibold">{offer.brand}</span>
+                <span className="font-mono text-[0.65rem] uppercase text-ink-faint">Cat.</span>
+                <span className="font-semibold">{categoryLabel}</span>
               </span>
-            )}
+              <span className="chip">
+                <span className="grid h-5 w-5 place-items-center rounded-md border bg-cream">
+                  <Image src={retailer.logo} alt="" width={16} height={16} className="h-4 w-4 object-contain" />
+                </span>
+                <span className="font-semibold">{retailer.name}</span>
+              </span>
+              {offer.brand && (
+                <span className="chip">
+                  <Tag size={13} className="text-ink-faint" strokeWidth={1.8} aria-hidden="true" />
+                  <span className="font-semibold">{offer.brand}</span>
+                </span>
+              )}
+            </div>
+            <h1 className="mt-5 max-w-4xl text-3xl font-semibold leading-tight tracking-tight text-ink text-balance sm:text-4xl">{offer.name}</h1>
           </div>
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 lg:px-8">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.92fr)] lg:gap-8">
@@ -200,9 +203,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div className="border-t p-5 sm:p-6">
-              <p className="meta-label">Produit</p>
-              <h1 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-ink text-balance sm:text-3xl">{offer.name}</h1>
-              <div className="mt-5 flex items-start gap-3 rounded-lg border bg-paper-2 p-3.5">
+              <div className="flex items-start gap-3 rounded-xl border bg-paper-2 p-3.5">
                 <Calendar size={16} className="mt-0.5 shrink-0 text-navy" strokeWidth={1.8} aria-hidden="true" />
                 <div className="leading-tight">
                   <p className="meta-label">Dernier relevé</p>

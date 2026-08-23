@@ -102,7 +102,7 @@ export default function CookiesPage() {
         <div>
           <dt>Type</dt>
           <dd>
-            <code>localStorage</code> — clé <code>theme</code>
+            <code>localStorage</code>, clé <code>theme</code>
           </dd>
         </div>
         <div>
@@ -133,7 +133,7 @@ export default function CookiesPage() {
         <div>
           <dt>Type</dt>
           <dd>
-            <code>localStorage</code> — clé <code>comparprix.cookie-consent</code>
+            <code>localStorage</code>, clé <code>comparprix.cookie-consent</code>
           </dd>
         </div>
         <div>

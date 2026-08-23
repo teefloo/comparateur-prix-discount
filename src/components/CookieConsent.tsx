@@ -100,7 +100,7 @@ export default function CookieConsent() {
             <Cookie size={18} strokeWidth={2.5} />
           </div>
           <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold tracking-tight text-ink">Cookies — version courte</p>
+              <p className="text-sm font-semibold tracking-tight text-ink">Cookies, version courte</p>
             <p className="editorial mt-1.5 text-sm leading-relaxed text-ink-soft">
               ComparPrix utilise uniquement le stockage local de votre navigateur pour mémoriser
               votre thème (clair / sombre). Aucun cookie publicitaire, aucun tracker tiers, aucune

@@ -53,6 +53,12 @@ function formatCount(value: number) {
   return new Intl.NumberFormat('fr-FR').format(value)
 }
 
+function sortLabel(sort: string) {
+  if (sort === 'price-desc') return 'Prix décroissant'
+  if (sort === 'price-asc') return 'Prix croissant'
+  return 'Prix recommandé'
+}
+
 function describeWarning(code: string) {
   switch (code) {
     case 'demo_fallback':
@@ -139,7 +145,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
       <Navbar />
 
       <section className="border-b bg-paper">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
           <Link href="/" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-ink-soft transition-colors hover:text-navy">
             <ArrowLeft size={16} strokeWidth={1.8} aria-hidden="true" />
             Retour à l&apos;accueil
@@ -161,7 +167,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 lg:px-8">
         <div className="space-y-4">
           <form action="/deals" method="get" className="surface-elevated p-3 sm:p-4">
             {retailer.length > 0 && <input type="hidden" name="retailer" value={retailer.join(',')} />}
@@ -212,9 +218,9 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
                     {query ? <> pour <span className="font-semibold text-navy">« {query} »</span></> : null}
                   </p>
                 </div>
-                <p className="text-xs font-medium text-ink-faint">Triés par prix croissant</p>
+                <p className="text-xs font-medium text-ink-faint">{sortLabel(sort)}</p>
               </div>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {feed.products.map((product, index) => (
                   <ProductCard key={product.id} product={product} isBest={index === 0 && sort !== 'price-desc'} index={index} />
                 ))}

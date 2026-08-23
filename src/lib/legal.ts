@@ -5,7 +5,7 @@ export const LEGAL_INFO = {
   repositoryUrl: 'https://github.com/teefloo/comparateur-prix-discount',
   publisher: {
     name: 'ComparPrix',
-    status: 'Particulier — éditeur à titre personnel',
+    status: 'Particulier, éditeur à titre personnel',
     headquarters: 'France',
     director: 'ComparPrix',
     contactEmail: 'estdel3012@gmail.com',
@@ -51,4 +51,3 @@ export const LEGAL_PAGES = [
 ] as const
 
 export type LegalPageSlug = (typeof LEGAL_PAGES)[number]['slug']
-

@@ -46,6 +46,12 @@ function formatCount(value: number) {
   return new Intl.NumberFormat('fr-FR').format(value)
 }
 
+function sortLabel(sort: string) {
+  if (sort === 'price-desc') return 'Prix décroissant'
+  if (sort === 'price-asc') return 'Prix croissant'
+  return 'Prix recommandé'
+}
+
 export function generateStaticParams() {
   return SUPPORTED_CATEGORIES.map((category) => ({ category }))
 }
@@ -120,7 +126,7 @@ export default async function CategoryPage({
       <Navbar />
 
       <section className="border-b bg-paper">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
           <Link href="/" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-ink-soft transition-colors hover:text-navy">
             <ArrowLeft size={16} strokeWidth={1.8} aria-hidden="true" />
             Retour à la recherche
@@ -142,7 +148,7 @@ export default async function CategoryPage({
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 lg:px-8">
         <div className="space-y-6">
           <RetailerFilterPanel selectedRetailers={retailer} minPrice={minPrice} maxPrice={maxPrice} sort={sort} />
 
@@ -164,9 +170,9 @@ export default async function CategoryPage({
                   <p className="font-mono text-4xl font-semibold tracking-tight text-ink tabular-nums">{offers.length}</p>
                   <p className="mt-1 text-sm text-ink-soft">offre{offers.length > 1 ? 's' : ''} dans {categoryLabel.toLowerCase()}</p>
                 </div>
-                <p className="text-xs font-medium text-ink-faint">Triées par prix croissant</p>
+                <p className="text-xs font-medium text-ink-faint">{sortLabel(sort)}</p>
               </div>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {offers.map((offer, index) => (
                   <ProductCard key={offer.id} product={offer} isBest={index === 0 && sort !== 'price-desc'} index={index} />
                 ))}

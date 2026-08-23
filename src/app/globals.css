@@ -5,22 +5,22 @@
 @layer base {
   :root {
     color-scheme: light;
-    --canvas: 246 248 251;
+    --canvas: 245 247 249;
     --surface: 255 255 255;
-    --surface-muted: 237 241 246;
-    --surface-strong: 225 234 248;
-    --text: 20 28 40;
-    --text-soft: 86 99 117;
-    --text-faint: 116 130 148;
-    --text-muted: 160 172 188;
-    --border: 214 221 231;
-    --border-strong: 184 195 210;
-    --accent: 34 90 180;
-    --accent-strong: 25 70 143;
-    --accent-soft: 225 234 248;
-    --danger: 184 57 57;
-    --warning: 157 105 19;
-    --shadow: 20 28 40;
+    --surface-muted: 235 240 244;
+    --surface-strong: 222 229 235;
+    --text: 15 22 35;
+    --text-soft: 55 65 80;
+    --text-faint: 100 115 130;
+    --text-muted: 152 164 176;
+    --border: 211 219 228;
+    --border-strong: 169 180 192;
+    --accent: 15 44 82;
+    --accent-strong: 8 28 54;
+    --accent-soft: 225 232 240;
+    --danger: 176 50 50;
+    --warning: 137 91 18;
+    --shadow: 15 22 35;
 
     /* Compatibility aliases for existing Tailwind utilities. */
     --paper: var(--canvas);
@@ -54,21 +54,21 @@
 
   .dark {
     color-scheme: dark;
-    --canvas: 14 20 29;
-    --surface: 21 29 41;
-    --surface-muted: 28 38 52;
-    --surface-strong: 34 54 80;
-    --text: 240 244 249;
-    --text-soft: 169 181 197;
-    --text-faint: 136 151 171;
-    --text-muted: 91 107 129;
-    --border: 57 70 89;
-    --border-strong: 81 97 119;
-    --accent: 139 179 239;
-    --accent-strong: 174 204 248;
-    --accent-soft: 34 54 80;
-    --danger: 237 135 135;
-    --warning: 226 175 77;
+    --canvas: 15 22 35;
+    --surface: 20 29 42;
+    --surface-muted: 28 39 54;
+    --surface-strong: 38 52 72;
+    --text: 243 246 249;
+    --text-soft: 179 190 203;
+    --text-faint: 144 158 175;
+    --text-muted: 95 110 130;
+    --border: 59 73 91;
+    --border-strong: 82 99 121;
+    --accent: 169 202 237;
+    --accent-strong: 202 225 247;
+    --accent-soft: 40 63 89;
+    --danger: 241 141 141;
+    --warning: 232 184 94;
     --shadow: 0 0 0;
   }
 
@@ -141,7 +141,7 @@
 
 @layer components {
   .surface {
-    @apply rounded-xl border bg-cream;
+    @apply rounded-2xl border bg-cream;
   }
 
   .surface-muted {
@@ -150,7 +150,7 @@
 
   .surface-elevated {
     @apply surface;
-    box-shadow: 0 16px 40px -28px rgb(var(--shadow) / 0.45);
+    box-shadow: 0 20px 48px -34px rgb(var(--shadow) / 0.55);
   }
 
   .paper,
@@ -168,12 +168,12 @@
   .display-md {
     @apply font-sans text-ink;
     font-weight: 700;
-    letter-spacing: -0.045em;
-    line-height: 0.98;
+    letter-spacing: -0.055em;
+    line-height: 0.96;
   }
 
   .display-huge {
-    font-size: clamp(2.75rem, 8vw, 5.75rem);
+    font-size: clamp(2.75rem, 7.5vw, 5.5rem);
   }
 
   .display-xl {
@@ -218,6 +218,7 @@
 
   .meta-label {
     color: rgb(var(--text-soft));
+    letter-spacing: 0.12em;
   }
 
   .hairline,
@@ -243,8 +244,8 @@
 
   .field-shell,
   .input-shell {
-    @apply rounded-lg border bg-cream;
-    transition: border-color 180ms ease, box-shadow 180ms ease;
+    @apply rounded-[14px] border bg-cream;
+    transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
   }
 
   .field-shell:focus-within,
@@ -255,14 +256,16 @@
 
   .btn-ink,
   .btn-primary {
-    @apply rounded-lg border border-transparent bg-navy text-white;
-    transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+    @apply rounded-[11px] border border-transparent bg-navy text-white;
+    transition: background-color 180ms ease, color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
     font-weight: 650;
   }
 
   .btn-ink:hover,
   .btn-primary:hover {
     background: rgb(var(--accent-strong));
+    box-shadow: 0 8px 18px -12px rgb(var(--accent) / 0.7);
+    transform: translateY(-1px);
   }
 
   .btn-ink:active,
@@ -277,7 +280,7 @@
 
   .btn-paper,
   .btn-secondary {
-    @apply rounded-lg border bg-cream text-ink;
+    @apply rounded-[11px] border bg-cream text-ink;
     transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
     font-weight: 600;
   }
@@ -287,6 +290,7 @@
     border-color: rgb(var(--accent));
     color: rgb(var(--accent-strong));
     background: rgb(var(--accent-soft) / 0.45);
+    transform: translateY(-1px);
   }
 
   .btn-paper:active,
@@ -296,6 +300,7 @@
 
   .chip {
     @apply inline-flex items-center gap-2 rounded-full border bg-paper-2 px-3 py-1.5 text-sm text-ink;
+    transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease;
   }
 
   .chip-active {
@@ -419,6 +424,32 @@
 
   .legal-prose dl.legal-grid dd {
     @apply text-ink;
+  }
+
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgb(var(--surface-muted));
+  }
+
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgb(var(--surface) / 0.7), transparent);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .skeleton::after {
+      animation: skeleton-shimmer 1.8s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    transform: translateX(100%);
   }
 }
 
