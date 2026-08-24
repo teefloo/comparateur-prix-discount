@@ -5,6 +5,8 @@
  */
 export const PRODUCT_CACHE_REVALIDATE_SECONDS = 600
 export const PRODUCT_CACHE_STALE_WHILE_REVALIDATE_SECONDS = 3600
+export const DEALS_CACHE_REVALIDATE_SECONDS = 600
+export const SITEMAP_CACHE_REVALIDATE_SECONDS = 3600
 
 /**
  * The product API has no user-specific or authenticated response. Vercel can

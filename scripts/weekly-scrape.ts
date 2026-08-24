@@ -3,7 +3,7 @@ import path from 'path'
 import { appendFileSync, writeFileSync } from 'fs'
 
 import { RETAILERS, SUPPORTED_CATEGORIES, type Retailer, type SupportedCategory } from '../src/lib/catalog'
-import { pruneStaleOffersByRetailer, upsertOfferPricesBatch, upsertOffersBatch } from '../src/lib/db'
+import { pruneStaleOffersByRetailer, upsertOffersAndPricesBatch } from '../src/lib/db'
 import { isPromotionalOffer } from '../src/lib/deals'
 import { scrapeDealRetailers, scrapeRetailers } from '../src/lib/scrape-runtime'
 import type { CategoryResolutionConfidence, CategoryResolutionSource, ScrapeIssueSeverity } from '../src/lib/types'
@@ -32,6 +32,78 @@ type StoreSummary = {
   isComplete: boolean
   issues: Array<{ code: string; message: string; severity?: ScrapeIssueSeverity }>
   errors: string[]
+}
+
+function offerPersistenceKey(offer: { retailer: Retailer; sourceProductId: string }) {
+  return `${offer.retailer}:${offer.sourceProductId}`
+}
+
+function offerPersistenceFingerprint(offer: {
+  sourceUrl: string
+  sourceCategoryPath?: string
+  name: string
+  category: SupportedCategory
+  brand?: string
+  image: string
+  description?: string
+  availability?: string
+  quantity?: string
+  unitPrice?: string
+  price: number
+  originalPrice?: number
+  isOnPromotion?: boolean
+  discount?: number
+}) {
+  return JSON.stringify([
+    offer.sourceUrl,
+    offer.sourceCategoryPath || null,
+    offer.name,
+    offer.category,
+    offer.brand || null,
+    offer.image,
+    offer.description || null,
+    offer.availability || null,
+    offer.quantity || null,
+    offer.unitPrice || null,
+    offer.price,
+    offer.originalPrice ?? null,
+    offer.isOnPromotion ?? false,
+    offer.discount ?? null,
+  ])
+}
+
+function takeOffersNeedingPersistence<T extends {
+  retailer: Retailer
+  sourceProductId: string
+  sourceUrl: string
+  sourceCategoryPath?: string
+  name: string
+  category: SupportedCategory
+  brand?: string
+  image: string
+  description?: string
+  availability?: string
+  quantity?: string
+  unitPrice?: string
+  price: number
+  originalPrice?: number
+  isOnPromotion?: boolean
+  discount?: number
+}>(
+  offers: T[],
+  persistedFingerprints: Map<string, string>,
+) {
+  const pendingByKey = new Map<string, T>()
+
+  for (const offer of offers) {
+    const key = offerPersistenceKey(offer)
+    const fingerprint = offerPersistenceFingerprint(offer)
+    if (persistedFingerprints.get(key) === fingerprint) continue
+    persistedFingerprints.set(key, fingerprint)
+    pendingByKey.set(key, offer)
+  }
+
+  return Array.from(pendingByKey.values())
 }
 
 function createEmptyCategoryCounts() {
@@ -81,6 +153,7 @@ async function runWeeklyScrape() {
     .filter((result) => !result.coverage.isComplete || hasBlockingIssues(result.issues) || result.offers.length === 0)
     .map((result) => result.retailer)
   const hasDatabaseUrl = Boolean(process.env.POSTGRES_URL || process.env.DATABASE_URL)
+  const persistedOfferFingerprints = new Map<string, string>()
 
   if (hasDatabaseUrl) {
     const successfulRequiredResults = requiredScrapeResults.filter(
@@ -89,8 +162,10 @@ async function runWeeklyScrape() {
     const successfulRequiredOffers = successfulRequiredResults.flatMap((result) => result.offers)
 
     if (successfulRequiredOffers.length > 0) {
-      await upsertOffersBatch(successfulRequiredOffers)
-      await upsertOfferPricesBatch(successfulRequiredOffers)
+      await upsertOffersAndPricesBatch(successfulRequiredOffers)
+      for (const offer of successfulRequiredOffers) {
+        persistedOfferFingerprints.set(offerPersistenceKey(offer), offerPersistenceFingerprint(offer))
+      }
     }
 
     for (const result of successfulRequiredResults) {
@@ -258,8 +333,10 @@ async function runWeeklyScrape() {
   if (!hasDatabaseUrl) {
     console.log('POSTGRES_URL / DATABASE_URL not set, skipping DB save')
   } else if (optionalOffers.length > 0) {
-    await upsertOffersBatch(optionalOffers)
-    await upsertOfferPricesBatch(optionalOffers)
+    await upsertOffersAndPricesBatch(optionalOffers)
+    for (const offer of optionalOffers) {
+      persistedOfferFingerprints.set(offerPersistenceKey(offer), offerPersistenceFingerprint(offer))
+    }
 
     for (const result of successfulOptionalScrapeResults) {
       await pruneStaleOffersByRetailer(
@@ -271,10 +348,12 @@ async function runWeeklyScrape() {
     console.log(`Saved ${optionalOffers.length} validated optional store offers to the database`)
   }
 
-  const promotionalOffers = scrapeResults.flatMap((result) => result.offers.filter(isPromotionalOffer))
+  const promotionalOffers = takeOffersNeedingPersistence(
+    scrapeResults.flatMap((result) => result.offers.filter(isPromotionalOffer)),
+    persistedOfferFingerprints,
+  )
   if (hasDatabaseUrl && promotionalOffers.length > 0) {
-    await upsertOffersBatch(promotionalOffers)
-    await upsertOfferPricesBatch(promotionalOffers)
+    await upsertOffersAndPricesBatch(promotionalOffers)
     console.log(`Re-applied ${promotionalOffers.length} validated promotional offers to the database`)
   }
 
@@ -283,10 +362,12 @@ async function runWeeklyScrape() {
     includeBrowserScrapers: true,
     maxAttempts: 2,
   })
-  const dealOffers = dealScrapeResults.flatMap((result) => result.offers)
+  const dealOffers = takeOffersNeedingPersistence(
+    dealScrapeResults.flatMap((result) => result.offers),
+    persistedOfferFingerprints,
+  )
   if (hasDatabaseUrl && dealOffers.length > 0) {
-    await upsertOffersBatch(dealOffers)
-    await upsertOfferPricesBatch(dealOffers)
+    await upsertOffersAndPricesBatch(dealOffers)
     console.log(`Persisted ${dealOffers.length} validated offers from deal sections`)
   }
 

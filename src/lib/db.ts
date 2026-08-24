@@ -4,7 +4,11 @@ import pg from 'pg'
 import { cache } from 'react'
 
 import { RETAILERS, SUPPORTED_CATEGORIES, type Retailer, type SupportedCategory } from './catalog'
-import { PRODUCT_CACHE_REVALIDATE_SECONDS } from './cache-policy'
+import {
+  DEALS_CACHE_REVALIDATE_SECONDS,
+  PRODUCT_CACHE_REVALIDATE_SECONDS,
+  SITEMAP_CACHE_REVALIDATE_SECONDS,
+} from './cache-policy'
 import { ensureDatabaseUrlEnv, hasDatabaseUrl } from './ensure-db-env'
 import { type PriceSortOption } from './result-filters'
 import { normalizeRetailerSelection, normalizeSearchQuery, toRetailerOfferCard } from './scraper-utils'
@@ -454,6 +458,54 @@ const getCachedOfferById = unstable_cache(
   { revalidate: PRODUCT_CACHE_REVALIDATE_SECONDS, tags: ['products'] },
 )
 
+const getCachedDeals = unstable_cache(
+  async (
+    category: SupportedCategory | null,
+    limit: number,
+    retailer: string | string[] | null,
+    query: string | null,
+    sort: Exclude<PriceSortOption, 'default'> | undefined,
+    sortByDeals: boolean,
+  ) =>
+    queryOffers({
+      category,
+      limit,
+      retailer,
+      query: query || undefined,
+      promotionOnly: true,
+      sort,
+      sortByDeals,
+    }),
+  ['offers-deals-v1'],
+  { revalidate: DEALS_CACHE_REVALIDATE_SECONDS, tags: ['products', 'deals'] },
+)
+
+const getCachedProductSitemapEntries = unstable_cache(
+  async (limit: number) => {
+    const { rows } = await sql.query<{ id: string; updated_at: Date | string | null }>(
+      `
+        SELECT id, created_at AS updated_at
+        FROM products
+        ORDER BY created_at DESC NULLS LAST, id ASC
+        LIMIT $1
+      `,
+      [limit],
+    )
+
+    return rows.map((row) => ({
+      id: row.id,
+      lastModified:
+        row.updated_at instanceof Date
+          ? row.updated_at
+          : row.updated_at
+            ? new Date(row.updated_at)
+            : null,
+    }))
+  },
+  ['product-sitemap-v1'],
+  { revalidate: SITEMAP_CACHE_REVALIDATE_SECONDS, tags: ['products'] },
+)
+
 export async function searchOffersInDb(query: string, category?: SupportedCategory | null, retailer?: string | null) {
   if (!hasDatabaseUrl()) {
     return []
@@ -563,18 +615,93 @@ export async function getDealsInDb(
   }
 
   try {
-    return await queryOffers({
-      query: query || undefined,
-      category: category || null,
+    const normalizedSort = sort === 'price-asc' || sort === 'price-desc' ? sort : undefined
+    const normalizedRetailer = Array.isArray(retailer) ? retailer : retailer || null
+    return await getCachedDeals(
+      category || null,
       limit,
-      retailer,
-      promotionOnly: true,
-      sort: sort === 'price-asc' || sort === 'price-desc' ? sort : undefined,
-      sortByDeals: sort === 'default' || !sort,
-    })
+      normalizedRetailer,
+      query?.trim() || null,
+      normalizedSort,
+      sort === 'default' || !sort,
+    )
   } catch (error) {
     console.error('DB Error in getDealsInDb:', error)
     return []
+  }
+}
+
+async function upsertProductRows(client: InstanceType<typeof Client>, offers: ValidatedOffer[], now: string) {
+  for (const chunk of chunkArray(offers, 150)) {
+    const values = chunk.flatMap((offer) => [
+      offer.id,
+      offer.retailer,
+      offer.sourceProductId,
+      offer.sourceUrl,
+      offer.sourceCategoryPath || null,
+      offer.name,
+      offer.category,
+      offer.brand || null,
+      offer.image || null,
+      offer.description || null,
+      offer.availability || null,
+      offer.quantity || null,
+      offer.unitPrice || null,
+      now,
+    ])
+
+    const placeholders = buildPlaceholders(chunk.length, PRODUCT_COLUMNS.length)
+
+    await client.query(
+      `
+        INSERT INTO products (${PRODUCT_COLUMNS.join(', ')})
+        VALUES ${placeholders}
+        ON CONFLICT (id) DO UPDATE SET
+          store_id = EXCLUDED.store_id,
+          source_product_id = EXCLUDED.source_product_id,
+          source_url = EXCLUDED.source_url,
+          source_category_path = EXCLUDED.source_category_path,
+          name = EXCLUDED.name,
+          category = EXCLUDED.category,
+          brand = EXCLUDED.brand,
+          image = EXCLUDED.image,
+          description = EXCLUDED.description,
+          availability = EXCLUDED.availability,
+          quantity = EXCLUDED.quantity,
+          unit_price = EXCLUDED.unit_price,
+          last_scraped_at = EXCLUDED.last_scraped_at
+      `,
+      values,
+    )
+  }
+}
+
+async function upsertPriceRows(client: InstanceType<typeof Client>, offers: ValidatedOffer[], now: string) {
+  for (const chunk of chunkArray(offers, 200)) {
+    const values = chunk.flatMap((offer) => [
+      offer.id,
+      offer.price,
+      offer.originalPrice || null,
+      offer.discount || null,
+      offer.isOnPromotion ? true : false,
+      now,
+    ])
+
+    const placeholders = buildPlaceholders(chunk.length, PRICE_COLUMNS.length)
+
+    await client.query(
+      `
+        INSERT INTO prices (${PRICE_COLUMNS.join(', ')})
+        VALUES ${placeholders}
+        ON CONFLICT (product_id) DO UPDATE SET
+          price = EXCLUDED.price,
+          original_price = EXCLUDED.original_price,
+          discount = EXCLUDED.discount,
+          is_on_promotion = EXCLUDED.is_on_promotion,
+          updated_at = EXCLUDED.updated_at
+      `,
+      values,
+    )
   }
 }
 
@@ -689,25 +816,7 @@ export async function getProductSitemapEntries(limit = 5000) {
   }
 
   try {
-    const { rows } = await sql.query<{ id: string; updated_at: Date | string | null }>(
-      `
-        SELECT id, created_at AS updated_at
-        FROM products
-        ORDER BY created_at DESC NULLS LAST, id ASC
-        LIMIT $1
-      `,
-      [limit],
-    )
-
-    return rows.map((row) => ({
-      id: row.id,
-      lastModified:
-        row.updated_at instanceof Date
-          ? row.updated_at
-          : row.updated_at
-            ? new Date(row.updated_at)
-            : null,
-    }))
+    return await getCachedProductSitemapEntries(limit)
   } catch (error) {
     console.error('DB Error in getProductSitemapEntries:', error)
     return []
@@ -729,48 +838,7 @@ export async function upsertOffersBatch(offers: ValidatedOffer[]) {
 
     const normalizedOffers = await resolvePersistedOfferIds(client, offers)
 
-    for (const chunk of chunkArray(normalizedOffers, 150)) {
-      const values = chunk.flatMap((offer) => [
-        offer.id,
-        offer.retailer,
-        offer.sourceProductId,
-        offer.sourceUrl,
-        offer.sourceCategoryPath || null,
-        offer.name,
-        offer.category,
-        offer.brand || null,
-        offer.image || null,
-        offer.description || null,
-        offer.availability || null,
-        offer.quantity || null,
-        offer.unitPrice || null,
-        now,
-      ])
-
-      const placeholders = buildPlaceholders(chunk.length, PRODUCT_COLUMNS.length)
-
-      await client.query(
-        `
-          INSERT INTO products (${PRODUCT_COLUMNS.join(', ')})
-          VALUES ${placeholders}
-          ON CONFLICT (id) DO UPDATE SET
-            store_id = EXCLUDED.store_id,
-            source_product_id = EXCLUDED.source_product_id,
-            source_url = EXCLUDED.source_url,
-            source_category_path = EXCLUDED.source_category_path,
-            name = EXCLUDED.name,
-            category = EXCLUDED.category,
-            brand = EXCLUDED.brand,
-            image = EXCLUDED.image,
-            description = EXCLUDED.description,
-            availability = EXCLUDED.availability,
-            quantity = EXCLUDED.quantity,
-            unit_price = EXCLUDED.unit_price,
-            last_scraped_at = EXCLUDED.last_scraped_at
-        `,
-        values,
-      )
-    }
+    await upsertProductRows(client, normalizedOffers, now)
 
     await client.query('COMMIT')
     revalidateProductsCache()
@@ -797,38 +865,47 @@ export async function upsertOfferPricesBatch(offers: ValidatedOffer[]) {
 
     const normalizedOffers = await resolvePersistedOfferIds(client, offers)
 
-    for (const chunk of chunkArray(normalizedOffers, 200)) {
-      const values = chunk.flatMap((offer) => [
-        offer.id,
-        offer.price,
-        offer.originalPrice || null,
-        offer.discount || null,
-        offer.isOnPromotion ? true : false,
-        now,
-      ])
-
-      const placeholders = buildPlaceholders(chunk.length, PRICE_COLUMNS.length)
-
-      await client.query(
-        `
-          INSERT INTO prices (${PRICE_COLUMNS.join(', ')})
-          VALUES ${placeholders}
-          ON CONFLICT (product_id) DO UPDATE SET
-            price = EXCLUDED.price,
-            original_price = EXCLUDED.original_price,
-            discount = EXCLUDED.discount,
-            is_on_promotion = EXCLUDED.is_on_promotion,
-            updated_at = EXCLUDED.updated_at
-        `,
-        values,
-      )
-    }
+    await upsertPriceRows(client, normalizedOffers, now)
 
     await client.query('COMMIT')
     revalidateProductsCache()
   } catch (error) {
     await client.query('ROLLBACK').catch(() => undefined)
     console.error('DB Error in upsertOfferPricesBatch:', error)
+    throw error
+  } finally {
+    await client.end().catch(() => undefined)
+  }
+}
+
+/**
+ * Persists product fields and prices in one transaction and one connection.
+ * Scrape jobs always update both tables together, so keeping them together
+ * avoids a second connection, ID-resolution query, transaction, and cache
+ * invalidation for the same offer batch.
+ */
+export async function upsertOffersAndPricesBatch(offers: ValidatedOffer[]) {
+  if (offers.length === 0) return
+  if (!hasDatabaseUrl()) return
+
+  const now = new Date().toISOString()
+  const client = createDbClient()
+
+  try {
+    await client.connect()
+    await client.query('BEGIN')
+    await ensureProductRetailerConstraint(client)
+    await ensureProductCategoryConstraint(client)
+
+    const normalizedOffers = await resolvePersistedOfferIds(client, offers)
+    await upsertProductRows(client, normalizedOffers, now)
+    await upsertPriceRows(client, normalizedOffers, now)
+
+    await client.query('COMMIT')
+    revalidateProductsCache()
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => undefined)
+    console.error('DB Error in upsertOffersAndPricesBatch:', error)
     throw error
   } finally {
     await client.end().catch(() => undefined)

@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 import path from 'path'
 
 import { RETAILERS, type Retailer } from '../src/lib/catalog'
-import { upsertOfferPricesBatch, upsertOffersBatch } from '../src/lib/db'
+import { upsertOffersAndPricesBatch } from '../src/lib/db'
 import { scrapeDealRetailers } from '../src/lib/scrape-runtime'
 import { isPromotionalOffer } from '../src/lib/deals'
 
@@ -44,8 +44,7 @@ async function run() {
   }
 
   if (process.env.POSTGRES_URL || process.env.DATABASE_URL) {
-    await upsertOffersBatch(offers)
-    await upsertOfferPricesBatch(offers)
+    await upsertOffersAndPricesBatch(offers)
     console.log('Saved deal offers to the database.')
   } else {
     console.log('Database URL missing, skipping persistence.')

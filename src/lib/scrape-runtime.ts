@@ -1,5 +1,5 @@
 import { RETAILERS, type Retailer } from './catalog'
-import { pruneStaleOffersByRetailer, upsertOfferPricesBatch, upsertOffersBatch } from './db'
+import { pruneStaleOffersByRetailer, upsertOffersAndPricesBatch } from './db'
 import { validateOffersForRetailer } from './scraper-utils'
 import type {
   OfferValidationReport,
@@ -412,8 +412,7 @@ export async function runIsolatedRetailerScrape(
   const hasDatabaseUrl = Boolean(process.env.POSTGRES_URL || process.env.DATABASE_URL)
   if (hasDatabaseUrl) {
     console.log(`Persisting ${validated.offers.length} validated offers to the database...`)
-    await upsertOffersBatch(validated.offers)
-    await upsertOfferPricesBatch(validated.offers)
+    await upsertOffersAndPricesBatch(validated.offers)
     await pruneStaleOffersByRetailer(
       retailer,
       validated.offers.map((offer) => offer.id),
